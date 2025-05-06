@@ -5,7 +5,55 @@ export class GameState {
     logEntries: [
       {
         ts: 0,
-        text: "After series of weird zaps, your time leap machine seemingly started to work. Then the second series of zaps came in. You find yourself transported to some weird backalley",
+        text: "After series of weird zaps, your time leap machine seemingly started to work. Then the second series of zaps came in",
+      },
+      {
+        ts: 0,
+        text: "You find yourself transported to some weird backalley",
+      },
+      {
+        ts: 0,
+        text: "After series of weird zaps, your time leap machine seemingly started to work. Then the second series of zaps came in",
+      },
+      {
+        ts: 0,
+        text: "After series of weird zaps, your time leap machine seemingly started to work. Then the second series of zaps came in",
+      },
+      {
+        ts: 0,
+        text: "After series of weird zaps, your time leap machine seemingly started to work. Then the second series of zaps came in",
+      },
+      {
+        ts: 0,
+        text: "After series of weird zaps, your time leap machine seemingly started to work. Then the second series of zaps came in",
+      },
+      {
+        ts: 0,
+        text: "After series of weird zaps, your time leap machine seemingly started to work. Then the second series of zaps came in",
+      },
+      {
+        ts: 0,
+        text: "After series of weird zaps, your time leap machine seemingly started to work. Then the second series of zaps came in",
+      },
+      {
+        ts: 0,
+        text: "After series of weird zaps, your time leap machine seemingly started to work. Then the second series of zaps came in",
+      },
+      {
+        ts: 0,
+        text: "After series of weird zaps, your time leap machine seemingly started to work. Then the second series of zaps came in",
+      },
+      {
+        ts: 0,
+        text: "After series of weird zaps, your time leap machine seemingly started to work. Then the second series of zaps came in",
+      },
+      {
+        ts: 0,
+        text: "After series of weird zaps, your time leap machine seemingly started to work. Then the second series of zaps came in",
+      },
+      {
+        ts: 0,
+        text: "After series of weird zaps, your time leap machine seemingly started to work. Then the second series of zaps came in",
       },
     ],
   };
