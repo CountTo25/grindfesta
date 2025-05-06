@@ -1,0 +1,36 @@
+.panel {
+    border-radius: 10px;
+    background: #3b2b50;
+    box-shadow:  -5px -5px 10px #322544,
+                 5px 5px 10px #44315c;
+}
+
+.panel.btn {
+    user-select: none;
+    cursor: pointer;
+    background: #473460;
+    transition: 0.15s ease-in;
+}
+
+.panel.btn.inactive {
+    background: #23192f !important;
+    cursor: default;
+    opacity: 0.5;
+}
+
+.panel.btn:hover {
+    background: #5a427a
+}
+
+.panel.btn:active:not(.inactive) {
+    background: #3b2b50;
+    box-shadow:  0px 0px 0px #322544,
+    0px 0px 0px #44315c; 
+}
+* {
+    color: white;
+}
+html, 
+body, #app {
+    height: 100%;
+}
