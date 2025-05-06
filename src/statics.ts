@@ -1,4 +1,5 @@
 import type { Action } from "./types";
+import { withLogEntry } from "./utils";
 
 export const actions: { [key: string]: Action } = {
   la_intro_0: {
@@ -8,6 +9,8 @@ export const actions: { [key: string]: Action } = {
     conditions: [],
     repeatable: false,
     crossGeneration: false,
-    postComplete: (s) => s,
+    postComplete: withLogEntry(
+      "That is indeed some backalley of some unfamiliar town. "
+    ),
   },
 };

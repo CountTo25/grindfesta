@@ -1,3 +1,5 @@
+import type { GameState, LogEntry } from "./types";
+
 export const syncToDebug = (tag: string) => {
   //@ts-ignore
   !window.__debug && (window.__debug = {});
@@ -22,3 +24,10 @@ export function deepMerge<T>(target: T, source: Partial<T>) {
   }
   return result;
 }
+
+export const withLogEntry = (text: string) => {
+  return (d: GameState) => {
+    d.data.run.logEntries.push({ ts: d.data.run.timeSpent, text });
+    return d;
+  };
+};

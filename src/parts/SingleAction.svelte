@@ -1,13 +1,25 @@
 <script lang="ts">
+  import { gameState } from "../state";
   import type { Action } from "../types";
   import ProgressBar from "./ProgressBar.svelte";
   export let action: Action;
+  export let id: string;
+  export let running: boolean = false;
   export let config: { classes: string[] } = { classes: [] };
-  let percent = 0;
-  setInterval(() => {
-    percent++;
-    if (percent > 100) percent = 0;
-  }, 100);
+  export let progress = 0;
+  $: console.log(progress);
+  $: console.log(action.weight);
+  $: percent = (progress / action.weight) * 100;
+  $: console.log(percent);
+  const toggleAction = () => {
+    console.log("are we togglin yet?");
+    if (!running) {
+      $gameState.data.run.action = { id };
+    } else {
+      $gameState.data.run.action = null;
+    }
+    console.log($gameState.data.run.action);
+  };
 </script>
 
 <div
@@ -21,7 +33,9 @@
   <!-- -->
   <div class="col-span-2"></div>
   <div class="col-span-6">{action.title}</div>
-  <div class="col-span-2 text-center">+</div>
+  <div class="col-span-2 text-center cursor-pointer" on:click={toggleAction}>
+    {running ? "||" : "+"}
+  </div>
   <div class="col-span-2 text-center">Q</div>
   <div class="col-span-12 text-center"><ProgressBar {percent} /></div>
 </div>

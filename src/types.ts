@@ -1,61 +1,25 @@
 export class GameState {
   data: GameStateInner = {
-    action: null,
-    mainViewRoute: "actions",
-    logEntries: [
-      {
-        ts: 0,
-        text: "After series of weird zaps, your time leap machine seemingly started to work. Then the second series of zaps came in",
-      },
-      {
-        ts: 0,
-        text: "You find yourself transported to some weird backalley",
-      },
-      {
-        ts: 0,
-        text: "After series of weird zaps, your time leap machine seemingly started to work. Then the second series of zaps came in",
-      },
-      {
-        ts: 0,
-        text: "After series of weird zaps, your time leap machine seemingly started to work. Then the second series of zaps came in",
-      },
-      {
-        ts: 0,
-        text: "After series of weird zaps, your time leap machine seemingly started to work. Then the second series of zaps came in",
-      },
-      {
-        ts: 0,
-        text: "After series of weird zaps, your time leap machine seemingly started to work. Then the second series of zaps came in",
-      },
-      {
-        ts: 0,
-        text: "After series of weird zaps, your time leap machine seemingly started to work. Then the second series of zaps came in",
-      },
-      {
-        ts: 0,
-        text: "After series of weird zaps, your time leap machine seemingly started to work. Then the second series of zaps came in",
-      },
-      {
-        ts: 0,
-        text: "After series of weird zaps, your time leap machine seemingly started to work. Then the second series of zaps came in",
-      },
-      {
-        ts: 0,
-        text: "After series of weird zaps, your time leap machine seemingly started to work. Then the second series of zaps came in",
-      },
-      {
-        ts: 0,
-        text: "After series of weird zaps, your time leap machine seemingly started to work. Then the second series of zaps came in",
-      },
-      {
-        ts: 0,
-        text: "After series of weird zaps, your time leap machine seemingly started to work. Then the second series of zaps came in",
-      },
-      {
-        ts: 0,
-        text: "After series of weird zaps, your time leap machine seemingly started to work. Then the second series of zaps came in",
-      },
-    ],
+    global: {
+      stats: { exploration: 0, perception: 0 },
+    },
+    run: {
+      action: null,
+      actionProgress: {},
+      mainViewRoute: "actions",
+      timeSpent: 0.0,
+      stats: { exploration: 0, perception: 0 },
+      logEntries: [
+        {
+          ts: 0,
+          text: "After series of weird zaps, your time leap machine seemingly started to work. Then the second series of zaps came in",
+        },
+        {
+          ts: 0,
+          text: "You find yourself transported to some weird backalley",
+        },
+      ],
+    },
   };
 
   static new(): GameState {
@@ -66,19 +30,36 @@ export class GameState {
 
 export type CurrentAction = {
   id: string;
-  progress: number;
 };
 
+export type Skill = "exploration" | "perception";
+
+type SkillLevels = {
+  [k in Skill]: number;
+};
 type GameStateInner = {
+  run: RunState;
+  global: GlobalState;
+};
+
+type GlobalState = {
+  stats: SkillLevels;
+};
+
+type RunState = {
   mainViewRoute: "actions";
   action: CurrentAction | null;
-  logEntries: { ts: number; text: string }[];
+  logEntries: LogEntry[];
+  actionProgress: { [id: string]: { progress: number; complete: boolean } };
+  timeSpent: number;
+  stats: SkillLevels;
 };
 
-type StatePatcher = (f: GameStateInner) => GameStateInner;
-export type Skill = "exploration" | "perception";
+export type LogEntry = { ts: number; text: string };
+
+type StatePatcher = (f: GameState) => GameState;
 export type Action = {
-  title: string;
+  title: string | ((state: GameState) => string);
   skill: Skill;
   weight: number;
   conditions: ((state: GameState) => boolean)[];

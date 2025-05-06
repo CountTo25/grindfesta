@@ -12,15 +12,15 @@
     >
       <div
         class="col-span-12 border-b border-b-slate-400"
-        class:text-slate-500={!$gameState.data.action}
+        class:text-slate-500={!$gameState.data.run.action}
       >
-        {$gameState.data.action ?? "no action running"}
+        {$gameState.data.run.action ?? "no action running"}
       </div>
       <div
         class="col-span-12 border-b border-b-slate-400"
-        class:text-slate-500={!$gameState.data.action}
+        class:text-slate-500={!$gameState.data.run.action}
       >
-        {$gameState.data.action ?? "no action running"}
+        {$gameState.data.run.action ?? "no action running"}
       </div>
       <div class="col-span-12 grid grid-cols-12">skills</div>
     </div>
@@ -35,7 +35,7 @@
           routingSettings={{
             actions: Actions,
           }}
-          currentRoute={$gameState.data.mainViewRoute}
+          currentRoute={$gameState.data.run.mainViewRoute}
         />
       </div>
 
@@ -44,7 +44,7 @@
         class="col-span-3 border-l border-l-slate-400 h-full overflow-hidden flex flex-col"
       >
         <div class="overflow-y-auto flex-1">
-          {#each $gameState.data.logEntries as { ts, text }}
+          {#each $gameState.data.run.logEntries as { ts, text }}
             <div class="border-b border-b-slate-400 px-3 py-1 text-sm">
               <div class="text-right text-slate-500">+00:0{ts}</div>
               <div>{text}</div>
