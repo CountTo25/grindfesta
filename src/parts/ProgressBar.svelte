@@ -2,6 +2,7 @@
   import { onMount, onDestroy } from "svelte";
 
   export let percent: number = 0; // 0–100
+  export let rgb = [148, 163, 184];
 
   const blockSize = 3;
   const rows = 2;
@@ -86,6 +87,13 @@
     canvas.height = canvasHeight;
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
+
+    if (percent >= 100) {
+      ctx.fillStyle = `rgba(${rgb.join(",")}, 1.0)`; // Solid green
+      ctx.fillRect(0, 0, canvas.width, canvasHeight); // Full canvas height (6px)
+      return;
+    }
+
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     for (let i = 0; i < targetBlocks; i++) {
       const col = Math.floor(i / rows);
@@ -93,7 +101,7 @@
       const x = col * blockSize;
       const y = row * blockSize;
       const alpha = opacityMap[i] ?? 0;
-      ctx.fillStyle = `rgba(148, 163, 184, ${alpha.toFixed(2)})`;
+      ctx.fillStyle = `rgba(${rgb.join(",")}, ${alpha.toFixed(2)})`;
       ctx.fillRect(x, y, blockSize, blockSize);
     }
   }

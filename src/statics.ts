@@ -3,6 +3,7 @@ import { ifActionComplete, withLogEntry } from "./utils";
 
 const NO_REPEAT = { repeatable: false };
 const NO_CROSSGEN = { crossGeneration: false };
+const NO_POSTCOMPLETE = { postComplete: [] };
 export const actions: { [key: string]: Action } = {
   intro_0: {
     title: "Look around",
@@ -23,17 +24,17 @@ export const actions: { [key: string]: Action } = {
     repeatable: false,
     crossGeneration: false,
     postComplete: withLogEntry(
-      "Device on your wrist seems to be intact, but there is not enough energy. Seems like you will shortly be back in your own time and (hopefully) place"
+      "Device on your wrist seems to be intact, but battery seems to rapidly degrade. Seems like you will shortly be back in your own time and (hopefully) place"
     ),
   },
   intro_2: {
     ...NO_REPEAT,
     ...NO_CROSSGEN,
+    ...NO_POSTCOMPLETE,
     title: "Emerge from alley",
     skill: "exploration",
     weight: 10,
     conditions: [ifActionComplete("intro_1")],
-    postComplete: null,
   },
   narcadia_gather_info: {
     ...NO_CROSSGEN,
@@ -42,7 +43,24 @@ export const actions: { [key: string]: Action } = {
     skill: "social",
     weight: 10,
     conditions: [ifActionComplete("intro_2")],
-    postComplete: null,
+    postComplete: [
+      withLogEntry(
+        "Asking around about where you are proved a surefire way to confuse people on the streets. You are on a streets of city called 'New Arcadia'"
+      ),
+    ],
+  },
+  narcadia_info_year: {
+    ...NO_CROSSGEN,
+    ...NO_REPEAT,
+    title: "Ask for more info",
+    skill: "social",
+    weight: 25,
+    conditions: [ifActionComplete("narcadia_gather_info")],
+    postComplete: [
+      withLogEntry(
+        "The first few people ignored your weird questions, seemingly alarmed. Finally, old guy you pestered went on to say that 'In our 641th year we're still unable to get smoking bins around every corner and now we've got weirdos asking stupid things' when prompted about current year. He is clearly upset with people tossing butts around"
+      ),
+    ],
   },
   narcadia_seek_init: {
     ...NO_CROSSGEN,
@@ -51,6 +69,6 @@ export const actions: { [key: string]: Action } = {
     skill: "exploration",
     weight: 10,
     conditions: [ifActionComplete("intro_2")],
-    postComplete: null,
+    postComplete: [],
   },
 };

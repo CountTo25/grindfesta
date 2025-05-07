@@ -7,7 +7,7 @@
     .filter(Boolean);
 </script>
 
-<div class="px-1 py-1 grid grid-cols-12">
+<div class="grid grid-cols-12">
   <div class="col-span-6">
     {#each allActions as { action, id } (id)}
       <SingleAction

@@ -1,4 +1,4 @@
-import type { GameState, LogEntry } from "./types";
+import type { GameState, LogEntry, RunState } from "./types";
 
 export const syncToDebug = (tag: string) => {
   //@ts-ignore
@@ -51,4 +51,53 @@ export function formatTime(ms: number) {
   );
   const seconds = String(totalSeconds % 60).padStart(2, "0");
   return `${hours}:${minutes}:${seconds}`;
+}
+
+//todo: refactor this bs
+export function expToLevel(
+  exp: number,
+  baseExp: number
+): { level: number; expToNext: number; expToCurrent: number } {
+  let level = 1;
+  let requiredExp = baseExp;
+  let expToCurrent = 0;
+
+  while (exp >= requiredExp) {
+    exp -= requiredExp;
+    expToCurrent += requiredExp;
+    level++;
+    requiredExp = Math.floor(requiredExp * 1.2);
+  }
+
+  return {
+    level,
+    expToNext: requiredExp,
+    expToCurrent,
+  };
+}
+
+export function getModifier(level: number, power: number) {
+  const raw = Math.pow(power, level - 1);
+  return Math.round(raw * 10000) / 10000;
+}
+
+export const processCleanGameState = (gs: RunState): RunState => deepClone(gs);
+
+export function deepClone<T>(obj: T): T {
+  if (obj === null || typeof obj !== "object") {
+    return obj;
+  }
+
+  if (Array.isArray(obj)) {
+    return obj.map((item) => deepClone(item)) as unknown as T;
+  }
+
+  const cloned: any = {};
+  for (const key in obj) {
+    if (Object.hasOwn(obj, key)) {
+      cloned[key] = deepClone((obj as any)[key]);
+    }
+  }
+
+  return cloned;
 }
