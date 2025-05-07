@@ -23,6 +23,8 @@
     "vite": "^5.4.10"
   },
   "dependencies": {
-    "deepmerge": "^4.3.1"
+    "@hackernoon/pixel-icon-library": "^1.0.5",
+    "deepmerge": "^4.3.1",
+    "pixelarticons": "^1.8.0"
   }
 }

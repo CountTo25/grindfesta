@@ -1,14 +1,14 @@
 export class GameState {
   data: GameStateInner = {
     global: {
-      stats: { exploration: 0, perception: 0 },
+      stats: { exploration: 0, perception: 0, social: 0 },
     },
     run: {
       action: null,
       actionProgress: {},
       mainViewRoute: "actions",
       timeSpent: 0.0,
-      stats: { exploration: 0, perception: 0 },
+      stats: { exploration: 0, perception: 0, social: 0 },
       logEntries: [
         {
           ts: 0,
@@ -32,7 +32,7 @@ export type CurrentAction = {
   id: string;
 };
 
-export type Skill = "exploration" | "perception";
+export type Skill = "exploration" | "perception" | "social";
 
 type SkillLevels = {
   [k in Skill]: number;

@@ -9,12 +9,12 @@
 
 <div class="px-1 py-1 grid grid-cols-12">
   <div class="col-span-6">
-    {#each allActions as { action, id }}
+    {#each allActions as { action, id } (id)}
       <SingleAction
         {action}
         {id}
         running={$gameState.data.run.action?.id == id}
-        config={{ classes: ["col-span-12"] }}
+        config={{ classes: ["col-span-12 mb-2"] }}
         progress={$gameState.data.run.actionProgress[id]?.progress ?? 0}
       />
     {/each}
