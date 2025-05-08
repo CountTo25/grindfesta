@@ -60,23 +60,34 @@ export const gameState: Writable<GameState> = writable(GameState.new());
 export const actionsCheckSignal: Writable<boolean> = writable(false);
 export const tickSignal: Writable<boolean> = writable(false);
 export const bakeSignal: Writable<boolean> = writable(false);
+export const knowledgeSignal: Writable<boolean> = writable(false);
 export const endRun: Writable<RunState | null> = writable(null);
 // tools
 const flick = (v: boolean) => !v;
 export const checkActions = () => actionsCheckSignal.update(flick);
 export const sendBakeSignal = () => bakeSignal.update(flick);
+export const sendKnowledgesignal = () => knowledgeSignal.update(flick);
 /////
 bakeSkillLevels();
 /////
 actionsCheckSignal.subscribe((_) => {
   gameState.update((state) => {
     if (!state.data.run.action) return state;
-    let actionRef = actions[state.data.run.action.id]!;
-    let progressRef =
-      state.data.run.actionProgress[state.data.run.action.id].progress;
+    const ACTION_ID = state.data.run.action.id;
+    let actionRef = actions[ACTION_ID]!;
+    let progressRef = state.data.run.actionProgress[ACTION_ID].progress;
     if (progressRef >= actionRef.weight) {
       if (!actionRef.repeatable) {
         state.data.run.action = null;
+      } else {
+        state.data.run.actionProgress[ACTION_ID].progress = 0;
+        state.data.run.actionProgress[ACTION_ID].complete = false;
+      }
+
+      if (!!actionRef.stopOnRepeat) {
+        state.data.run.action = null;
+        state.data.run.actionProgress[ACTION_ID].progress = 0;
+        state.data.run.actionProgress[ACTION_ID].complete = false;
       }
       let actions = Array.isArray(actionRef.postComplete)
         ? actionRef.postComplete
@@ -97,11 +108,13 @@ export const gainPerTick = derived(
   }
 );
 export const displayableActions: Readable<string[]> = derived(
-  [gameState, actionsCheckSignal],
-  ([gs, _]) =>
+  [actionsCheckSignal],
+  ([_]) =>
     Object.entries(actions)
-      .filter(([_, action]) => action.conditions.every((c) => c(gs)))
-      .filter(canDisplay(gs))
+      .filter(([_, action]) =>
+        action.conditions.every((c) => c(get(gameState)))
+      )
+      .filter(canDisplay(get(gameState)))
       .map(([k, _]) => k),
   ["intro_0"]
 );
@@ -122,7 +135,9 @@ const ticker = derived(
 //tick handler
 tickSignal.subscribe((_) => {
   gameState.update((val) => {
+    //leets treat is as separate module for ease of understanding
     if (val.data.run.action) {
+      const ACTION_ID: string = val.data.run.action.id;
       val.data.run.timeSpent += bakedTimePerTick;
       val.data.run.energyDecayRate +=
         (val.data.run.energyDecayRate * 0.1) / bakedTimePerTick;
@@ -131,29 +146,29 @@ tickSignal.subscribe((_) => {
       if (val.data.run.currentEnergy <= 0) {
         endRun.set(val.data.run);
         val.data.run = processCleanGameState(EMPTY_RUN);
+        checkActions();
         bakeSkillLevels();
         return val;
       }
-      const skill = actions[val.data.run.action.id]!.skill;
+      const skill = actions[ACTION_ID]!.skill;
       let skillModifier = bakery.modifiers[skill];
       const actionProgressGain = bakedGainPerTick * skillModifier;
-      if (val.data.run.actionProgress[val.data.run.action.id]) {
-        val.data.run.actionProgress[val.data.run.action.id].progress +=
-          actionProgressGain;
+      if (val.data.run.actionProgress[ACTION_ID]) {
+        val.data.run.actionProgress[ACTION_ID].progress += actionProgressGain;
       } else {
-        val.data.run.actionProgress[val.data.run.action.id] = {
+        val.data.run.actionProgress[ACTION_ID] = {
           progress: actionProgressGain,
           complete: false,
         };
       }
       const rawSkillGain = Math.min(
         Math.max(actionProgressGain, 0),
-        actions[val.data.run.action.id].weight
+        actions[ACTION_ID].weight
       );
       const skillGain = Math.min(
         rawSkillGain,
-        val.data.run.actionProgress[val.data.run.action.id]?.progress ?? 0,
-        actions[val.data.run.action.id].weight
+        val.data.run.actionProgress[ACTION_ID]?.progress ?? 0,
+        actions[ACTION_ID].weight
       );
       val.data.run.stats[skill] += skillGain;
       val.data.global.stats[skill] += skillGain;
@@ -168,10 +183,15 @@ tickSignal.subscribe((_) => {
         bakeSkillLevels();
       }
       if (
-        val.data.run.actionProgress[val.data.run.action.id].progress >=
-        actions[val.data.run.action.id]?.weight
+        val.data.run.actionProgress[ACTION_ID].progress >=
+        actions[ACTION_ID]?.weight
       ) {
-        val.data.run.actionProgress[val.data.run.action.id].complete = true;
+        if (!actions[ACTION_ID]!.repeatable) {
+          val.data.run.actionProgress[ACTION_ID].complete = true;
+        }
+        if (actions[ACTION_ID].crossGeneration) {
+          val.data.global.presistentActionProgress.push(ACTION_ID);
+        }
         checkActions();
       }
     }
@@ -188,20 +208,22 @@ function canDisplay(
   gs: GameState
 ): ([id, action]: [string, Action]) => boolean {
   return ([id, action]: [string, Action]) =>
-    action.repeatable ||
-    !gs.data.run.actionProgress[id] ||
-    !gs.data.run.actionProgress[id].complete;
+    (action.repeatable ||
+      !gs.data.run.actionProgress[id] ||
+      !gs.data.run.actionProgress[id].complete) &&
+    (!action.crossGeneration ||
+      !gs.data.global.presistentActionProgress.includes(id));
 }
 
 function bakeSkillLevels() {
   let snap = get(gameState);
   for (const skill of ["exploration", "perception", "social"] as Skill[]) {
     let run = expToLevel(snap.data.run.stats[skill], 10);
-    let global = expToLevel(snap.data.global.stats[skill], 25);
+    let global = expToLevel(snap.data.global.stats[skill], 20);
     bakery.skills.run[skill] = run.level;
     bakery.skills.global[skill] = global.level;
     bakery.modifiers[skill] =
-      getModifier(run.level, 1.02) * getModifier(global.level, 1.01);
+      getModifier(run.level, 1.03) * getModifier(global.level, 1.01);
     bakery.toLevel.run.baseline[skill] = run.expToCurrent;
     bakery.toLevel.run.next[skill] = run.expToNext;
     bakery.toLevel.global.baseline[skill] = global.expToCurrent;

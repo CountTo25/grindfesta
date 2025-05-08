@@ -8,6 +8,8 @@ export const EMPTY_RUN: RunState = {
   mainViewRoute: "actions",
   timeSpent: 0.0,
   currentEnergy: 10.0,
+  location: "New Arcadia 641",
+  subLocation: "Western main street alley",
   stats: { exploration: 0, perception: 0, social: 0 },
   logEntries: [
     {
@@ -27,6 +29,9 @@ export class GameState {
       stats: { exploration: 0, perception: 0, social: 0 },
       energyDecayRate: 0.1,
       maxEnergy: 10,
+      presistentActionProgress: [],
+      loop: 0,
+      knowledge: [],
     },
     run: { ...deepClone(EMPTY_RUN) },
   };
@@ -42,6 +47,12 @@ export type CurrentAction = {
 };
 
 export type Skill = "exploration" | "perception" | "social";
+export type Location = "New Arcadia 641";
+export type SubLocation = NewArcadiaSubLocation;
+export type NewArcadiaSubLocation =
+  | "Western main street alley"
+  | "Western main street"
+  | "Macro's Workshop";
 
 export type SkillLevels = {
   [k in Skill]: number;
@@ -59,6 +70,9 @@ type EnergyData = {
 type GlobalState =
   | {
       stats: SkillLevels;
+      presistentActionProgress: string[];
+      loop: number;
+      knowledge: string[];
     } & EnergyData;
 
 export type RunState =
@@ -72,6 +86,8 @@ export type RunState =
       maxEnergy: number;
       energyDecayRate: number;
       currentEnergy: number;
+      location: Location;
+      subLocation: SubLocation;
     } & EnergyData;
 
 export type LogEntry = { ts: number; text: string };
@@ -85,4 +101,6 @@ export type Action = {
   repeatable: boolean;
   crossGeneration: boolean;
   postComplete: StatePatcher | StatePatcher[];
+  flavourText?: string;
+  stopOnRepeat?: boolean;
 };

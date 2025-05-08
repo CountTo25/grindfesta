@@ -24,7 +24,7 @@
     ' '
   )}"
 >
-  <div class="grid grid-cols-12 col-span-12 px-3 py-1">
+  <div class="grid grid-cols-12 col-span-12 px-3 pt-1">
     <div class="col-span-2 text-center">
       <SkillIcon skill={action.skill} />
     </div>
@@ -43,5 +43,10 @@
       <span class=" text-slate-500">2s</span>
     </div>
   </div>
+  {#if action.flavourText}
+    <div class="test-xs col-span-12 text-slate-500 pl-2">
+      {action.flavourText}
+    </div>
+  {/if}
   <div class="col-span-12 text-center"><ProgressBar {percent} /></div>
 </div>

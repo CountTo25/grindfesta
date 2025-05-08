@@ -1,4 +1,11 @@
-import type { GameState, LogEntry, RunState } from "./types";
+import { sendKnowledgesignal } from "./state";
+import type {
+  GameState,
+  Location,
+  LogEntry,
+  RunState,
+  SubLocation,
+} from "./types";
 
 export const syncToDebug = (tag: string) => {
   //@ts-ignore
@@ -32,14 +39,106 @@ export const withLogEntry = (text: string) => {
   };
 };
 
-export const ifActionComplete = (actions: string | string[]) => {
-  return (d: GameState): boolean => {
-    actions = Array.isArray(actions) ? actions : [actions];
-    return actions.every(
-      (id) =>
-        d.data.run.actionProgress[id] && d.data.run.actionProgress[id]!.complete
-    );
-  };
+type GenericConditionCheck = (d: GameState) => boolean;
+export const CONDITION_CHECKS = {
+  or: (conditions: GenericConditionCheck[]): GenericConditionCheck => {
+    return (d: GameState): boolean => {
+      return conditions.some((v) => v(d));
+    };
+  },
+  inLocation: (locations: Location | Location[]): GenericConditionCheck => {
+    let all = Array.isArray(locations) ? locations : [locations];
+    return (d: GameState): boolean => all.includes(d.data.run.location);
+  },
+  inSubLocation: (location: SubLocation): GenericConditionCheck => {
+    return (d: GameState): boolean => d.data.run.subLocation === location;
+  },
+  not: (
+    conditions: GenericConditionCheck[] | GenericConditionCheck
+  ): GenericConditionCheck => {
+    let allConditions = Array.isArray(conditions) ? conditions : [conditions];
+    return (d: GameState): boolean => {
+      return allConditions.every((v) => !v(d));
+    };
+  },
+  ifActionCompleteRun: (actions: string | string[]) => {
+    return (d: GameState): boolean => {
+      actions = Array.isArray(actions) ? actions : [actions];
+      return actions.every(
+        (id) =>
+          d.data.run.actionProgress[id] &&
+          d.data.run.actionProgress[id]!.complete
+      );
+    };
+  },
+  ifActionCompleteAny: (actions: string | string[]) => {
+    return (d: GameState): boolean => {
+      actions = Array.isArray(actions) ? actions : [actions];
+      return actions.every(
+        (id) =>
+          (d.data.run.actionProgress[id] &&
+            d.data.run.actionProgress[id]!.complete) ||
+          d.data.global.presistentActionProgress.includes(id)
+      );
+    };
+  },
+  ifActionCompleteGlobal: (
+    actions: string | string[]
+  ): GenericConditionCheck => {
+    return (d: GameState): boolean => {
+      actions = Array.isArray(actions) ? actions : [actions];
+      return actions.every(
+        (id) =>
+          d.data.global.presistentActionProgress.includes(id) &&
+          (!d.data.run.actionProgress[id] ||
+            !d.data.run.actionProgress[id].complete)
+      );
+    };
+  },
+};
+
+export const COMPLETION_EFFECTS = {
+  addLog: (text: string) => {
+    return (d: GameState) => {
+      d.data.run.logEntries.push({ ts: d.data.run.timeSpent, text });
+      return d;
+    };
+  },
+  moveSubLocation: (location: SubLocation) => {
+    return (d: GameState) => {
+      d.data.run.subLocation = location;
+      return d;
+    };
+  },
+  addKnowledge: (id: string) => {
+    return (d: GameState) => {
+      if (!d.data.global.knowledge.includes(id)) {
+        d.data.global.knowledge.push(id);
+        sendKnowledgesignal();
+      }
+      return d;
+    };
+  },
+};
+
+export const LOCATION_CHECKS: {
+  [k in Location]: (d: GameState) => { text: string | null; show: boolean };
+} = {
+  "New Arcadia 641": (d: GameState) => {
+    //TODO research any way to get rust-like match
+    let text = null;
+    if (d.data.global.knowledge.includes("new_arcadia_town_name")) {
+      text = "New Arcadia";
+    }
+    if (d.data.global.knowledge.includes("new_arcadia_year")) {
+      if (!text) {
+        text = "641";
+      } else {
+        text += " 641";
+      }
+    }
+    return { text, show: text != null };
+  },
 };
 
 export function formatTime(ms: number) {
