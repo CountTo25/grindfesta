@@ -5,6 +5,7 @@
     exploration: "search",
     perception: "eye",
     social: "message",
+    engineering: "cog",
   }[skill];
 </script>
 

@@ -10,7 +10,7 @@ export const EMPTY_RUN: RunState = {
   currentEnergy: 10.0,
   location: "New Arcadia 641",
   subLocation: "Western main street alley",
-  stats: { exploration: 0, perception: 0, social: 0 },
+  stats: { exploration: 0, perception: 0, social: 0, engineering: 0 },
   logEntries: [
     {
       ts: 0,
@@ -26,7 +26,7 @@ export const EMPTY_RUN: RunState = {
 export class GameState {
   data: GameStateInner = {
     global: {
-      stats: { exploration: 0, perception: 0, social: 0 },
+      stats: { exploration: 0, perception: 0, social: 0, engineering: 0 },
       energyDecayRate: 0.1,
       maxEnergy: 10,
       presistentActionProgress: [],
@@ -46,7 +46,7 @@ export type CurrentAction = {
   id: string;
 };
 
-export type Skill = "exploration" | "perception" | "social";
+export type Skill = "exploration" | "perception" | "social" | "engineering";
 export type Location = "New Arcadia 641";
 export type SubLocation = NewArcadiaSubLocation;
 export type NewArcadiaSubLocation =

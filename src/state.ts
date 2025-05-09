@@ -25,10 +25,11 @@ const BASE_GAIN_RATE = 1;
 const BASE_TPS = 20;
 let bakedGainPerTick: number = BASE_GAIN_RATE / BASE_TPS;
 let bakedTimePerTick: number = 1000 / BASE_TPS;
-const BAKED_SKILL = {
+const BAKED_SKILL: { [k in Skill]: number } = {
   social: 1,
   exploration: 1,
   perception: 1,
+  engineering: 1,
 };
 export const bakery: {
   skills: { run: SkillLevels; global: SkillLevels };
@@ -217,7 +218,12 @@ function canDisplay(
 
 function bakeSkillLevels() {
   let snap = get(gameState);
-  for (const skill of ["exploration", "perception", "social"] as Skill[]) {
+  for (const skill of [
+    "exploration",
+    "perception",
+    "social",
+    "engineering",
+  ] as Skill[]) {
     let run = expToLevel(snap.data.run.stats[skill], 10);
     let global = expToLevel(snap.data.global.stats[skill], 20);
     bakery.skills.run[skill] = run.level;

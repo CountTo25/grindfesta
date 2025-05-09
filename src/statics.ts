@@ -167,4 +167,17 @@ export const actions: { [key: string]: Action } = {
     ],
     postComplete: [COMPLETION_EFFECTS.moveSubLocation("Western main street")],
   },
+  narcadia_observe_work: {
+    ...NO_CROSSGEN,
+    ...NO_REPEAT,
+    title: "Observe Macro's work",
+    skill: "engineering",
+    weight: 10,
+    flavourText: "Master is at work — fixing wristwatches. Lets have a look",
+    conditions: [
+      CONDITION_CHECKS.inLocation("New Arcadia 641"),
+      CONDITION_CHECKS.inSubLocation("Macro's Workshop"),
+    ],
+    postComplete: [],
+  },
 };

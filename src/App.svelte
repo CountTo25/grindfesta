@@ -11,7 +11,12 @@
   import Button from "./components/Button.svelte";
   import { fade } from "svelte/transition";
   import { get } from "svelte/store";
-  const skills: Skill[] = ["exploration", "perception", "social"];
+  const skills: Skill[] = [
+    "exploration",
+    "perception",
+    "social",
+    "engineering",
+  ];
   function checkSkillVisibility(skill: Skill, s: GameState) {
     // TODO: refactor this bs, dont force redraws
     return s.data.global.stats[skill] > 0 || s.data.run.stats[skill] > 0;
@@ -71,11 +76,11 @@
         </div>
       </div>
 
-      <div class="col-span-12 grid grid-cols-12 space-x-1 mt-2">
+      <div class="col-span-12 grid grid-cols-4 space-x-1 mt-2">
         {#each skills as skill}
           {@const invisible = !checkSkillVisibility(skill, $gameState)}
           <div
-            class="col-span-4 transition-all duration-500"
+            class="transition-all duration-500"
             class:invisible
             class:opacity-0={invisible}
           >
