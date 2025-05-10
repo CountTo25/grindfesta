@@ -1,7 +1,12 @@
 <script lang="ts">
   import Router from "./Router.svelte";
   import Actions from "./routes/Actions.svelte";
-  import { gameState, endRun, knowledgeSignal } from "./state";
+  import {
+    gameState,
+    endRun,
+    knowledgeSignal,
+    subLocationSignal,
+  } from "./state";
   import "@hackernoon/pixel-icon-library/fonts/iconfont.css";
   import { formatTime, LOCATION_CHECKS } from "./utils";
   import ProgressBar from "./parts/ProgressBar.svelte";
@@ -27,7 +32,7 @@
   };
 
   $: console.log($knowledgeSignal, "knowledge tap");
-  $: if ($knowledgeSignal !== null) {
+  $: if ($knowledgeSignal !== null || $subLocationSignal !== null) {
     tryBakeLocation(get(gameState));
   }
   function tryBakeLocation(state: GameState) {
@@ -38,7 +43,11 @@
 
 <main class="h-screen">
   {#if $endRun}
-    <div class="w-full h-full absolute p-10 z-10 backdrop-blur-lg">
+    <div
+      class="w-full h-full absolute p-10 z-10 backdrop-blur-lg"
+      in:fade
+      out:fade={{ duration: 100 }}
+    >
       <div class="w-full h-full pixel-corners bg-slate-900 py-3 px-2">
         <div class="grid grid-cols-12">
           <div class="col-span-12 text-lg text-center">
@@ -104,7 +113,7 @@
       class="col-span-12 grid grid-cols-12 border-b-2 border-b-slate-400 overflow-hidden flex-col"
     >
       <!-- Left main view -->
-      <div class="col-span-9 overflow-hidden p-2">
+      <div class="col-span-9 overflow-hidden px-2">
         <Router
           routingSettings={{
             actions: Actions,
@@ -114,12 +123,12 @@
       </div>
 
       <!-- Log view -->
-      <div
-        class="col-span-3 border-l border-l-slate-400 h-full overflow-hidden flex flex-col"
-      >
+      <div class="col-span-3 h-full overflow-hidden flex flex-col px-2">
         <div class="overflow-y-auto flex-1">
           {#each $gameState.data.run.logEntries.reverse() as { ts, text }}
-            <div class="border-b-2 border-b-slate-400 px-3 py-1 text-sm">
+            <div
+              class="border-b-2 mb-2 pixel-corners bg-slate-900 px-3 text-sm"
+            >
               <div class="text-right text-slate-500">{formatTime(ts)}</div>
               <div>{text}</div>
             </div>

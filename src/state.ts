@@ -21,6 +21,8 @@ import {
   syncToDebug,
 } from "./utils";
 
+const GLOBAL_LEVEL_MOD_RATIO = 1.12;
+
 const BASE_GAIN_RATE = 1;
 const BASE_TPS = 20;
 let bakedGainPerTick: number = BASE_GAIN_RATE / BASE_TPS;
@@ -55,22 +57,33 @@ export const bakery: {
   },
   modifiers: { ...BAKED_SKILL },
 };
+export type BakedSkills = typeof bakery;
 /////
 export const ticksPerSecond: Writable<number> = writable(BASE_TPS);
 export const gameState: Writable<GameState> = writable(GameState.new());
 export const actionsCheckSignal: Writable<boolean> = writable(false);
 export const tickSignal: Writable<boolean> = writable(false);
 export const bakeSignal: Writable<boolean> = writable(false);
+export const everyTenSeconds: Writable<boolean> = writable(false);
 export const knowledgeSignal: Writable<boolean> = writable(false);
+export const subLocationSignal: Writable<boolean> = writable(false);
+export const actionEndSignal: Writable<boolean> = writable(false);
 export const endRun: Writable<RunState | null> = writable(null);
 // tools
 const flick = (v: boolean) => !v;
 export const checkActions = () => actionsCheckSignal.update(flick);
 export const sendBakeSignal = () => bakeSignal.update(flick);
+export const sendActionCompleteSignal = () => actionEndSignal.update(flick);
 export const sendKnowledgesignal = () => knowledgeSignal.update(flick);
+export const sendSubLocationSignal = () => subLocationSignal.update(flick);
+setInterval(() => everyTenSeconds.update(flick), 10 * 1000);
 /////
 bakeSkillLevels();
 /////
+everyTenSeconds.subscribe((_) =>
+  localStorage.setItem("save_0", JSON.stringify(get(gameState).data))
+);
+
 actionsCheckSignal.subscribe((_) => {
   gameState.update((state) => {
     if (!state.data.run.action) return state;
@@ -78,18 +91,6 @@ actionsCheckSignal.subscribe((_) => {
     let actionRef = actions[ACTION_ID]!;
     let progressRef = state.data.run.actionProgress[ACTION_ID].progress;
     if (progressRef >= actionRef.weight) {
-      if (!actionRef.repeatable) {
-        state.data.run.action = null;
-      } else {
-        state.data.run.actionProgress[ACTION_ID].progress = 0;
-        state.data.run.actionProgress[ACTION_ID].complete = false;
-      }
-
-      if (!!actionRef.stopOnRepeat) {
-        state.data.run.action = null;
-        state.data.run.actionProgress[ACTION_ID].progress = 0;
-        state.data.run.actionProgress[ACTION_ID].complete = false;
-      }
       let actions = Array.isArray(actionRef.postComplete)
         ? actionRef.postComplete
         : [actionRef.postComplete];
@@ -97,6 +98,47 @@ actionsCheckSignal.subscribe((_) => {
       for (let action of actions) {
         action(state);
       }
+      if (!actionRef.repeatable) {
+        state.data.run.action = null;
+      } else {
+        if (!!actionRef.grants) {
+          for (const itemId of actionRef.grants) {
+            if (!state.data.run.inventory[itemId]) {
+              state.data.run.inventory[itemId] = 0;
+            }
+            if (
+              state.data.run.inventory[itemId] <
+              state.data.run.inventoryCapacity
+            ) {
+              state.data.run.inventory[itemId]++;
+              if (
+                state.data.run.inventory[itemId] >=
+                state.data.run.inventoryCapacity
+              ) {
+                state.data.run.action = null;
+              }
+            }
+          }
+        }
+        state.data.run.actionProgress[ACTION_ID].progress = 0;
+        state.data.run.actionProgress[ACTION_ID].complete = false;
+        if (
+          actionRef.revealCondition !== undefined &&
+          !actionRef.revealCondition.every((c) => c(state))
+        ) {
+          state.data.run.action = null;
+          state.data.run.actionProgress[ACTION_ID].progress = 0;
+        }
+      }
+
+      if (!!actionRef.stopOnRepeat) {
+        state.data.run.action = null;
+        state.data.run.actionProgress[ACTION_ID].progress = 0;
+        state.data.run.actionProgress[ACTION_ID].complete = false;
+      }
+    }
+    if (state.data.run.actionProgress[ACTION_ID].progress === 0) {
+      sendActionCompleteSignal();
     }
     return state;
   });
@@ -141,7 +183,7 @@ tickSignal.subscribe((_) => {
       const ACTION_ID: string = val.data.run.action.id;
       val.data.run.timeSpent += bakedTimePerTick;
       val.data.run.energyDecayRate +=
-        (val.data.run.energyDecayRate * 0.1) / bakedTimePerTick;
+        (val.data.run.energyDecayRate * 0.05) / bakedTimePerTick;
       val.data.run.currentEnergy -=
         val.data.run.energyDecayRate / bakedTimePerTick;
       if (val.data.run.currentEnergy <= 0) {
@@ -149,6 +191,7 @@ tickSignal.subscribe((_) => {
         val.data.run = processCleanGameState(EMPTY_RUN);
         checkActions();
         bakeSkillLevels();
+
         return val;
       }
       const skill = actions[ACTION_ID]!.skill;
@@ -171,7 +214,7 @@ tickSignal.subscribe((_) => {
         val.data.run.actionProgress[ACTION_ID]?.progress ?? 0,
         actions[ACTION_ID].weight
       );
-      val.data.run.stats[skill] += skillGain;
+      val.data.run.stats[skill] += skillGain * 1.3;
       val.data.global.stats[skill] += skillGain;
 
       if (
@@ -229,11 +272,16 @@ function bakeSkillLevels() {
     bakery.skills.run[skill] = run.level;
     bakery.skills.global[skill] = global.level;
     bakery.modifiers[skill] =
-      getModifier(run.level, 1.03) * getModifier(global.level, 1.01);
+      getModifier(run.level, 1.04) *
+      getModifier(global.level, GLOBAL_LEVEL_MOD_RATIO);
     bakery.toLevel.run.baseline[skill] = run.expToCurrent;
     bakery.toLevel.run.next[skill] = run.expToNext;
     bakery.toLevel.global.baseline[skill] = global.expToCurrent;
     bakery.toLevel.global.next[skill] = global.expToNext;
+    gameState.update((gs) => {
+      gs.data.run.bakery = bakery;
+      return gs;
+    });
   }
   sendBakeSignal();
 }

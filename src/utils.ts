@@ -1,9 +1,15 @@
-import { sendKnowledgesignal } from "./state";
+import { items, type ItemKey } from "./gameData/items";
+import {
+  sendBakeSignal,
+  sendKnowledgesignal,
+  sendSubLocationSignal,
+} from "./state";
 import type {
   GameState,
   Location,
   LogEntry,
   RunState,
+  Skill,
   SubLocation,
 } from "./types";
 
@@ -39,6 +45,55 @@ export const withLogEntry = (text: string) => {
   };
 };
 
+export const REVEAL = {
+  skillCheck: (
+    t: Skill,
+    modifier: number
+  ): {
+    revealCondition: (state: GameState) => boolean;
+    revealConditionExplained: string;
+  } => {
+    return {
+      revealCondition: (state: GameState) => {
+        if (!state.data.run.bakery) {
+          sendBakeSignal();
+        }
+        return (state.data.run.bakery?.modifiers[t] ?? 0) >= modifier;
+      },
+      revealConditionExplained: `Requires x${modifier} on ${t}`,
+    };
+  },
+
+  item: (
+    id: ItemKey,
+    amount: number
+  ): {
+    revealCondition: ((state: GameState) => boolean)[];
+    revealConditionExplained: string[];
+  } => {
+    return {
+      revealCondition: [
+        (state: GameState) => {
+          console.log("running item check", id, amount);
+          console.log(state.data.run.inventory[id] ?? 0);
+          console.log((state.data.run.inventory[id] ?? 0) >= amount);
+          return (state.data.run.inventory[id] ?? 0) >= amount;
+        },
+      ],
+      revealConditionExplained: [`Requires ${amount} of ${items[id].name}`],
+    };
+  },
+
+  //many: (
+  //  r:
+  //) {
+  //  revealCondition?: ((state: GameState) => boolean)[];
+  //  revealConditionExplained?: string[];
+  //} => {
+  //  return {};
+  //},
+};
+
 type GenericConditionCheck = (d: GameState) => boolean;
 export const CONDITION_CHECKS = {
   or: (conditions: GenericConditionCheck[]): GenericConditionCheck => {
@@ -52,6 +107,9 @@ export const CONDITION_CHECKS = {
   },
   inSubLocation: (location: SubLocation): GenericConditionCheck => {
     return (d: GameState): boolean => d.data.run.subLocation === location;
+  },
+  hasKnowledge: (k: string): GenericConditionCheck => {
+    return (d: GameState): boolean => d.data.global.knowledge.includes(k);
   },
   not: (
     conditions: GenericConditionCheck[] | GenericConditionCheck
@@ -104,9 +162,17 @@ export const COMPLETION_EFFECTS = {
       return d;
     };
   },
+
+  removeItem: (id: ItemKey, amount: number) => {
+    return (d: GameState) => {
+      d.data.run.inventory[id] = d.data.run.inventory[id] - amount;
+      return d;
+    };
+  },
   moveSubLocation: (location: SubLocation) => {
     return (d: GameState) => {
       d.data.run.subLocation = location;
+      sendSubLocationSignal();
       return d;
     };
   },
@@ -136,6 +202,9 @@ export const LOCATION_CHECKS: {
       } else {
         text += " 641";
       }
+    }
+    if (text) {
+      text += " — " + d.data.run.subLocation;
     }
     return { text, show: text != null };
   },

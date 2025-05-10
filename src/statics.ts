@@ -1,11 +1,13 @@
+import { macrosWorkshopActions } from "./gameData/actions/na641macros";
+import {
+  NO_REPEAT,
+  NO_CROSSGEN,
+  CROSSGEN,
+  REPEATABLE,
+} from "./gameData/actions/utils";
 import type { Action, GameState } from "./types";
 import { COMPLETION_EFFECTS, CONDITION_CHECKS, withLogEntry } from "./utils";
 
-const NO_REPEAT = { repeatable: false };
-const REPEATABLE = { repeatable: true };
-const NO_CROSSGEN = { crossGeneration: false };
-const CROSSGEN = { crossGeneration: true };
-const NO_POSTCOMPLETE = { postComplete: [] };
 export const actions: { [key: string]: Action } = {
   intro_0: {
     title: "Look around",
@@ -24,7 +26,7 @@ export const actions: { [key: string]: Action } = {
   intro_1: {
     title: "Check time leap device",
     skill: "perception",
-    weight: 5,
+    weight: 3,
     conditions: [
       CONDITION_CHECKS.inLocation("New Arcadia 641"),
       CONDITION_CHECKS.inSubLocation("Western main street alley"),
@@ -40,7 +42,7 @@ export const actions: { [key: string]: Action } = {
   intro_confirm_tld: {
     title: "Check time leap device",
     skill: "perception",
-    weight: 5,
+    weight: 3,
     conditions: [
       CONDITION_CHECKS.inLocation("New Arcadia 641"),
       CONDITION_CHECKS.inSubLocation("Western main street alley"),
@@ -58,7 +60,7 @@ export const actions: { [key: string]: Action } = {
     ...NO_CROSSGEN,
     title: "Emerge from alley",
     skill: "exploration",
-    weight: 10,
+    weight: 4,
     conditions: [
       CONDITION_CHECKS.inLocation("New Arcadia 641"),
       CONDITION_CHECKS.inSubLocation("Western main street alley"),
@@ -92,7 +94,7 @@ export const actions: { [key: string]: Action } = {
     ...NO_REPEAT,
     title: "Ask for more info",
     skill: "social",
-    weight: 25,
+    weight: 20,
     conditions: [
       CONDITION_CHECKS.inLocation("New Arcadia 641"),
       CONDITION_CHECKS.inSubLocation("Western main street"),
@@ -123,61 +125,38 @@ export const actions: { [key: string]: Action } = {
       ),
     ],
   },
-  narcadia_workshop_search: {
+  narcadia_moneymaking_seek: {
     ...CROSSGEN,
     ...NO_REPEAT,
-    title: "Locate workshop",
+    title: "Look for a ways to earn money",
     skill: "exploration",
-    weight: 30,
+    weight: 10,
     conditions: [
       CONDITION_CHECKS.inLocation("New Arcadia 641"),
       CONDITION_CHECKS.inSubLocation("Western main street"),
-      CONDITION_CHECKS.ifActionCompleteRun("intro_2"),
-      CONDITION_CHECKS.ifActionCompleteAny("narcadia_seek_init"),
-      CONDITION_CHECKS.ifActionCompleteRun("intro_confirm_tld"),
+      CONDITION_CHECKS.hasKnowledge("narcadia_currency"),
     ],
-    postComplete: [],
+    postComplete: [
+      COMPLETION_EFFECTS.addLog(
+        "Looking for loose coins under vending machines wouldnt be the worst idea in your situation"
+      ),
+    ],
   },
-  narcadia_workshop_move: {
+  narcadia_loot_jidouhanbaiki: {
     ...NO_CROSSGEN,
     ...REPEATABLE,
-    title: "Walk to Macro's Workshop",
-    skill: "exploration",
-    weight: 10,
-    flavourText: "Marco's Workshop — your go to place for wristwatch service",
-    stopOnRepeat: true,
+    title: "Rummage under vending machines",
+    skill: "perception",
+    weight: 7,
     conditions: [
       CONDITION_CHECKS.inLocation("New Arcadia 641"),
       CONDITION_CHECKS.inSubLocation("Western main street"),
-      CONDITION_CHECKS.ifActionCompleteAny("narcadia_workshop_search"),
+      CONDITION_CHECKS.hasKnowledge("narcadia_currency"),
+      CONDITION_CHECKS.ifActionCompleteAny("narcadia_moneymaking_seek"),
     ],
-    postComplete: [COMPLETION_EFFECTS.moveSubLocation("Macro's Workshop")],
-  },
-  narcadia_workshop_leave: {
-    ...NO_CROSSGEN,
-    ...REPEATABLE,
-    title: "Leave Macro's Workshop",
-    skill: "exploration",
-    weight: 5,
-    stopOnRepeat: true,
-    flavourText: "Marco's Workshop — your go to place for wristwatch service",
-    conditions: [
-      CONDITION_CHECKS.inLocation("New Arcadia 641"),
-      CONDITION_CHECKS.inSubLocation("Macro's Workshop"),
-    ],
-    postComplete: [COMPLETION_EFFECTS.moveSubLocation("Western main street")],
-  },
-  narcadia_observe_work: {
-    ...NO_CROSSGEN,
-    ...NO_REPEAT,
-    title: "Observe Macro's work",
-    skill: "engineering",
-    weight: 10,
-    flavourText: "Master is at work — fixing wristwatches. Lets have a look",
-    conditions: [
-      CONDITION_CHECKS.inLocation("New Arcadia 641"),
-      CONDITION_CHECKS.inSubLocation("Macro's Workshop"),
-    ],
+    grants: ["narcadia641_zenny"],
     postComplete: [],
   },
+
+  ...macrosWorkshopActions,
 };

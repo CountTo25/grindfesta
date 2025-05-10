@@ -1,4 +1,6 @@
+import { bakery, type BakedSkills } from "./state";
 import { deepClone } from "./utils";
+import { items, type ItemKey } from "./gameData/items";
 
 export const EMPTY_RUN: RunState = {
   maxEnergy: 10,
@@ -9,6 +11,8 @@ export const EMPTY_RUN: RunState = {
   timeSpent: 0.0,
   currentEnergy: 10.0,
   location: "New Arcadia 641",
+  inventory: {},
+  inventoryCapacity: 10,
   subLocation: "Western main street alley",
   stats: { exploration: 0, perception: 0, social: 0, engineering: 0 },
   logEntries: [
@@ -38,7 +42,12 @@ export class GameState {
 
   static new(): GameState {
     //try to re-hydrate or drop new one
-    return new GameState();
+    let saved = localStorage.getItem("save_0") as string | undefined;
+    let gs = new GameState();
+    if (saved) {
+      gs.data = JSON.parse(saved);
+    }
+    return gs;
   }
 }
 
@@ -88,6 +97,9 @@ export type RunState =
       currentEnergy: number;
       location: Location;
       subLocation: SubLocation;
+      inventory: { [key in ItemKey]: number };
+      inventoryCapacity: number;
+      bakery?: BakedSkills;
     } & EnergyData;
 
 export type LogEntry = { ts: number; text: string };
@@ -100,7 +112,15 @@ export type Action = {
   conditions: ((state: GameState) => boolean)[];
   repeatable: boolean;
   crossGeneration: boolean;
+  revealCondition?: ((state: GameState) => boolean)[];
+  revealConditionExplained?: string[];
   postComplete: StatePatcher | StatePatcher[];
   flavourText?: string;
   stopOnRepeat?: boolean;
+  grants?: ItemKey[];
+};
+
+export type Item = {
+  name: String;
+  description: String;
 };
