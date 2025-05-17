@@ -36,7 +36,7 @@ const BAKED_SKILL: { [k in Skill]: number } = {
 };
 export const bakery: {
   skills: { run: SkillLevels; global: SkillLevels };
-  modifiers: SkillLevels;
+  modifiers: { run: SkillLevels; global: SkillLevels; total: SkillLevels };
   toLevel: {
     run: { baseline: SkillLevels; next: SkillLevels };
     global: { baseline: SkillLevels; next: SkillLevels };
@@ -56,7 +56,11 @@ export const bakery: {
       next: { ...BAKED_SKILL },
     },
   },
-  modifiers: { ...BAKED_SKILL },
+  modifiers: {
+    global: { ...BAKED_SKILL },
+    total: { ...BAKED_SKILL },
+    run: { ...BAKED_SKILL },
+  },
 };
 export type BakedSkills = typeof bakery;
 /////
@@ -194,7 +198,7 @@ tickSignal.subscribe((_) => {
         return val;
       }
       const skill = actions[ACTION_ID]!.skill;
-      let skillModifier = bakery.modifiers[skill];
+      let skillModifier = bakery.modifiers.total[skill];
       const actionProgressGain = bakedGainPerTick * skillModifier;
       if (val.data.run.actionProgress[ACTION_ID]) {
         val.data.run.actionProgress[ACTION_ID].progress += actionProgressGain;
@@ -270,9 +274,14 @@ function bakeSkillLevels() {
     let global = expToLevel(snap.data.global.stats[skill], 20);
     bakery.skills.run[skill] = run.level;
     bakery.skills.global[skill] = global.level;
-    bakery.modifiers[skill] =
-      getModifier(run.level, 1.04) *
-      getModifier(global.level, GLOBAL_LEVEL_MOD_RATIO);
+    bakery.modifiers.run[skill] = getModifier(run.level, 1.04);
+    bakery.modifiers.global[skill] = getModifier(
+      global.level,
+      GLOBAL_LEVEL_MOD_RATIO
+    );
+    bakery.modifiers.total[skill] =
+      bakery.modifiers.run[skill] * bakery.modifiers.global[skill];
+
     bakery.toLevel.run.baseline[skill] = run.expToCurrent;
     bakery.toLevel.run.next[skill] = run.expToNext;
     bakery.toLevel.global.baseline[skill] = global.expToCurrent;
