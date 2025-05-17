@@ -12,6 +12,7 @@
   import GenericIcon from "./GenericIcon.svelte";
   import ProgressBar from "./ProgressBar.svelte";
   import SkillIcon from "./SkillIcon.svelte";
+  import { items } from "../gameData/items";
   export let action: Action;
   export let id: string;
   export let running: boolean = false;
@@ -24,9 +25,14 @@
     ($bakeSignal !== null && action.weight / bakery.modifiers[action.skill]!) ||
     action.weight;
 
+  $: actionIcon = running
+    ? "pause"
+    : canToggle && isRevealed
+      ? "play"
+      : "exclamation-triangle";
+
   function calcProgress(g: GameState, _: boolean): number {
     let progress = g.data.run.actionProgress[id]?.progress ?? 0;
-    console.log(progress);
     return progress;
   }
 
@@ -39,7 +45,8 @@
     }
 
     return !(action.grants ?? []).every(
-      (g) => (s.data.run.inventory[g] ?? 0) >= s.data.run.inventoryCapacity
+      (g) =>
+        (s.data.run.inventory[g]?.amount ?? 0) >= s.data.run.inventoryCapacity
     );
   }
 
@@ -76,13 +83,7 @@
       {isRevealed ? action.title : "???"}
     </div>
     <div class="col-span-1 text-center cursor-pointer" on:click={toggleAction}>
-      <GenericIcon
-        icon={running
-          ? "pause"
-          : canToggle && isRevealed
-            ? "play"
-            : "exclamation-triangle"}
-      />
+      <GenericIcon icon={actionIcon} />
     </div>
     <div class="col-span-1 text-center cursor-pointer">
       <GenericIcon icon={"login"} />

@@ -20,8 +20,9 @@ import {
   processCleanGameState,
   syncToDebug,
 } from "./utils";
+import { checkItems, save } from "./actions";
 
-const GLOBAL_LEVEL_MOD_RATIO = 1.12;
+const GLOBAL_LEVEL_MOD_RATIO = 1.02;
 
 const BASE_GAIN_RATE = 1;
 const BASE_TPS = 20;
@@ -80,9 +81,7 @@ setInterval(() => everyTenSeconds.update(flick), 10 * 1000);
 /////
 bakeSkillLevels();
 /////
-everyTenSeconds.subscribe((_) =>
-  localStorage.setItem("save_0", JSON.stringify(get(gameState).data))
-);
+everyTenSeconds.subscribe(save(gameState));
 
 actionsCheckSignal.subscribe((_) => {
   gameState.update((state) => {
@@ -104,15 +103,15 @@ actionsCheckSignal.subscribe((_) => {
         if (!!actionRef.grants) {
           for (const itemId of actionRef.grants) {
             if (!state.data.run.inventory[itemId]) {
-              state.data.run.inventory[itemId] = 0;
+              state.data.run.inventory[itemId] = { amount: 0, cooldown: 0 };
             }
             if (
-              state.data.run.inventory[itemId] <
+              state.data.run.inventory[itemId].amount <
               state.data.run.inventoryCapacity
             ) {
-              state.data.run.inventory[itemId]++;
+              state.data.run.inventory[itemId].amount++;
               if (
-                state.data.run.inventory[itemId] >=
+                state.data.run.inventory[itemId].amount >=
                 state.data.run.inventoryCapacity
               ) {
                 state.data.run.action = null;
@@ -182,8 +181,9 @@ tickSignal.subscribe((_) => {
     if (val.data.run.action) {
       const ACTION_ID: string = val.data.run.action.id;
       val.data.run.timeSpent += bakedTimePerTick;
+      val = checkItems(val, bakedTimePerTick);
       val.data.run.energyDecayRate +=
-        (val.data.run.energyDecayRate * 0.05) / bakedTimePerTick;
+        (val.data.run.energyDecayRate * 0.03) / bakedTimePerTick;
       val.data.run.currentEnergy -=
         val.data.run.energyDecayRate / bakedTimePerTick;
       if (val.data.run.currentEnergy <= 0) {
@@ -191,7 +191,6 @@ tickSignal.subscribe((_) => {
         val.data.run = processCleanGameState(EMPTY_RUN);
         checkActions();
         bakeSkillLevels();
-
         return val;
       }
       const skill = actions[ACTION_ID]!.skill;

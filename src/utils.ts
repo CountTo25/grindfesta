@@ -50,17 +50,17 @@ export const REVEAL = {
     t: Skill,
     modifier: number
   ): {
-    revealCondition: (state: GameState) => boolean;
-    revealConditionExplained: string;
+    revealCondition: ((state: GameState) => boolean)[];
+    revealConditionExplained: string[];
   } => {
     return {
-      revealCondition: (state: GameState) => {
-        if (!state.data.run.bakery) {
-          sendBakeSignal();
-        }
-        return (state.data.run.bakery?.modifiers[t] ?? 0) >= modifier;
-      },
-      revealConditionExplained: `Requires x${modifier} on ${t}`,
+      revealCondition: [
+        (state: GameState) => {
+          if (!state.data.run.bakery) sendBakeSignal();
+          return (state.data.run.bakery?.modifiers[t] ?? 0) >= modifier;
+        },
+      ],
+      revealConditionExplained: [`Requires x${modifier} on ${t}`],
     };
   },
 
@@ -74,10 +74,7 @@ export const REVEAL = {
     return {
       revealCondition: [
         (state: GameState) => {
-          console.log("running item check", id, amount);
-          console.log(state.data.run.inventory[id] ?? 0);
-          console.log((state.data.run.inventory[id] ?? 0) >= amount);
-          return (state.data.run.inventory[id] ?? 0) >= amount;
+          return (state.data.run.inventory[id]?.amount ?? 0) >= amount;
         },
       ],
       revealConditionExplained: [`Requires ${amount} of ${items[id].name}`],
@@ -165,7 +162,9 @@ export const COMPLETION_EFFECTS = {
 
   removeItem: (id: ItemKey, amount: number) => {
     return (d: GameState) => {
-      d.data.run.inventory[id] = d.data.run.inventory[id] - amount;
+      if (d.data.run.inventory[id]) {
+        d.data.run.inventory[id].amount -= amount;
+      }
       return d;
     };
   },

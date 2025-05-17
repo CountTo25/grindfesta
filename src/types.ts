@@ -4,7 +4,7 @@ import { items, type ItemKey } from "./gameData/items";
 
 export const EMPTY_RUN: RunState = {
   maxEnergy: 10,
-  energyDecayRate: 0.1,
+  energyDecayRate: 0.05,
   action: null,
   actionProgress: {},
   mainViewRoute: "actions",
@@ -61,7 +61,9 @@ export type SubLocation = NewArcadiaSubLocation;
 export type NewArcadiaSubLocation =
   | "Western main street alley"
   | "Western main street"
-  | "Macro's Workshop";
+  | "Macro's Workshop"
+  | "NAWS History Museum"
+  | "NAWS History Museum — Main Hall";
 
 export type SkillLevels = {
   [k in Skill]: number;
@@ -97,7 +99,7 @@ export type RunState =
       currentEnergy: number;
       location: Location;
       subLocation: SubLocation;
-      inventory: { [key in ItemKey]: number };
+      inventory: { [key in ItemKey]?: { amount: number; cooldown: number } };
       inventoryCapacity: number;
       bakery?: BakedSkills;
     } & EnergyData;
@@ -105,6 +107,7 @@ export type RunState =
 export type LogEntry = { ts: number; text: string };
 
 type StatePatcher = (f: GameState) => GameState;
+type StateChecker = (state: GameState) => boolean;
 export type Action = {
   title: string | ((state: GameState) => string);
   skill: Skill;
@@ -123,4 +126,7 @@ export type Action = {
 export type Item = {
   name: String;
   description: String;
+  consumable: boolean;
+  onConsume: StatePatcher[] | StatePatcher;
+  consumeRequirement: StateChecker | StateChecker[];
 };
