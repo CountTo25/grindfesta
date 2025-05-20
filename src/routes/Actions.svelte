@@ -1,6 +1,7 @@
 <script lang="ts">
   import type { ItemKey } from "../gameData/items";
   import { items } from "../gameData/items";
+  import ProgressBar from "../parts/ProgressBar.svelte";
   import SingleAction from "../parts/SingleAction.svelte";
   import { displayableActions, gameState } from "../state";
   import { actions } from "../statics";
@@ -37,7 +38,12 @@
           <div class="grid grid-cols-2">
             <div class="text-slate-500 text-xs">{items[key].description}</div>
             <div class="text-slate-500 text-xs text-right">
-              {value.cooldown.toFixed(2)}
+              {(value.cooldown / 1000).toFixed(2)}s
+            </div>
+            <div class="col-span-2">
+              <ProgressBar
+                percent={Math.floor((value.cooldown / 5000) * 100)}
+              />
             </div>
           </div>
         {/each}

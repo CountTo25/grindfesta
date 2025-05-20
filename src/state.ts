@@ -23,6 +23,8 @@ import {
 import { checkItems, save } from "./actions";
 
 const GLOBAL_LEVEL_MOD_RATIO = 1.02;
+const RUN_LEVEL_MOD_RATIO = 1.04;
+const RUN_EXP_TO_LEVEL_RATIO = 5;
 
 const BASE_GAIN_RATE = 1;
 const BASE_TPS = 20;
@@ -270,11 +272,11 @@ function bakeSkillLevels() {
     "social",
     "engineering",
   ] as Skill[]) {
-    let run = expToLevel(snap.data.run.stats[skill], 10);
+    let run = expToLevel(snap.data.run.stats[skill], RUN_EXP_TO_LEVEL_RATIO);
     let global = expToLevel(snap.data.global.stats[skill], 20);
     bakery.skills.run[skill] = run.level;
     bakery.skills.global[skill] = global.level;
-    bakery.modifiers.run[skill] = getModifier(run.level, 1.04);
+    bakery.modifiers.run[skill] = getModifier(run.level, RUN_LEVEL_MOD_RATIO);
     bakery.modifiers.global[skill] = getModifier(
       global.level,
       GLOBAL_LEVEL_MOD_RATIO

@@ -22,7 +22,8 @@
   $: canToggle = checkCanToggle($gameState);
   $: isRevealed = checkIsRevealed($actionsCheckSignal !== null);
   $: duration =
-    ($bakeSignal !== null && action.weight / bakery.modifiers[action.skill]!) ||
+    ($bakeSignal !== null &&
+      action.weight / bakery.modifiers.total[action.skill]!) ||
     action.weight;
 
   $: actionIcon = running
