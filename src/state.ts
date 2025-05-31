@@ -27,8 +27,8 @@ const GLOBAL_LEVEL_MOD_RATIO = 1.02;
 const RUN_LEVEL_MOD_RATIO = 1.04;
 const RUN_EXP_TO_LEVEL_RATIO = 5;
 
-//const DECAY_TEST_MOD = 1;
-const DECAY_TEST_MOD = 200;
+const DECAY_TEST_MOD = 1;
+//const DECAY_TEST_MOD = 200;
 //002;
 
 const BASE_GAIN_RATE = 1;

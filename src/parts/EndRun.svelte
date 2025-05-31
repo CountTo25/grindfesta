@@ -39,7 +39,6 @@
     }
 
     fake.data.run = deepClone(state);
-    retraceRecording.push({ id, amount: 1 });
     if (actions[id].postComplete) {
       let todo = [];
       if (!Array.isArray(actions[id].postComplete)) {
@@ -55,9 +54,9 @@
         fake = deepClone(result);
       }
     }
-    console.log("updating state");
     state = fake.data.run;
-    console.log("updated state to", state);
+    retraceRecording.push({ id: id, amount: 1 });
+    retraceRecording = retraceRecording;
   }
 </script>
 
@@ -93,6 +92,16 @@
         Retracing
       </div>
       <div class="flex-1 grid grid-cols-12 min-h-0">
+        <div class="col-span-3 border-r-slate-500 border-r-2">
+          <div
+            class="px-2 py-1 text-center bg-slate-500 text-slate-900 border-t-2 border-t-slate-900"
+          >
+            Timeline
+          </div>
+          {#each retraceRecording as record}
+            <div>{actions[record.id].title}</div>
+          {/each}
+        </div>
         <div
           class="col-span-9 p-2 grid grid-cols-12 grid-rows-12 space-x-1 overflow-auto"
         >
@@ -109,12 +118,15 @@
             </div>
           {/each}
         </div>
-        <div class="col-span-3 border-l-slate-500 border-l-2">
-          <div class="px-2 py-1 text-center">Timeline</div>
-        </div>
       </div>
-      <div class="grid grid-cols-12 w-full border-t-slate-500 border-t-2">
-        exit
+      <div
+        class="grid grid-cols-12 w-full text-center border-t-slate-500 border-t-2"
+      >
+        <Button config={{ classMixins: ["mx-2 my-2"] }}>save</Button>
+        <Button
+          config={{ classMixins: ["mx-2 my-2"] }}
+          on:click={() => (isRetracing = false)}>exit</Button
+        >
       </div>
     {/if}
   </div>

@@ -37,6 +37,7 @@ export class GameState {
       loop: 0,
       knowledge: [],
       completedActionHistory: [],
+      retraceConfig: [],
     },
     run: { ...deepClone(EMPTY_RUN) },
   };
@@ -87,6 +88,7 @@ type GlobalState =
       loop: number;
       knowledge: string[];
       completedActionHistory: string[];
+      retraceConfig: { id: string; amount: number }[];
     } & EnergyData;
 
 export type RunState =
