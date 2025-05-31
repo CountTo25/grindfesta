@@ -23,19 +23,36 @@ export const syncToDebug = (tag: string) => {
   };
 };
 
-export function deepMerge<T>(target: T, source: Partial<T>) {
-  const result = { ...target, ...source };
-  for (const key of Object.keys(result)) {
-    //@ts-ignore
-    result[key] =
+/**
+ * Performs a deep merge of objects and returns new object. Does not modify
+ * objects (immutable) and merges arrays via concatenation.
+ *
+ * @param {...object} objects - Objects to merge
+ * @returns {object} New object with merged key/values
+ */
+export function mergeDeep<T extends Object>(...objects: T[]): T {
+  const isObject = (obj: any) => obj && typeof obj === "object";
+  return objects.reduce((prev, obj) => {
+    Object.keys(obj).forEach((key) => {
       //@ts-ignore
-      typeof target[key] == "object" && typeof source[key] == "object"
-        ? //@ts-ignore
-          deepMerge(target[key], source[key])
-        : //@ts-ignore
-          structuredClone(result[key]);
-  }
-  return result;
+      const pVal = prev[key];
+      //@ts-ignore
+      const oVal = obj[key];
+
+      if (Array.isArray(pVal) && Array.isArray(oVal)) {
+        //@ts-ignore
+        prev[key] = pVal.concat(...oVal);
+      } else if (isObject(pVal) && isObject(oVal)) {
+        //@ts-ignore
+        prev[key] = mergeDeep(pVal, oVal);
+      } else {
+        //@ts-ignore
+        prev[key] = oVal;
+      }
+    });
+
+    return prev;
+  }, {}) as T;
 }
 
 export const withLogEntry = (text: string) => {
@@ -45,19 +62,18 @@ export const withLogEntry = (text: string) => {
   };
 };
 
+type RevealCondition = {
+  revealCondition: ((state: GameState) => boolean)[];
+  revealConditionExplained: string[];
+};
+
 export const REVEAL = {
-  skillCheck: (
-    t: Skill,
-    modifier: number
-  ): {
-    revealCondition: ((state: GameState) => boolean)[];
-    revealConditionExplained: string[];
-  } => {
+  skillCheck: (t: Skill, modifier: number): RevealCondition => {
     return {
       revealCondition: [
         (state: GameState) => {
           if (!state.data.run.bakery) sendBakeSignal();
-          return (state.data.run.bakery?.modifiers[t] ?? 0) >= modifier;
+          return (state.data.run.bakery?.modifiers.total[t] ?? 0) >= modifier;
         },
       ],
       revealConditionExplained: [`Requires x${modifier} on ${t}`],
@@ -81,14 +97,16 @@ export const REVEAL = {
     };
   },
 
-  //many: (
-  //  r:
-  //) {
-  //  revealCondition?: ((state: GameState) => boolean)[];
-  //  revealConditionExplained?: string[];
-  //} => {
-  //  return {};
-  //},
+  all: (r: RevealCondition[]): RevealCondition => {
+    let revealCondition = r.map((v) => v.revealCondition).flat();
+    let revealConditionExplained = r
+      .map((v) => v.revealConditionExplained)
+      .flat();
+    return {
+      revealCondition,
+      revealConditionExplained,
+    };
+  },
 };
 
 type GenericConditionCheck = (d: GameState) => boolean;
@@ -98,6 +116,14 @@ export const CONDITION_CHECKS = {
       return conditions.some((v) => v(d));
     };
   },
+
+  skillModifier: (skill: Skill, mod: number) => {
+    return (state: GameState) => {
+      if (!state.data.run.bakery) sendBakeSignal();
+      return (state.data.run.bakery?.modifiers.total[skill] ?? 0) >= mod;
+    };
+  },
+
   inLocation: (locations: Location | Location[]): GenericConditionCheck => {
     let all = Array.isArray(locations) ? locations : [locations];
     return (d: GameState): boolean => all.includes(d.data.run.location);

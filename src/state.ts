@@ -15,6 +15,7 @@ import {
 } from "./types";
 import { actions } from "./statics";
 import {
+  deepClone,
   expToLevel,
   getModifier,
   processCleanGameState,
@@ -25,6 +26,10 @@ import { checkItems, save } from "./actions";
 const GLOBAL_LEVEL_MOD_RATIO = 1.02;
 const RUN_LEVEL_MOD_RATIO = 1.04;
 const RUN_EXP_TO_LEVEL_RATIO = 5;
+
+//const DECAY_TEST_MOD = 1;
+const DECAY_TEST_MOD = 200;
+//002;
 
 const BASE_GAIN_RATE = 1;
 const BASE_TPS = 20;
@@ -94,8 +99,17 @@ actionsCheckSignal.subscribe((_) => {
     if (!state.data.run.action) return state;
     const ACTION_ID = state.data.run.action.id;
     let actionRef = actions[ACTION_ID]!;
+    if (!state.data.run.actionProgress[ACTION_ID]) {
+      state.data.run.actionProgress[ACTION_ID] = {
+        progress: 0,
+        complete: false,
+      };
+    }
     let progressRef = state.data.run.actionProgress[ACTION_ID].progress;
     if (progressRef >= actionRef.weight) {
+      if (!state.data.global.completedActionHistory.includes(ACTION_ID)) {
+        state.data.global.completedActionHistory.push(ACTION_ID);
+      }
       let actions = Array.isArray(actionRef.postComplete)
         ? actionRef.postComplete
         : [actionRef.postComplete];
@@ -167,6 +181,17 @@ export const displayableActions: Readable<string[]> = derived(
   ["intro_0"]
 );
 
+export const ghostDisplayableActions: (r: RunState) => string[] = (r) => {
+  let fake = deepClone(get(gameState));
+  fake.data.run = r;
+  return (
+    Object.entries(actions)
+      .filter(([_, action]) => action.conditions.every((c) => c(fake)))
+      .filter(canDisplay(fake))
+      .map(([k, _]) => k) ?? ["intro_0"]
+  );
+};
+
 /// etc system
 let _ticker: number;
 const ticker = derived(
@@ -191,10 +216,11 @@ tickSignal.subscribe((_) => {
       val.data.run.energyDecayRate +=
         (val.data.run.energyDecayRate * 0.03) / bakedTimePerTick;
       val.data.run.currentEnergy -=
-        val.data.run.energyDecayRate / bakedTimePerTick;
+        (val.data.run.energyDecayRate / bakedTimePerTick) * DECAY_TEST_MOD;
       if (val.data.run.currentEnergy <= 0) {
         endRun.set(val.data.run);
         val.data.run = processCleanGameState(EMPTY_RUN);
+        val.data.global.loop = val.data.global.loop + 1;
         checkActions();
         bakeSkillLevels();
         return val;

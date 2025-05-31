@@ -1,5 +1,6 @@
 import { macrosWorkshopActions } from "./gameData/actions/na641macros";
 import { museumActions } from "./gameData/actions/na641museum";
+import { rapidDeliveryActions } from "./gameData/actions/na641rapid";
 import {
   NO_REPEAT,
   NO_CROSSGEN,
@@ -124,7 +125,9 @@ export const actions: { [key: string]: Action } = {
       COMPLETION_EFFECTS.addLog(
         "There is advert about watchmaker workshop being located nearby"
       ),
-      COMPLETION_EFFECTS.addLog("Junk shop nearby is offering loads of stuff"),
+      COMPLETION_EFFECTS.addLog(
+        "Rapid Delivery! Delivery as fast as it is named. Terms and conditions apply"
+      ),
       COMPLETION_EFFECTS.addLog(
         "Care for history? Visit the NAWS History Museum!"
       ),
@@ -165,4 +168,5 @@ export const actions: { [key: string]: Action } = {
 
   ...macrosWorkshopActions,
   ...museumActions,
+  ...rapidDeliveryActions,
 };

@@ -8,7 +8,16 @@
     subLocationSignal,
   } from "./state";
   import "@hackernoon/pixel-icon-library/fonts/iconfont.css";
-  import { formatTime, LOCATION_CHECKS } from "./utils";
+  import {
+    COMPLETION_EFFECTS,
+    CONDITION_CHECKS,
+    formatTime,
+    LOCATION_CHECKS,
+  } from "./utils";
+  //LOAD
+  CONDITION_CHECKS;
+  COMPLETION_EFFECTS;
+  //
   import ProgressBar from "./parts/ProgressBar.svelte";
   import GenericIcon from "./parts/GenericIcon.svelte";
   import type { GameState, Location, Skill } from "./types";
@@ -16,6 +25,7 @@
   import Button from "./components/Button.svelte";
   import { fade } from "svelte/transition";
   import { get } from "svelte/store";
+  import EndRun from "./parts/EndRun.svelte";
   const skills: Skill[] = [
     "exploration",
     "perception",
@@ -31,34 +41,17 @@
     show: false,
   };
 
-  $: console.log($knowledgeSignal, "knowledge tap");
   $: if ($knowledgeSignal !== null || $subLocationSignal !== null) {
     tryBakeLocation(get(gameState));
   }
   function tryBakeLocation(state: GameState) {
-    console.log("got knowledge signal");
     bakedLocation = LOCATION_CHECKS[state.data.run.location](state);
   }
 </script>
 
 <main class="h-screen">
   {#if $endRun}
-    <div
-      class="w-full h-full absolute p-10 z-10 backdrop-blur-lg"
-      in:fade
-      out:fade={{ duration: 100 }}
-    >
-      <div class="w-full h-full pixel-corners bg-slate-900 py-3 px-2">
-        <div class="grid grid-cols-12">
-          <div class="col-span-12 text-lg text-center">
-            Energy ran out after {formatTime($endRun.timeSpent)}
-          </div>
-          <div class="col-span-12 text-center">
-            <Button on:click={() => ($endRun = null)}>Time unwinds...</Button>
-          </div>
-        </div>
-      </div>
-    </div>
+    <EndRun />
   {/if}
   <div class="grid h-full grid-cols-12 grid-rows-[auto_1fr_auto]">
     <!-- Top header -->

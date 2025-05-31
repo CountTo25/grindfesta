@@ -8,7 +8,6 @@ export function checkItems(state: GameState, tickProgress: number): GameState {
     .filter(([_, v]) => v.amount >= 0)
     .map(([k, _]) => k as ItemKey);
   for (const id of consumable_ids) {
-    console.log(tickProgress);
     if (state.data.run.inventory[id]!.cooldown > 0) {
       state.data.run.inventory[id]!.cooldown = Math.max(
         0,

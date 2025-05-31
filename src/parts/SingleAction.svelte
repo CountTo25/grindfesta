@@ -21,6 +21,7 @@
   $: percent = (progress / action.weight) * 100;
   $: canToggle = checkCanToggle($gameState);
   $: isRevealed = checkIsRevealed($actionsCheckSignal !== null);
+  $: isKnown = checkIsKnown($actionsCheckSignal !== null);
   $: duration =
     ($bakeSignal !== null &&
       action.weight / bakery.modifiers.total[action.skill]!) ||
@@ -61,6 +62,11 @@
     }
     return true;
   }
+  function checkIsKnown(_: boolean): boolean {
+    let s = get(gameState);
+    return s.data.global.completedActionHistory.includes(id);
+  }
+
   const toggleAction = () => {
     if (!canToggle) return;
     if (!running) {
@@ -81,7 +87,7 @@
       <SkillIcon skill={action.skill} />
     </div>
     <div class="col-span-6" class:text-slate-500={!isRevealed}>
-      {isRevealed ? action.title : "???"}
+      {isRevealed ? action.title : isKnown ? action.title : "???"}
     </div>
     <div class="col-span-1 text-center cursor-pointer" on:click={toggleAction}>
       <GenericIcon icon={actionIcon} />

@@ -1,5 +1,5 @@
 import { bakery, type BakedSkills } from "./state";
-import { deepClone } from "./utils";
+import { deepClone, mergeDeep } from "./utils";
 import { items, type ItemKey } from "./gameData/items";
 
 export const EMPTY_RUN: RunState = {
@@ -36,6 +36,7 @@ export class GameState {
       presistentActionProgress: [],
       loop: 0,
       knowledge: [],
+      completedActionHistory: [],
     },
     run: { ...deepClone(EMPTY_RUN) },
   };
@@ -45,7 +46,7 @@ export class GameState {
     let saved = localStorage.getItem("save_0") as string | undefined;
     let gs = new GameState();
     if (saved) {
-      gs.data = JSON.parse(saved);
+      gs.data = mergeDeep(gs.data, JSON.parse(saved));
     }
     return gs;
   }
@@ -61,9 +62,10 @@ export type SubLocation = NewArcadiaSubLocation;
 export type NewArcadiaSubLocation =
   | "Western main street alley"
   | "Western main street"
-  | "Macro's Workshop"
+  | "Marco's Workshop"
   | "NAWS History Museum"
-  | "NAWS History Museum — Main Hall";
+  | "NAWS History Museum — Main Hall"
+  | "Rapid Delivery Service";
 
 export type SkillLevels = {
   [k in Skill]: number;
@@ -84,6 +86,7 @@ type GlobalState =
       presistentActionProgress: string[];
       loop: number;
       knowledge: string[];
+      completedActionHistory: string[];
     } & EnergyData;
 
 export type RunState =
