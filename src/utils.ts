@@ -1,4 +1,5 @@
 import { items, type ItemKey } from "./gameData/items";
+import { knowledge } from "./gameData/knowledge";
 import {
   sendBakeSignal,
   sendKnowledgesignal,
@@ -77,6 +78,14 @@ export const REVEAL = {
         },
       ],
       revealConditionExplained: [`Requires x${modifier} on ${t}`],
+    };
+  },
+
+  hasKnowledge: (t: string): RevealCondition => {
+    return {
+      revealCondition: [(state) => state.data.global.knowledge.includes(t)],
+      //@ts-ignore
+      revealConditionExplained: [`Requires knowledge about ${knowledge[t]}`],
     };
   },
 

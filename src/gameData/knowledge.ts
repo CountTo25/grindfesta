@@ -6,4 +6,5 @@ export const knowledge = {
   narcadia_founding: "",
   narcadia_resources: "",
   marco_needs_charger: "",
+  narcadia_west_main_street_acchikocchi: "west main street layout",
 };

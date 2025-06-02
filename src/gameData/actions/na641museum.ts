@@ -154,7 +154,10 @@ export const museumActions: ActionRepository = {
   narcadia_museum_blueprints: {
     ...CROSSGEN,
     ...NO_REPEAT,
-    postComplete: [COMPLETION_EFFECTS.addKnowledge("arcadia_layout")],
+    postComplete: [
+      COMPLETION_EFFECTS.addKnowledge("narcadia_west_main_street_acchikocchi"),
+      COMPLETION_EFFECTS.addKnowledge("arcadia_layout"),
+    ],
     title: "Examine city plan blueprints",
     skill: "engineering",
     weight: 30,

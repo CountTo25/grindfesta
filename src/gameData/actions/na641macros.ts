@@ -68,12 +68,7 @@ export const macrosWorkshopActions: { [key: string]: Action } = {
       CONDITION_CHECKS.ifActionCompleteRun("narcadia_macros_pay_charger"),
     ],
     grants: ["small_battery"],
-    postComplete: [
-      COMPLETION_EFFECTS.removeItem("narcadia641_zenny", 1),
-      COMPLETION_EFFECTS.addLog(
-        "A bit confused with offered device, Marco was able to figure out how to add a battery slot there. 'Batteries are 1 coin a pop, by the way', he informed you"
-      ),
-    ],
+    postComplete: [COMPLETION_EFFECTS.removeItem("narcadia641_zenny", 1)],
   },
   narcadia_macros_greet: {
     ...NO_CROSSGEN,
