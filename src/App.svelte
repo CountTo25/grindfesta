@@ -131,7 +131,7 @@
     </div>
 
     <!-- Bottom bar -->
-    <div class="col-span-12 grid grid-cols-12">btm</div>
+    <div class="col-span-12 grid grid-cols-12">todo bottom bar</div>
   </div>
 </main>
 
