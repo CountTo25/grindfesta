@@ -88,7 +88,19 @@ export const REVEAL = {
       revealConditionExplained: [`Requires knowledge about ${knowledge[t]}`],
     };
   },
-
+  itemNotCappedYet: (id: ItemKey): RevealCondition => {
+    return {
+      revealCondition: [
+        (state: GameState) => {
+          return (
+            (state.data.run.inventory[id]?.amount ?? 0) <
+            state.data.run.inventoryCapacity
+          );
+        },
+      ],
+      revealConditionExplained: [`Inventory is full for ${items[id].name}`],
+    };
+  },
   item: (
     id: ItemKey,
     amount: number
@@ -192,6 +204,37 @@ export const COMPLETION_EFFECTS = {
     return (d: GameState) => {
       d.data.run.logEntries.push({ ts: d.data.run.timeSpent, text });
       return d;
+    };
+  },
+  addFlag: (key: string, value: string | null = null) => {
+    return (d: GameState) => {
+      d.data.run.flags[key] = value;
+      return d;
+    };
+  },
+
+  addItem(itemId: ItemKey, amount: number) {
+    return (state: GameState) => {
+      if (!state.data.run.inventory[itemId]) {
+        state.data.run.inventory[itemId] = { amount: 0, cooldown: 0 };
+      }
+      if (
+        state.data.run.inventory[itemId].amount <
+        state.data.run.inventoryCapacity
+      ) {
+        state.data.run.inventory[itemId].amount += Math.min(
+          amount,
+          state.data.run.inventoryCapacity -
+            state.data.run.inventory[itemId].amount
+        );
+        if (
+          state.data.run.inventory[itemId].amount >=
+          state.data.run.inventoryCapacity
+        ) {
+          state.data.run.action = null;
+        }
+      }
+      return state;
     };
   },
 

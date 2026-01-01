@@ -87,8 +87,24 @@ export const rapidDeliveryActions: ActionRepository = {
       CONDITION_CHECKS.ifActionCompleteRun("narcadia_delivery_job"),
     ],
     postComplete: [
+      COMPLETION_EFFECTS.addLog("You can take on delivery jobs from now on"),
+    ],
+  },
+  narcadia_delivery_take_order: {
+    ...NO_CROSSGEN,
+    ...NO_REPEAT,
+    title: "Take on a delivery order",
+    skill: "social",
+    weight: 5,
+    conditions: [
+      CONDITION_CHECKS.inLocation("New Arcadia 641"),
+      CONDITION_CHECKS.inSubLocation("Rapid Delivery Service"),
+      CONDITION_CHECKS.ifActionCompleteRun("narcadia_delivery_take_job"),
+    ],
+    postComplete: [
+      COMPLETION_EFFECTS.addFlag("narcadia_delivery_active_order"),
       COMPLETION_EFFECTS.addLog(
-        "Payment is 2 Zeny per delivery, but you'll need to show that you have some knowledge about local area"
+        "Customer is somewhere around Western Main Street"
       ),
     ],
   },
@@ -109,7 +125,7 @@ export const rapidDeliveryActions: ActionRepository = {
     ],
     postComplete: [
       COMPLETION_EFFECTS.addLog(
-        "You've picked up Marco's charger for delivery. Could that help?"
+        "You've agreed to pick up Macro's order for delivery. Now to find it"
       ),
     ],
   },
@@ -124,10 +140,11 @@ export const rapidDeliveryActions: ActionRepository = {
       CONDITION_CHECKS.inSubLocation("Rapid Delivery Service"),
       CONDITION_CHECKS.ifActionCompleteRun("narcadia_delivery_take_job"),
       CONDITION_CHECKS.hasKnowledge("marco_needs_charger"),
+      CONDITION_CHECKS.ifActionCompleteAny("narcadia_delivery_macros_charger"),
     ],
     postComplete: [
       COMPLETION_EFFECTS.addLog(
-        "You've picked up Marco's charger for delivery. Could that help?"
+        "Now all that's left is to deliver it to Marco at his workshop"
       ),
     ],
   },

@@ -161,6 +161,12 @@ actionsCheckSignal.subscribe((_) => {
           state.data.run.action = null;
           state.data.run.actionProgress[ACTION_ID].progress = 0;
         }
+
+        //If we're retracing, stop action on complete so we can handle multiple
+        //Of the same without doing it forever
+        if (state.data.run.retraceIdx !== null) {
+          state.data.run.action = null;
+        }
       }
 
       if (!!actionRef.stopOnRepeat) {
@@ -194,13 +200,11 @@ export const displayableActions: Readable<string[]> = derived(
   ["intro_0"]
 );
 
-export const ghostDisplayableActions: (r: RunState) => string[] = (r) => {
-  let fake = deepClone(get(gameState));
-  fake.data.run = r;
+export const ghostDisplayableActions: (r: GameState) => string[] = (r) => {
   return (
     Object.entries(actions)
-      .filter(([_, action]) => action.conditions.every((c) => c(fake)))
-      .filter(canDisplay(fake))
+      .filter(([_, action]) => action.conditions.every((c) => c(r)))
+      .filter(canDisplay(r))
       .map(([k, _]) => k) ?? ["intro_0"]
   );
 };

@@ -8,7 +8,12 @@ import {
   REPEATABLE,
 } from "./gameData/actions/utils";
 import type { Action, GameState } from "./types";
-import { COMPLETION_EFFECTS, CONDITION_CHECKS, withLogEntry } from "./utils";
+import {
+  COMPLETION_EFFECTS,
+  CONDITION_CHECKS,
+  REVEAL,
+  withLogEntry,
+} from "./utils";
 
 export const actions: { [key: string]: Action } = {
   intro_0: {
@@ -155,6 +160,7 @@ export const actions: { [key: string]: Action } = {
     ...REPEATABLE,
     title: "Rummage under vending machines",
     skill: "perception",
+    ...REVEAL.itemNotCappedYet("narcadia641_zenny"),
     weight: 7,
     conditions: [
       CONDITION_CHECKS.inLocation("New Arcadia 641"),
@@ -162,8 +168,7 @@ export const actions: { [key: string]: Action } = {
       CONDITION_CHECKS.hasKnowledge("narcadia_currency"),
       CONDITION_CHECKS.ifActionCompleteAny("narcadia_moneymaking_seek"),
     ],
-    grants: ["narcadia641_zenny"],
-    postComplete: [],
+    postComplete: [COMPLETION_EFFECTS.addItem("narcadia641_zenny", 1)],
   },
 
   ...macrosWorkshopActions,

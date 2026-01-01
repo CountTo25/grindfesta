@@ -71,15 +71,18 @@ export const museumActions: ActionRepository = {
     title: "Buy a ticket",
     skill: "social",
     weight: 10,
-    ...REVEAL.item("narcadia641_zenny", 5),
+    ...REVEAL.all([
+      REVEAL.item("narcadia641_zenny", 5),
+      REVEAL.itemNotCappedYet("naws_museum_ticket"),
+    ]),
     conditions: [
       CONDITION_CHECKS.inLocation("New Arcadia 641"),
       CONDITION_CHECKS.inSubLocation("NAWS History Museum"),
       CONDITION_CHECKS.ifActionCompleteAny("na641_museum_ticket_info"),
     ],
-    grants: ["naws_museum_ticket"],
     postComplete: [
       COMPLETION_EFFECTS.removeItem("narcadia641_zenny", 5),
+      COMPLETION_EFFECTS.addItem("naws_museum_ticket", 1),
       COMPLETION_EFFECTS.addLog(
         "You're now free to venture into museum. No refunds. No re-entry. No food or drink items"
       ),

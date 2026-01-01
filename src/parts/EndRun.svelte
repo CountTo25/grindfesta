@@ -1,61 +1,86 @@
 <script lang="ts">
   import { fade } from "svelte/transition";
-  import { CONDITION_CHECKS, deepClone, formatTime } from "../utils";
+  import { deepClone, formatTime } from "../utils";
   import Button from "../components/Button.svelte";
   import { endRun, gameState, ghostDisplayableActions } from "../state";
   import RetracingNode from "./RetracingNode.svelte";
   import { actions } from "../statics";
-  import { EMPTY_RUN, type RunState } from "../types";
+  import { EMPTY_RUN, GameState } from "../types";
   import { get } from "svelte/store";
+
   let isRetracing = false;
   let knownNodes = $gameState.data.global.completedActionHistory;
+
   type RetracedRecord = {
     id: string;
   };
 
-  type GhostState = RunState;
-  //lets make it simplier — we'll instantly "complete" actions to reveal whats next without affecting current state
   let retraceRecording: RetracedRecord[] = [];
-  let state: GhostState = { ...EMPTY_RUN };
-  $: displayableActions = ghostDisplayableActions(state).filter((v) => {
-    return knownNodes.includes(v);
+  let fake: GameState = deepClone(get(gameState));
+  fake.data.run = deepClone(EMPTY_RUN);
+
+  $: displayableActions = ghostDisplayableActions(fake).filter((v) => {
+    let canExecuteConditions = actions[v].conditions ?? [
+      (_: GameState) => true,
+    ];
+    let canExecute = canExecuteConditions.every((c) => c(fake));
+
+    let revealed = // svelte-ignore reactive_declaration_non_reactive_property
+      (actions[v].revealCondition ?? [(_: GameState) => true]).every((c) =>
+        c(fake)
+      );
+
+    return knownNodes.includes(v) && canExecute && revealed;
   });
-  $: console.log(displayableActions, "?", state);
-  function handleRetrace(id: string) {
-    let fake = deepClone(get(gameState));
-    if (!state.actionProgress[id]) {
-      state.actionProgress[id] = {
+
+  function simulateAction(id: string) {
+    const runState = fake.data.run;
+    const actionDef = actions[id];
+
+    if (!runState.actionProgress[id]) {
+      runState.actionProgress[id] = {
         complete: true,
-        progress: actions[id].weight,
+        progress: actionDef.weight,
       };
     } else {
-      state.actionProgress[id].complete = true;
-      state.actionProgress[id].progress = actions[id].weight;
-    }
-    if (actions[id].stopOnRepeat) {
-      state.actionProgress[id].complete = false;
-      state.actionProgress[id].progress = 0;
+      runState.actionProgress[id].complete = true;
+      runState.actionProgress[id].progress = actionDef.weight;
     }
 
-    fake.data.run = deepClone(state);
-    if (actions[id].postComplete) {
-      let todo = [];
-      if (!Array.isArray(actions[id].postComplete)) {
-        todo = [actions[id].postComplete];
-      } else {
-        todo = actions[id].postComplete;
-      }
+    // 2. Handle Repeatable Logic (Reset bar if needed)
+    if (actionDef.stopOnRepeat) {
+      runState.actionProgress[id].complete = false;
+      runState.actionProgress[id].progress = 0;
+    }
 
-      for (const action of todo) {
-        console.log("running action of", id);
-        let result = action(fake);
-        console.log("patched", result.data.run);
-        fake = deepClone(result);
+    // 3. Execute Post-Completion Rewards/Effects
+    if (actionDef.postComplete) {
+      const todo = Array.isArray(actionDef.postComplete)
+        ? actionDef.postComplete
+        : [actionDef.postComplete];
+
+      for (const effect of todo) {
+        // We update 'fake' entirely because effects might modify Global or Run state
+        fake = deepClone(effect(fake));
       }
     }
-    state = fake.data.run;
-    retraceRecording.push({ id });
+  }
+
+  function handleRetraceAll(newId: string | null = null) {
+    fake = deepClone(get(gameState));
+    fake.data.run = deepClone(EMPTY_RUN);
+
+    if (newId) {
+      retraceRecording.push({ id: newId });
+    }
+
+    for (const record of retraceRecording) {
+      simulateAction(record.id);
+    }
+
     retraceRecording = retraceRecording;
+    fake = fake;
+    console.log("Rebuild complete. Current Head:", fake.data.run);
   }
 </script>
 
@@ -80,6 +105,7 @@
                   retraceRecording = deepClone(
                     get(gameState).data.global.retraceConfig
                   );
+                  handleRetraceAll(null);
                 }}>Setup retracing</Button
               >
             {/if}
@@ -96,15 +122,37 @@
         Retracing
       </div>
       <div class="flex-1 grid grid-cols-12 min-h-0">
-        <div class="col-span-3 border-r-slate-500 border-r-2">
+        <div class="col-span-3 border-r-slate-500 border-r-2 overflow-y-auto">
           <div
             class="px-2 py-1 text-center bg-slate-500 text-slate-900 border-t-2 border-t-slate-900"
           >
             Timeline
           </div>
-          {#each retraceRecording as record}
-            <div>{actions[record.id].title}</div>
-          {/each}
+          <div class="pt-2 px-2">
+            {#each [...[...retraceRecording].entries()].reverse() as [idx, record]}
+              <div
+                class="grid grid-cols-5 pixel-corners bg-slate-900 mb-2 p-1 border-b border-slate-700 text-sm"
+              >
+                <div class="col-span-4">
+                  {actions[record.id].title}
+                </div>
+                {#if idx === retraceRecording.length - 1}
+                  <div class="col-span-1">
+                    <div
+                      class="text-center cursor-pointer"
+                      on:click={() => {
+                        retraceRecording.splice(idx, 1);
+                        retraceRecording = retraceRecording;
+                        handleRetraceAll(null);
+                      }}
+                    >
+                      <i class="hn hn-trash-alt"></i>
+                    </div>
+                  </div>
+                {/if}
+              </div>
+            {/each}
+          </div>
         </div>
         <div
           class="col-span-9 p-2 grid grid-cols-12 grid-rows-12 space-x-1 overflow-auto"
@@ -116,7 +164,7 @@
                 id={node}
                 retracing_id={node}
                 on:click={() => {
-                  handleRetrace(node);
+                  handleRetraceAll(node);
                 }}
               />
             </div>
@@ -128,12 +176,19 @@
       >
         <Button
           on:click={() => {
-            console.log("ret", retraceRecording);
             $gameState.data.global.retraceConfig = retraceRecording.map((r) => {
               return { id: r.id };
             });
           }}
           config={{ classMixins: ["mx-2 my-2"] }}>save</Button
+        >
+        <Button
+          on:click={() => {
+            $gameState.data.global.retraceConfig = [];
+            retraceRecording = [];
+            handleRetraceAll(null);
+          }}
+          config={{ classMixins: ["mx-2 my-2"] }}>clear</Button
         >
         <Button
           config={{ classMixins: ["mx-2 my-2"] }}

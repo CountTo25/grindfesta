@@ -61,14 +61,19 @@ export const macrosWorkshopActions: { [key: string]: Action } = {
     title: "Buy a battery",
     skill: "social",
     weight: 6,
-    ...REVEAL.item("narcadia641_zenny", 1),
+    ...REVEAL.all([
+      REVEAL.item("narcadia641_zenny", 1),
+      REVEAL.itemNotCappedYet("small_battery"),
+    ]),
     conditions: [
       CONDITION_CHECKS.inLocation("New Arcadia 641"),
       CONDITION_CHECKS.inSubLocation("Marco's Workshop"),
       CONDITION_CHECKS.ifActionCompleteRun("narcadia_macros_pay_charger"),
     ],
-    grants: ["small_battery"],
-    postComplete: [COMPLETION_EFFECTS.removeItem("narcadia641_zenny", 1)],
+    postComplete: [
+      COMPLETION_EFFECTS.removeItem("narcadia641_zenny", 1),
+      COMPLETION_EFFECTS.addItem("small_battery", 1),
+    ],
   },
   narcadia_macros_greet: {
     ...NO_CROSSGEN,

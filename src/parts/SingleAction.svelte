@@ -69,6 +69,7 @@
 
   const toggleAction = () => {
     if (!canToggle) return;
+    $gameState.data.run.retraceIdx = null;
     if (!running) {
       $gameState.data.run.action = { id };
     } else {

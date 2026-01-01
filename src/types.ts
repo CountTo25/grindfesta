@@ -8,6 +8,7 @@ export const EMPTY_RUN: RunState = {
   energyDecayRate: 0.05,
   action: null,
   actionProgress: {},
+  flags: {},
   mainViewRoute: "actions",
   timeSpent: 0.0,
   currentEnergy: 10.0,
@@ -102,6 +103,7 @@ export type RunState =
       timeSpent: number;
       stats: SkillLevels;
       maxEnergy: number;
+      flags: { [key: string]: string | null };
       energyDecayRate: number;
       currentEnergy: number;
       location: Location;
