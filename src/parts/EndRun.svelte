@@ -11,7 +11,6 @@
   let knownNodes = $gameState.data.global.completedActionHistory;
   type RetracedRecord = {
     id: string;
-    amount: number;
   };
 
   type GhostState = RunState;
@@ -55,7 +54,7 @@
       }
     }
     state = fake.data.run;
-    retraceRecording.push({ id: id, amount: 1 });
+    retraceRecording.push({ id });
     retraceRecording = retraceRecording;
   }
 </script>
@@ -76,7 +75,12 @@
             {#if $gameState.data.global.loop > 2}
               <Button
                 config={{ classMixins: ["mx-2"] }}
-                on:click={() => (isRetracing = true)}>Setup retracing</Button
+                on:click={() => {
+                  isRetracing = true;
+                  retraceRecording = deepClone(
+                    get(gameState).data.global.retraceConfig
+                  );
+                }}>Setup retracing</Button
               >
             {/if}
 
@@ -122,7 +126,15 @@
       <div
         class="grid grid-cols-12 w-full text-center border-t-slate-500 border-t-2"
       >
-        <Button config={{ classMixins: ["mx-2 my-2"] }}>save</Button>
+        <Button
+          on:click={() => {
+            console.log("ret", retraceRecording);
+            $gameState.data.global.retraceConfig = retraceRecording.map((r) => {
+              return { id: r.id };
+            });
+          }}
+          config={{ classMixins: ["mx-2 my-2"] }}>save</Button
+        >
         <Button
           config={{ classMixins: ["mx-2 my-2"] }}
           on:click={() => (isRetracing = false)}>exit</Button

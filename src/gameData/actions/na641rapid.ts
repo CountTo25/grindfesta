@@ -19,6 +19,7 @@ export const rapidDeliveryActions: ActionRepository = {
     conditions: [
       CONDITION_CHECKS.inLocation("New Arcadia 641"),
       CONDITION_CHECKS.inSubLocation("Western main street"),
+      CONDITION_CHECKS.ifActionCompleteAny("narcadia_seek_init"),
     ],
     postComplete: [
       COMPLETION_EFFECTS.moveSubLocation("Rapid Delivery Service"),
@@ -83,6 +84,7 @@ export const rapidDeliveryActions: ActionRepository = {
       CONDITION_CHECKS.inLocation("New Arcadia 641"),
       CONDITION_CHECKS.inSubLocation("Rapid Delivery Service"),
       CONDITION_CHECKS.ifActionCompleteRun("narcadia_delivery_promo"),
+      CONDITION_CHECKS.ifActionCompleteRun("narcadia_delivery_job"),
     ],
     postComplete: [
       COMPLETION_EFFECTS.addLog(

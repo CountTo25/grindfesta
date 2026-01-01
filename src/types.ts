@@ -3,6 +3,7 @@ import { deepClone, mergeDeep } from "./utils";
 import { items, type ItemKey } from "./gameData/items";
 
 export const EMPTY_RUN: RunState = {
+  retraceIdx: 0,
   maxEnergy: 10,
   energyDecayRate: 0.05,
   action: null,
@@ -88,11 +89,12 @@ type GlobalState =
       loop: number;
       knowledge: string[];
       completedActionHistory: string[];
-      retraceConfig: { id: string; amount: number }[];
+      retraceConfig: { id: string }[];
     } & EnergyData;
 
 export type RunState =
   | {
+      retraceIdx: number | null;
       mainViewRoute: "actions";
       action: CurrentAction | null;
       logEntries: LogEntry[];

@@ -23,13 +23,26 @@ import {
 } from "./utils";
 import { checkItems, save } from "./actions";
 
-const GLOBAL_LEVEL_MOD_RATIO = 1.02;
-const RUN_LEVEL_MOD_RATIO = 1.04;
+const GLOBAL_LEVEL_MOD_RATIO = 1.03;
+const RUN_LEVEL_MOD_RATIO = 1.07;
 const RUN_EXP_TO_LEVEL_RATIO = 5;
 
 const DECAY_TEST_MOD = 1;
 //const DECAY_TEST_MOD = 200;
 //002;
+
+///DEV
+//@ts-ignore
+window.__dev = {
+  sudoku: () => {
+    gameState.update((gs) => {
+      gs.data.run.currentEnergy = -1;
+      sendActionCompleteSignal();
+      return gs;
+    });
+  },
+  state: () => get(gameState),
+};
 
 const BASE_GAIN_RATE = 1;
 const BASE_TPS = 20;
@@ -208,7 +221,7 @@ const ticker = derived(
 //tick handler
 tickSignal.subscribe((_) => {
   gameState.update((val) => {
-    //leets treat is as separate module for ease of understanding
+    //lets treat it as separate module for ease of understanding
     if (val.data.run.action) {
       const ACTION_ID: string = val.data.run.action.id;
       val.data.run.timeSpent += bakedTimePerTick;
@@ -269,6 +282,22 @@ tickSignal.subscribe((_) => {
         }
         checkActions();
       }
+    } else {
+      if (val.data.run.retraceIdx !== null && get(endRun) === null) {
+        console.log("retracing", val.data.run.retraceIdx);
+        //feed retraced queue to action if we're not progressed yet
+
+        console.log(val.data.global.retraceConfig);
+        const actionToAssign =
+          val.data.global.retraceConfig[val.data.run.retraceIdx] ?? null;
+        if (!actionToAssign) {
+          console.log("no action to assign, ending retrace");
+          val.data.run.retraceIdx = null;
+          return val;
+        }
+        val.data.run.action = { id: actionToAssign.id };
+        val.data.run.retraceIdx = val.data.run.retraceIdx + 1;
+      }
     }
     return val;
   });
@@ -299,7 +328,7 @@ function bakeSkillLevels() {
     "engineering",
   ] as Skill[]) {
     let run = expToLevel(snap.data.run.stats[skill], RUN_EXP_TO_LEVEL_RATIO);
-    let global = expToLevel(snap.data.global.stats[skill], 20);
+    let global = expToLevel(snap.data.global.stats[skill], 15);
     bakery.skills.run[skill] = run.level;
     bakery.skills.global[skill] = global.level;
     bakery.modifiers.run[skill] = getModifier(run.level, RUN_LEVEL_MOD_RATIO);
