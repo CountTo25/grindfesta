@@ -44,6 +44,10 @@ window.__dev = {
     });
   },
   state: () => get(gameState),
+  reset: () => {
+    localStorage.clear();
+    window.location.reload();
+  },
 };
 
 const BASE_GAIN_RATE = 1;

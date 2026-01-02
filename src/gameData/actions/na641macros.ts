@@ -131,7 +131,7 @@ export const macrosWorkshopActions: { [key: string]: Action } = {
     ],
   },
   narcadia_macro_deliver_charger: {
-    ...CROSSGEN,
+    ...NO_CROSSGEN,
     ...NO_REPEAT,
     title: "Deliver new charger",
     skill: "social",
@@ -139,9 +139,8 @@ export const macrosWorkshopActions: { [key: string]: Action } = {
     conditions: [
       CONDITION_CHECKS.inLocation("New Arcadia 641"),
       CONDITION_CHECKS.inSubLocation("Marco's Workshop"),
-      CONDITION_CHECKS.ifActionCompleteRun(
-        "narcadia_delivery_find_marco_order"
-      ),
+      CONDITION_CHECKS.flag("marco_charger_on_hand"),
+      CONDITION_CHECKS.ifActionCompleteRun("narcadia_macros_greet"),
     ],
     postComplete: [
       COMPLETION_EFFECTS.addLog(

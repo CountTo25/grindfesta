@@ -110,7 +110,7 @@ export const rapidDeliveryActions: ActionRepository = {
       ),
     ],
   },
-  narcadia_delivery_macros_charger: {
+  narcadia_delivery_marcos_charger: {
     ...NO_CROSSGEN,
     ...NO_REPEAT,
     title: "Take on Marco's charger delivery",
@@ -133,18 +133,48 @@ export const rapidDeliveryActions: ActionRepository = {
     ...NO_REPEAT,
     title: "Look for Marco's charger order",
     skill: "perception",
-    weight: 50,
+    weight: 100,
     conditions: [
       CONDITION_CHECKS.inLocation("New Arcadia 641"),
       CONDITION_CHECKS.inSubLocation("Rapid Delivery Service"),
       CONDITION_CHECKS.ifActionCompleteRun("narcadia_delivery_take_job"),
       CONDITION_CHECKS.hasKnowledge("marco_needs_charger"),
-      CONDITION_CHECKS.ifActionCompleteAny("narcadia_delivery_macros_charger"),
+      CONDITION_CHECKS.ifActionCompleteRun("narcadia_delivery_marcos_charger"),
     ],
     postComplete: [
+      COMPLETION_EFFECTS.addFlag("marco_charger_on_hand", "1"),
       COMPLETION_EFFECTS.addLog(
         "Now all that's left is to deliver it to Marco at his workshop"
       ),
+      COMPLETION_EFFECTS.addKnowledge("narcadia641_macro_charger_location"),
+    ],
+  },
+  narcadia_delivery_grab_macro_order: {
+    ...NO_CROSSGEN,
+    ...NO_REPEAT,
+    title: "Pickup Marco's charger",
+    flavourText: "You know where the lost charger is. Just grab it",
+    skill: "exploration",
+    weight: 10,
+    conditions: [
+      CONDITION_CHECKS.inLocation("New Arcadia 641"),
+      CONDITION_CHECKS.inSubLocation("Rapid Delivery Service"),
+      CONDITION_CHECKS.ifActionCompleteRun("narcadia_delivery_take_job"),
+      CONDITION_CHECKS.hasKnowledge("marco_needs_charger"),
+      CONDITION_CHECKS.hasKnowledge("narcadia641_macro_charger_location"),
+      CONDITION_CHECKS.ifActionCompleteRun("narcadia_delivery_marcos_charger"),
+      CONDITION_CHECKS.not(
+        CONDITION_CHECKS.ifActionCompleteRun(
+          "narcadia_delivery_find_marco_order"
+        )
+      ),
+    ],
+    postComplete: [
+      COMPLETION_EFFECTS.addFlag("marco_charger_on_hand", "1"),
+      COMPLETION_EFFECTS.addLog(
+        "Now all that's left is to deliver it to Marco at his workshop"
+      ),
+      COMPLETION_EFFECTS.addKnowledge("narcadia641_macro_charger_location"),
     ],
   },
   narcadia_delivery_deliver: {

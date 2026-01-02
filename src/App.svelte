@@ -159,7 +159,12 @@
       <div class="pixel-corners grid grid-cols-12 bg-slate-900 px-2 py-2">
         <div class="col-span-4">{@html retracingInfo}</div>
         <div class="col-span-8 text-sm text-slate-500">
-          built @ {__BUILD_TIME__} ({__COMMIT_TITLE__})
+          built @ {__BUILD_TIME__} (<a
+            class="underline"
+            target="_blank"
+            href="https://github.com/CountTo25/grindfesta/commits/main/"
+            >{__COMMIT_TITLE__}</a
+          >)
         </div>
       </div>
     </div>
