@@ -238,9 +238,9 @@ export const COMPLETION_EFFECTS = {
       d;
     };
   },
-  removeFlag: (key: string, value: string | null = null) => {
+  removeFlag: (key: string) => {
     return (d: GameState) => {
-      d.data.run.flags[key] = value;
+      delete d.data.run.flags[key];
       return d;
     };
   },
@@ -286,7 +286,9 @@ export const COMPLETION_EFFECTS = {
   },
   addKnowledge: (id: string) => {
     return (d: GameState) => {
+      console.log("adding", id);
       if (!d.data.global.knowledge.includes(id)) {
+        console.log("OK add");
         d.data.global.knowledge.push(id);
         sendKnowledgesignal();
       }

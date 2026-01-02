@@ -1,4 +1,3 @@
-import type { Action } from "../../types";
 import { CONDITION_CHECKS, COMPLETION_EFFECTS, REVEAL } from "../../utils";
 import {
   CROSSGEN,
@@ -99,6 +98,7 @@ export const rapidDeliveryActions: ActionRepository = {
     stopOnRepeat: true,
     conditions: [
       CONDITION_CHECKS.noFlag("narcadia_delivery_active_order"),
+      CONDITION_CHECKS.noFlag("narcadia_delivery_inished"),
       CONDITION_CHECKS.inLocation("New Arcadia 641"),
       CONDITION_CHECKS.inSubLocation("Rapid Delivery Service"),
       CONDITION_CHECKS.ifActionCompleteRun("narcadia_delivery_take_job"),
@@ -163,10 +163,28 @@ export const rapidDeliveryActions: ActionRepository = {
       CONDITION_CHECKS.flag("narcadia_delivery_active_order"),
     ],
     postComplete: [
-      COMPLETION_EFFECTS.addItem("narcadia641_zenny", 2),
-      COMPLETION_EFFECTS.addFlag("narcadia_delivery_active_order_finished"),
+      COMPLETION_EFFECTS.addFlag("narcadia_delivery_inished", "1"),
       COMPLETION_EFFECTS.removeFlag("narcadia_delivery_active_order"),
       COMPLETION_EFFECTS.addLog("Report your delivery to local Rapid office"),
+    ],
+  },
+  narcadia_delivery_turn_in_order: {
+    ...NO_CROSSGEN,
+    ...REPEATABLE,
+    title: "Report finished order",
+    skill: "social",
+    weight: 5,
+    stopOnRepeat: true,
+    conditions: [
+      CONDITION_CHECKS.noFlag("narcadia_delivery_active_order"),
+      CONDITION_CHECKS.flag("narcadia_delivery_inished"),
+      CONDITION_CHECKS.inLocation("New Arcadia 641"),
+      CONDITION_CHECKS.inSubLocation("Rapid Delivery Service"),
+      CONDITION_CHECKS.ifActionCompleteRun("narcadia_delivery_take_job"),
+    ],
+    postComplete: [
+      COMPLETION_EFFECTS.removeFlag("narcadia_delivery_inished"),
+      COMPLETION_EFFECTS.addItem("narcadia641_zenny", 2),
     ],
   },
 };

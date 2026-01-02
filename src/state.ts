@@ -23,10 +23,12 @@ import {
 } from "./utils";
 import { checkItems, save } from "./actions";
 
-const GLOBAL_LEVEL_MOD_RATIO = 1.03;
-const RUN_LEVEL_MOD_RATIO = 1.07;
+///Globals for quick tinkering here
+const GLOBAL_LEVEL_MOD_RATIO = 1.05;
+const RUN_LEVEL_MOD_RATIO = 1.08;
 const RUN_EXP_TO_LEVEL_RATIO = 5;
-
+const RUN_SKILL_GAIN_MOD = 1.35;
+//
 const DECAY_TEST_MOD = 1;
 //const DECAY_TEST_MOD = 200;
 //002;
@@ -262,7 +264,7 @@ tickSignal.subscribe((_) => {
         val.data.run.actionProgress[ACTION_ID]?.progress ?? 0,
         actions[ACTION_ID].weight
       );
-      val.data.run.stats[skill] += skillGain * 1.3;
+      val.data.run.stats[skill] += skillGain * RUN_SKILL_GAIN_MOD;
       val.data.global.stats[skill] += skillGain;
 
       if (
@@ -288,14 +290,10 @@ tickSignal.subscribe((_) => {
       }
     } else {
       if (val.data.run.retraceIdx !== null && get(endRun) === null) {
-        console.log("retracing", val.data.run.retraceIdx);
         //feed retraced queue to action if we're not progressed yet
-
-        console.log(val.data.global.retraceConfig);
         const actionToAssign =
           val.data.global.retraceConfig[val.data.run.retraceIdx] ?? null;
         if (!actionToAssign) {
-          console.log("no action to assign, ending retrace");
           val.data.run.retraceIdx = null;
           return val;
         }
