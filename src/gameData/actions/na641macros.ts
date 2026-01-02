@@ -130,6 +130,25 @@ export const macrosWorkshopActions: { [key: string]: Action } = {
       COMPLETION_EFFECTS.addKnowledge("marco_needs_charger"),
     ],
   },
+  narcadia_macro_deliver_charger: {
+    ...CROSSGEN,
+    ...NO_REPEAT,
+    title: "Deliver new charger",
+    skill: "social",
+    weight: 10,
+    conditions: [
+      CONDITION_CHECKS.inLocation("New Arcadia 641"),
+      CONDITION_CHECKS.inSubLocation("Marco's Workshop"),
+      CONDITION_CHECKS.ifActionCompleteRun(
+        "narcadia_delivery_find_marco_order"
+      ),
+    ],
+    postComplete: [
+      COMPLETION_EFFECTS.addLog(
+        "With new battery charger set up, it seems Marco is quite happy to provide you new services"
+      ),
+    ],
+  },
   narcadia_workshop_leave: {
     ...NO_CROSSGEN,
     ...REPEATABLE,

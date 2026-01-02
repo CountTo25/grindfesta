@@ -97,7 +97,7 @@
             Energy ran out after {formatTime($endRun!.timeSpent)}
           </div>
           <div class="col-span-12 text-center">
-            {#if $gameState.data.global.loop > 2}
+            {#if $gameState.data.global.loop >= 2}
               <Button
                 config={{ classMixins: ["mx-2"] }}
                 on:click={() => {

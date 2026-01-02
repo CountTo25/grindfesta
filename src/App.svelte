@@ -26,6 +26,7 @@
   import { fade } from "svelte/transition";
   import { get } from "svelte/store";
   import EndRun from "./parts/EndRun.svelte";
+  import { actions } from "./statics";
   const skills: Skill[] = [
     "exploration",
     "perception",
@@ -47,6 +48,32 @@
   function tryBakeLocation(state: GameState) {
     bakedLocation = LOCATION_CHECKS[state.data.run.location](state);
   }
+
+  ///What would i give for rust blocks =/
+  $: retracingInfo = (() => {
+    if ($gameState.data.run.retraceIdx === null) return "";
+    let step = $gameState.data.run.retraceIdx;
+    let total = $gameState.data.global.retraceConfig.length;
+    let { id } = $gameState.data.global.retraceConfig[step] ?? { id: null };
+    if (!id) return "";
+    // svelte-ignore reactive_declaration_non_reactive_property its non-reactive, chill
+    let title = actions[id].title;
+    let presentableTitle: String;
+    if (typeof title !== "string") {
+      presentableTitle = title($gameState);
+    } else {
+      presentableTitle = title;
+    }
+    let upNext =
+      step <= total
+        ? ` up next — <span class="text-white">${presentableTitle}</span>`
+        : "";
+    return `Retracing: ${step}/${total}${upNext}`;
+  })();
+  $: retracingInfo2 =
+    $gameState.data.run.retraceIdx !== null
+      ? `Retracing: ${$gameState.data.run.retraceIdx}/${$gameState.data.global.retraceConfig.length} — up next <span class="text-white">${actions[$gameState.data.global.retraceConfig[$gameState.data.run.retraceIdx]]}</span>`
+      : "";
 </script>
 
 <main class="h-screen">
@@ -96,15 +123,14 @@
         class:opacity-0={!bakedLocation.show}
       >
         <div class="col-span-12">
-          {bakedLocation.text ?? "NO LOCATION DATA"}
+          <span>{bakedLocation.text ?? "NO LOCATION DATA"}</span>
+          <span></span>
         </div>
       </div>
     </div>
 
     <!-- Main content -->
-    <div
-      class="col-span-12 grid grid-cols-12 border-b-2 border-b-slate-400 overflow-hidden flex-col"
-    >
+    <div class="col-span-12 grid grid-cols-12 overflow-hidden flex-col">
       <!-- Left main view -->
       <div class="col-span-9 overflow-hidden px-2">
         <Router
@@ -119,9 +145,7 @@
       <div class="col-span-3 h-full overflow-hidden flex flex-col px-2">
         <div class="overflow-y-auto flex-1">
           {#each $gameState.data.run.logEntries.reverse() as { ts, text }}
-            <div
-              class="border-b-2 mb-2 pixel-corners bg-slate-900 px-3 text-sm"
-            >
+            <div class="mb-2 pixel-corners bg-slate-900 px-3 text-sm">
               <div class="text-right text-slate-500">{formatTime(ts)}</div>
               <div>{text}</div>
             </div>
@@ -131,7 +155,15 @@
     </div>
 
     <!-- Bottom bar -->
-    <div class="col-span-12 grid grid-cols-12">todo bottom bar</div>
+    <div class="col-span-12 px-2 mb-2">
+      <div class="pixel-corners grid grid-cols-12 bg-slate-900 px-2 py-2">
+        <div class="col-span-4">{@html retracingInfo}</div>
+        <div class="col-span-4"></div>
+        <div class="col-span-4 text-sm text-slate-500 text-right">
+          built @ {__BUILD_TIME__} ({__COMMIT_TITLE__})
+        </div>
+      </div>
+    </div>
   </div>
 </main>
 

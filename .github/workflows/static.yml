@@ -29,6 +29,8 @@ jobs:
         with:
           bun-version: latest
 
+      - run: |
+          echo "COMMIT_TITLE=$(git log -1 --pretty=%s)" >> $GITHUB_ENV
       - run: bun install
       - run: bun run build
 
