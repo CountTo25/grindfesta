@@ -158,8 +158,7 @@
     <div class="col-span-12 px-2 mb-2">
       <div class="pixel-corners grid grid-cols-12 bg-slate-900 px-2 py-2">
         <div class="col-span-4">{@html retracingInfo}</div>
-        <div class="col-span-4"></div>
-        <div class="col-span-4 text-sm text-slate-500 text-right">
+        <div class="col-span-8 text-sm text-slate-500">
           built @ {__BUILD_TIME__} ({__COMMIT_TITLE__})
         </div>
       </div>
