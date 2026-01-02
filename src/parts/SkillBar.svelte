@@ -49,11 +49,9 @@
       </div>
     </div>
 
-    {#key $bakeSignal}
-      <div class="col-span-6">
-        <ProgressBar percent={runPercent}></ProgressBar>
-      </div>
-    {/key}
+    <div class="col-span-6">
+      <ProgressBar percent={runPercent}></ProgressBar>
+    </div>
     <div class="col-span-6">
       <ProgressBar percent={globalPercent}></ProgressBar>
     </div>

@@ -2,7 +2,6 @@
   import { get } from "svelte/store";
   import {
     gameState,
-    gainPerTick,
     bakery,
     bakeSignal,
     actionsCheckSignal,
@@ -12,15 +11,14 @@
   import GenericIcon from "./GenericIcon.svelte";
   import ProgressBar from "./ProgressBar.svelte";
   import SkillIcon from "./SkillIcon.svelte";
-  import { items } from "../gameData/items";
   export let action: Action;
   export let id: string;
   export let running: boolean = false;
   export let config: { classes: string[] } = { classes: [] };
   $: progress = calcProgress($gameState, $actionEndSignal !== null);
   $: percent = (progress / action.weight) * 100;
-  $: canToggle = checkCanToggle($gameState);
   $: isRevealed = checkIsRevealed($actionsCheckSignal !== null);
+  $: canToggle = checkCanToggle($gameState, isRevealed);
   $: isKnown = checkIsKnown($actionsCheckSignal !== null);
   $: duration =
     ($bakeSignal !== null &&
@@ -38,14 +36,14 @@
     return progress;
   }
 
-  function checkCanToggle(s: GameState): boolean {
-    if (!isRevealed) {
+  function checkCanToggle(s: GameState, revealed: boolean): boolean {
+    if (!revealed) {
       return false;
     }
     if (!action.grants) {
       return true;
     }
-
+    //todo remove
     return !(action.grants ?? []).every(
       (g) =>
         (s.data.run.inventory[g]?.amount ?? 0) >= s.data.run.inventoryCapacity
