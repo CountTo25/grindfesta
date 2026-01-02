@@ -138,6 +138,24 @@ export const CONDITION_CHECKS = {
     };
   },
 
+  flag: (
+    key: string,
+    check: (value: string) => boolean = (_) => true
+  ): GenericConditionCheck => {
+    return (d: GameState): boolean => {
+      let value = d.data.run.flags[key] ?? null;
+      if (value === null) return false;
+      return check(value);
+    };
+  },
+  noFlag: (key: string): GenericConditionCheck => {
+    return (d: GameState): boolean => {
+      let value = d.data.run.flags[key] ?? null;
+      if (value === null) return true;
+      return false;
+    };
+  },
+
   skillModifier: (skill: Skill, mod: number) => {
     return (state: GameState) => {
       if (!state.data.run.bakery) sendBakeSignal();
@@ -212,7 +230,20 @@ export const COMPLETION_EFFECTS = {
       return d;
     };
   },
-
+  patchFlag: (key: string, patcher: (value: string | null) => string) => {
+    return (d: GameState) => {
+      let rawValue = d.data.run.flags[key] ?? null;
+      let newValue = patcher(rawValue);
+      d.data.run.flags[key] = newValue;
+      d;
+    };
+  },
+  removeFlag: (key: string, value: string | null = null) => {
+    return (d: GameState) => {
+      d.data.run.flags[key] = value;
+      return d;
+    };
+  },
   addItem(itemId: ItemKey, amount: number) {
     return (state: GameState) => {
       if (!state.data.run.inventory[itemId]) {

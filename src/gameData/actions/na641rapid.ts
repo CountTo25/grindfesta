@@ -92,17 +92,19 @@ export const rapidDeliveryActions: ActionRepository = {
   },
   narcadia_delivery_take_order: {
     ...NO_CROSSGEN,
-    ...NO_REPEAT,
+    ...REPEATABLE,
     title: "Take on a delivery order",
     skill: "social",
     weight: 5,
+    stopOnRepeat: true,
     conditions: [
+      CONDITION_CHECKS.noFlag("narcadia_delivery_active_order"),
       CONDITION_CHECKS.inLocation("New Arcadia 641"),
       CONDITION_CHECKS.inSubLocation("Rapid Delivery Service"),
       CONDITION_CHECKS.ifActionCompleteRun("narcadia_delivery_take_job"),
     ],
     postComplete: [
-      COMPLETION_EFFECTS.addFlag("narcadia_delivery_active_order"),
+      COMPLETION_EFFECTS.addFlag("narcadia_delivery_active_order", "1"),
       COMPLETION_EFFECTS.addLog(
         "Customer is somewhere around Western Main Street"
       ),
@@ -146,6 +148,25 @@ export const rapidDeliveryActions: ActionRepository = {
       COMPLETION_EFFECTS.addLog(
         "Now all that's left is to deliver it to Marco at his workshop"
       ),
+    ],
+  },
+  narcadia_delivery_deliver: {
+    ...NO_CROSSGEN,
+    ...REPEATABLE,
+    title: "Deliver an order",
+    skill: "exploration",
+    weight: 30,
+    stopOnRepeat: true,
+    conditions: [
+      CONDITION_CHECKS.inLocation("New Arcadia 641"),
+      CONDITION_CHECKS.inSubLocation("Western main street"),
+      CONDITION_CHECKS.flag("narcadia_delivery_active_order"),
+    ],
+    postComplete: [
+      COMPLETION_EFFECTS.addItem("narcadia641_zenny", 2),
+      COMPLETION_EFFECTS.addFlag("narcadia_delivery_active_order_finished"),
+      COMPLETION_EFFECTS.removeFlag("narcadia_delivery_active_order"),
+      COMPLETION_EFFECTS.addLog("Report your delivery to local Rapid office"),
     ],
   },
 };
