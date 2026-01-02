@@ -121,9 +121,6 @@ export const rapidDeliveryActions: ActionRepository = {
       CONDITION_CHECKS.inSubLocation("Rapid Delivery Service"),
       CONDITION_CHECKS.ifActionCompleteRun("narcadia_delivery_take_job"),
       CONDITION_CHECKS.hasKnowledge("marco_needs_charger"),
-      CONDITION_CHECKS.ifActionCompleteAny(
-        "narcadia_delivery_find_marco_order"
-      ),
     ],
     postComplete: [
       COMPLETION_EFFECTS.addLog(
@@ -136,7 +133,7 @@ export const rapidDeliveryActions: ActionRepository = {
     ...NO_REPEAT,
     title: "Look for Marco's charger order",
     skill: "perception",
-    weight: 30,
+    weight: 50,
     conditions: [
       CONDITION_CHECKS.inLocation("New Arcadia 641"),
       CONDITION_CHECKS.inSubLocation("Rapid Delivery Service"),
