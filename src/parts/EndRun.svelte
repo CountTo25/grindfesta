@@ -33,6 +33,21 @@
     return knownNodes.includes(v) && canExecute && revealed;
   });
 
+  function bundleRetraced(records: RetracedRecord[]) {
+    const out = [];
+    for (const r of records) {
+      const last = out[out.length - 1];
+      if (last && last.id === r.id) {
+        last.count++;
+      } else {
+        out.push({ id: r.id, count: 1 });
+      }
+    }
+    return out;
+  }
+
+  $: bundledRetracedNodes = bundleRetraced(retraceRecording);
+
   function simulateAction(id: string) {
     const runState = fake.data.run;
     const actionDef = actions[id];
@@ -129,19 +144,22 @@
             Timeline
           </div>
           <div class="pt-2 px-2">
-            {#each [...[...retraceRecording].entries()].reverse() as [idx, record]}
+            {#each bundledRetracedNodes.reverse() as record, idx}
               <div
                 class="grid grid-cols-5 pixel-corners bg-slate-900 mb-2 p-1 border-b border-slate-700 text-sm"
               >
                 <div class="col-span-4">
                   {actions[record.id].title}
+                  {#if record.count > 1}
+                    x{record.count}
+                  {/if}
                 </div>
-                {#if idx === retraceRecording.length - 1}
+                {#if idx === 0}
                   <div class="col-span-1">
                     <div
                       class="text-center cursor-pointer"
                       on:click={() => {
-                        retraceRecording.splice(idx, 1);
+                        retraceRecording.splice(retraceRecording.length - 1, 1);
                         retraceRecording = retraceRecording;
                         handleRetraceAll(null);
                       }}

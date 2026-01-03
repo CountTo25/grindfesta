@@ -98,7 +98,7 @@ export const REVEAL = {
           );
         },
       ],
-      revealConditionExplained: [`Inventory is full for ${items[id].name}`],
+      revealConditionExplained: [`Needs inventory space for ${items[id].name}`],
     };
   },
   item: (

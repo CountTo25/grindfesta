@@ -98,7 +98,7 @@ export const rapidDeliveryActions: ActionRepository = {
     stopOnRepeat: true,
     conditions: [
       CONDITION_CHECKS.noFlag("narcadia_delivery_active_order"),
-      CONDITION_CHECKS.noFlag("narcadia_delivery_inished"),
+      CONDITION_CHECKS.noFlag("narcadia_delivery_finished"),
       CONDITION_CHECKS.inLocation("New Arcadia 641"),
       CONDITION_CHECKS.inSubLocation("Rapid Delivery Service"),
       CONDITION_CHECKS.ifActionCompleteRun("narcadia_delivery_take_job"),
@@ -121,11 +121,14 @@ export const rapidDeliveryActions: ActionRepository = {
       CONDITION_CHECKS.inSubLocation("Rapid Delivery Service"),
       CONDITION_CHECKS.ifActionCompleteRun("narcadia_delivery_take_job"),
       CONDITION_CHECKS.hasKnowledge("marco_needs_charger"),
+      CONDITION_CHECKS.noFlag("narcadia_delivery_active_order"),
+      CONDITION_CHECKS.noFlag("narcadia_delivery_finished"),
     ],
     postComplete: [
       COMPLETION_EFFECTS.addLog(
         "You've agreed to pick up Macro's order for delivery. Now to find it"
       ),
+      COMPLETION_EFFECTS.addFlag("narcadia_delivery_active_order", "1"),
     ],
   },
   narcadia_delivery_find_marco_order: {
@@ -188,9 +191,10 @@ export const rapidDeliveryActions: ActionRepository = {
       CONDITION_CHECKS.inLocation("New Arcadia 641"),
       CONDITION_CHECKS.inSubLocation("Western main street"),
       CONDITION_CHECKS.flag("narcadia_delivery_active_order"),
+      CONDITION_CHECKS.noFlag("marco_charger_on_hand"),
     ],
     postComplete: [
-      COMPLETION_EFFECTS.addFlag("narcadia_delivery_inished", "1"),
+      COMPLETION_EFFECTS.addFlag("narcadia_delivery_finished", "1"),
       COMPLETION_EFFECTS.removeFlag("narcadia_delivery_active_order"),
       COMPLETION_EFFECTS.addLog("Report your delivery to local Rapid office"),
     ],
@@ -204,13 +208,13 @@ export const rapidDeliveryActions: ActionRepository = {
     stopOnRepeat: true,
     conditions: [
       CONDITION_CHECKS.noFlag("narcadia_delivery_active_order"),
-      CONDITION_CHECKS.flag("narcadia_delivery_inished"),
+      CONDITION_CHECKS.flag("narcadia_delivery_finished"),
       CONDITION_CHECKS.inLocation("New Arcadia 641"),
       CONDITION_CHECKS.inSubLocation("Rapid Delivery Service"),
       CONDITION_CHECKS.ifActionCompleteRun("narcadia_delivery_take_job"),
     ],
     postComplete: [
-      COMPLETION_EFFECTS.removeFlag("narcadia_delivery_inished"),
+      COMPLETION_EFFECTS.removeFlag("narcadia_delivery_finished"),
       COMPLETION_EFFECTS.addItem("narcadia641_zenny", 2),
     ],
   },

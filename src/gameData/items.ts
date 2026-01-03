@@ -24,6 +24,21 @@ export const items = {
       return s;
     },
   },
+  charged_battery: {
+    name: "Charged battery",
+    description: "Restores 2 energy",
+    consumable: true,
+    consumeRequirement: (s) => {
+      return s.data.run.currentEnergy < s.data.run.maxEnergy - 2;
+    },
+    onConsume: (s: GameState) => {
+      s.data.run.currentEnergy = Math.min(
+        s.data.run.currentEnergy + 2,
+        s.data.run.maxEnergy
+      );
+      return s;
+    },
+  },
   naws_museum_ticket: {
     name: "NAWS History Museum ticket",
     description: "One admission",

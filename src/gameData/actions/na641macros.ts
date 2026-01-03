@@ -146,7 +146,85 @@ export const macrosWorkshopActions: { [key: string]: Action } = {
       COMPLETION_EFFECTS.addLog(
         "With new battery charger set up, it seems Marco is quite happy to provide you new services"
       ),
+      COMPLETION_EFFECTS.addFlag("narcadia_delivery_finished", "1"),
+      COMPLETION_EFFECTS.removeFlag("narcadia_delivery_active_order"),
     ],
+  },
+  narcadia_marco_buy_supercharged_batteries: {
+    ...NO_CROSSGEN,
+    ...REPEATABLE,
+    title: "Purchase supercharged battery",
+    flavourText: "4 zeny per piece. Restores 2 energy",
+    skill: "social",
+    weight: 10,
+    ...REVEAL.all([
+      REVEAL.item("narcadia641_zenny", 4),
+      REVEAL.itemNotCappedYet("charged_battery"),
+    ]),
+    conditions: [
+      CONDITION_CHECKS.inLocation("New Arcadia 641"),
+      CONDITION_CHECKS.inSubLocation("Marco's Workshop"),
+      CONDITION_CHECKS.ifActionCompleteRun("narcadia_macro_deliver_charger"),
+      CONDITION_CHECKS.ifActionCompleteRun("narcadia_macros_pay_charger"),
+    ],
+    postComplete: [
+      COMPLETION_EFFECTS.removeItem("narcadia641_zenny", 4),
+      COMPLETION_EFFECTS.addItem("charged_battery", 1),
+    ],
+  },
+  narcadia_marco_more_upgrades: {
+    ...NO_CROSSGEN,
+    ...NO_REPEAT,
+    title: "Ask about further upgrades",
+    skill: "social",
+    weight: 10,
+    conditions: [
+      CONDITION_CHECKS.inLocation("New Arcadia 641"),
+      CONDITION_CHECKS.inSubLocation("Marco's Workshop"),
+      CONDITION_CHECKS.ifActionCompleteRun("narcadia_macro_deliver_charger"),
+      CONDITION_CHECKS.ifActionCompleteRun("narcadia_macros_pay_charger"),
+    ],
+    postComplete: [
+      COMPLETION_EFFECTS.addLog(
+        "To upgrade something, you need to understand what exactly are you upgrading, tells you Marco"
+      ),
+    ],
+  },
+  narcadia_marco_explain_device: {
+    ...NO_CROSSGEN,
+    ...NO_REPEAT,
+    title: "Tell Marco about time leap",
+    skill: "social",
+    weight: 30,
+    conditions: [
+      CONDITION_CHECKS.inLocation("New Arcadia 641"),
+      CONDITION_CHECKS.inSubLocation("Marco's Workshop"),
+      CONDITION_CHECKS.ifActionCompleteRun("narcadia_marco_more_upgrades"),
+      CONDITION_CHECKS.not(
+        CONDITION_CHECKS.ifActionCompleteRun("narcadia_marco_lie_device")
+      ),
+    ],
+    postComplete: [],
+  },
+  narcadia_marco_lie_device: {
+    ...NO_CROSSGEN,
+    ...NO_REPEAT,
+    title: "Lie about your device",
+    skill: "social",
+    weight: 1500,
+    ...REVEAL.all([
+      REVEAL.skillCheck("social", 100),
+      REVEAL.skillCheck("engineering", 150),
+    ]),
+    conditions: [
+      CONDITION_CHECKS.inLocation("New Arcadia 641"),
+      CONDITION_CHECKS.inSubLocation("Marco's Workshop"),
+      CONDITION_CHECKS.ifActionCompleteRun("narcadia_marco_more_upgrades"),
+      CONDITION_CHECKS.not(
+        CONDITION_CHECKS.ifActionCompleteRun("narcadia_marco_explain_device")
+      ),
+    ],
+    postComplete: [],
   },
   narcadia_workshop_leave: {
     ...NO_CROSSGEN,
