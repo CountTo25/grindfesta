@@ -94,7 +94,7 @@ export const REVEAL = {
         (state: GameState) => {
           return (
             (state.data.run.inventory[id]?.amount ?? 0) <
-            state.data.run.inventoryCapacity
+            items[id].capacity(state)
           );
         },
       ],
@@ -146,6 +146,26 @@ export const CONDITION_CHECKS = {
       let value = d.data.run.flags[key] ?? null;
       if (value === null) return false;
       return check(value);
+    };
+  },
+  numFlagGTE: (key: string, target: number): GenericConditionCheck => {
+    return (d: GameState): boolean => {
+      let value = d.data.run.flags[key] ?? null;
+      if (value === null) return false;
+      let numValue = Number.parseInt(value);
+      return numValue >= target;
+    };
+  },
+  numFlagLTE: (key: string, target: number): GenericConditionCheck => {
+    return (d: GameState): boolean => {
+      let value = d.data.run.flags[key] ?? "0";
+      let numValue = Number.parseInt(value);
+      return numValue <= target;
+    };
+  },
+  hasItem: (key: ItemKey, amount: number = 1): GenericConditionCheck => {
+    return (d: GameState): boolean => {
+      return (d.data.run.inventory[key] ?? { amount: 0 }).amount >= amount;
     };
   },
   noFlag: (key: string): GenericConditionCheck => {
@@ -218,6 +238,17 @@ export const CONDITION_CHECKS = {
 };
 
 export const COMPLETION_EFFECTS = {
+  if: (
+    condition: (d: GameState) => boolean,
+    t: (d: GameState) => GameState
+  ) => {
+    return (d: GameState) => {
+      if (condition(d)) {
+        return t(d);
+      }
+      return d;
+    };
+  },
   addLog: (text: string) => {
     return (d: GameState) => {
       d.data.run.logEntries.push({ ts: d.data.run.timeSpent, text });
@@ -235,7 +266,16 @@ export const COMPLETION_EFFECTS = {
       let rawValue = d.data.run.flags[key] ?? null;
       let newValue = patcher(rawValue);
       d.data.run.flags[key] = newValue;
-      d;
+      return d;
+    };
+  },
+  patchFlagNumeric: (key: string, patcher: (value: number) => number) => {
+    return (d: GameState) => {
+      let rawValue = d.data.run.flags[key] ?? null;
+      let numValue = Number.parseInt(rawValue ?? "0");
+      let newValue = patcher(numValue);
+      d.data.run.flags[key] = newValue.toString();
+      return d;
     };
   },
   removeFlag: (key: string) => {
@@ -250,17 +290,16 @@ export const COMPLETION_EFFECTS = {
         state.data.run.inventory[itemId] = { amount: 0, cooldown: 0 };
       }
       if (
-        state.data.run.inventory[itemId].amount <
-        state.data.run.inventoryCapacity
+        state.data.run.inventory[itemId].amount < items[itemId].capacity(state)
       ) {
         state.data.run.inventory[itemId].amount += Math.min(
           amount,
-          state.data.run.inventoryCapacity -
+          items[itemId].capacity(state) -
             state.data.run.inventory[itemId].amount
         );
         if (
           state.data.run.inventory[itemId].amount >=
-          state.data.run.inventoryCapacity
+          items[itemId].capacity(state)
         ) {
           state.data.run.action = null;
         }
@@ -379,3 +418,10 @@ export function deepClone<T>(obj: T): T {
 
   return cloned;
 }
+
+export const skills: Skill[] = [
+  "exploration",
+  "perception",
+  "social",
+  "engineering",
+];

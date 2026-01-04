@@ -43,11 +43,6 @@
     if (!action.grants) {
       return true;
     }
-    //todo remove
-    return !(action.grants ?? []).every(
-      (g) =>
-        (s.data.run.inventory[g]?.amount ?? 0) >= s.data.run.inventoryCapacity
-    );
   }
 
   function checkIsRevealed(_: boolean): boolean {
@@ -85,17 +80,11 @@
     <div class="col-span-1 text-center">
       <SkillIcon skill={action.skill} />
     </div>
-    <div class="col-span-6" class:text-slate-500={!isRevealed}>
+    <div class="col-span-8" class:text-slate-500={!isRevealed}>
       {isRevealed ? action.title : isKnown ? action.title : "???"}
     </div>
     <div class="col-span-1 text-center cursor-pointer" on:click={toggleAction}>
       <GenericIcon icon={actionIcon} />
-    </div>
-    <div class="col-span-1 text-center cursor-pointer">
-      <GenericIcon icon={"login"} />
-    </div>
-    <div class="col-span-1 text-center cursor-pointer">
-      <GenericIcon icon={"lock-alt"} />
     </div>
     <div class="col-span-2 text-center">
       <GenericIcon icon={"clock"} />

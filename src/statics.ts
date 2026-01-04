@@ -1,12 +1,15 @@
-import { macrosWorkshopActions } from "./gameData/actions/na641macros";
+import { na641junkActions } from "./gameData/actions/na641junk";
+import { marcosWorkshopActions } from "./gameData/actions/na641macros";
 import { museumActions } from "./gameData/actions/na641museum";
 import { rapidDeliveryActions } from "./gameData/actions/na641rapid";
+import { na641southActions } from "./gameData/actions/na641south";
 import {
   NO_REPEAT,
   NO_CROSSGEN,
   CROSSGEN,
   REPEATABLE,
 } from "./gameData/actions/utils";
+import { KNOWLEDGE, TAGS } from "./gameData/tags";
 import type { Action, GameState } from "./types";
 import {
   COMPLETION_EFFECTS,
@@ -128,9 +131,6 @@ export const actions: { [key: string]: Action } = {
     ],
     postComplete: [
       COMPLETION_EFFECTS.addLog(
-        "There is advert about watchmaker workshop being located nearby"
-      ),
-      COMPLETION_EFFECTS.addLog(
         "Rapid Delivery! Delivery as fast as it is named. Terms and conditions apply"
       ),
       COMPLETION_EFFECTS.addLog(
@@ -164,14 +164,52 @@ export const actions: { [key: string]: Action } = {
     weight: 7,
     conditions: [
       CONDITION_CHECKS.inLocation("New Arcadia 641"),
-      CONDITION_CHECKS.inSubLocation("Western main street"),
+      CONDITION_CHECKS.or([
+        CONDITION_CHECKS.inSubLocation("Western main street"),
+        CONDITION_CHECKS.inSubLocation("Southern main street"),
+      ]),
       CONDITION_CHECKS.hasKnowledge("narcadia_currency"),
       CONDITION_CHECKS.ifActionCompleteAny("narcadia_moneymaking_seek"),
     ],
-    postComplete: [COMPLETION_EFFECTS.addItem("narcadia641_zenny", 1)],
+    postComplete: [
+      COMPLETION_EFFECTS.addItem("narcadia641_zenny", 1),
+      COMPLETION_EFFECTS.patchFlagNumeric("na641_rummage_naws", (v) => ++v),
+    ],
+  },
+  na641_homeless_wistom: {
+    ...NO_CROSSGEN,
+    ...NO_REPEAT,
+    title: "Listen to the wisdom of the homeless man",
+    flavourText: "While salvaging for coins, you see someone approach you",
+    skill: "social",
+    weight: 60,
+    conditions: [
+      CONDITION_CHECKS.inLocation("New Arcadia 641"),
+      CONDITION_CHECKS.inSubLocation("Western main street"),
+      CONDITION_CHECKS.hasKnowledge("narcadia_currency"),
+      CONDITION_CHECKS.ifActionCompleteAny("narcadia_moneymaking_seek"),
+      CONDITION_CHECKS.numFlagGTE("na641_rummage_naws", 25),
+    ],
+    postComplete: [
+      COMPLETION_EFFECTS.addKnowledge(KNOWLEDGE.NA641.southern_outskirts),
+      COMPLETION_EFFECTS.addKnowledge(KNOWLEDGE.NA641.southern_vendomats),
+      COMPLETION_EFFECTS.addKnowledge(KNOWLEDGE.NA641.johnny_contact),
+      COMPLETION_EFFECTS.patchFlagNumeric(
+        TAGS.NA641.REPUTATION.HOMELESS,
+        (v) => ++v
+      ),
+      COMPLETION_EFFECTS.addLog(
+        "Apparently theres a lot of goods to scavenge under vendomats on Southern Main street"
+      ),
+      COMPLETION_EFFECTS.addLog(
+        "Also you might meet Johnny in the ourskirts. He has few questionable but paying job offers (TODO, not implemented yet)"
+      ),
+    ],
   },
 
-  ...macrosWorkshopActions,
+  ...marcosWorkshopActions,
   ...museumActions,
   ...rapidDeliveryActions,
+  ...na641southActions,
+  ...na641junkActions,
 };

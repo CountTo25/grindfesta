@@ -1,11 +1,18 @@
 <script lang="ts">
   import { fade } from "svelte/transition";
-  import { deepClone, formatTime } from "../utils";
+  import { deepClone, formatTime, getModifier, skills } from "../utils";
   import Button from "../components/Button.svelte";
-  import { endRun, gameState, ghostDisplayableActions } from "../state";
+  import {
+    bakery,
+    endRun,
+    gameState,
+    ghostDisplayableActions,
+    GLOBAL_LEVEL_MOD_RATIO,
+    sendSubLocationSignal,
+  } from "../state";
   import RetracingNode from "./RetracingNode.svelte";
   import { actions } from "../statics";
-  import { EMPTY_RUN, GameState } from "../types";
+  import { EMPTY_RUN, GameState, type Skill } from "../types";
   import { get } from "svelte/store";
 
   let isRetracing = false;
@@ -15,6 +22,18 @@
     id: string;
   };
 
+  function showInitStat(t: Skill): number {
+    return getModifier($endRun?.initialStats[t] ?? 0, GLOBAL_LEVEL_MOD_RATIO);
+  }
+
+  function showEORStat(t: Skill): number {
+    return getModifier(bakery.skills.global[t] ?? 0, GLOBAL_LEVEL_MOD_RATIO);
+  }
+
+  function doUnwind() {
+    $endRun = null;
+    sendSubLocationSignal();
+  }
   let retraceRecording: RetracedRecord[] = [];
   let fake: GameState = deepClone(get(gameState));
   fake.data.run = deepClone(EMPTY_RUN);
@@ -104,14 +123,41 @@
   in:fade
   out:fade={{ duration: 100 }}
 >
-  <div class="w-full h-full pixel-corners bg-slate-900 relative flex flex-col">
+  <div
+    class="w-full h-full pixel-corners bg-slate-900 relative flex flex-col p-2"
+  >
     {#if !isRetracing}
-      <div class="py-2 px-3">
-        <div class="grid grid-cols-12">
-          <div class="col-span-12 text-lg text-center">
+      <div class="py-2 px-3 h-full">
+        <div class="grid grid-cols-12 grid-rows-12 h-full">
+          <div class="col-span-12 text-lg text-center row-span-1">
             Energy ran out after {formatTime($endRun!.timeSpent)}
           </div>
-          <div class="col-span-12 text-center">
+          <div class="row-span-10 col-span-12">
+            <div class="grid gird-cols-12">
+              <div class="col-span-4">
+                <div>
+                  {#if $gameState.data.run?.initialStats ?? false}
+                    {#each skills as skill}
+                      {@const initValue = showInitStat(skill)}
+                      {@const eorValue = showEORStat(skill)}
+                      <div>
+                        {String(skill).charAt(0).toUpperCase() +
+                          String(skill).slice(1)}
+                      </div>
+                      <div class="pl-2">
+                        <span class="text-slate-400 text-sm">x{initValue}</span>
+                        <i class="hn hn-angle-right-solid"></i>
+                        <span class:text-emerald-700={eorValue > initValue}
+                          >x{eorValue}</span
+                        >
+                      </div>
+                    {/each}
+                  {/if}
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="col-span-12 text-center row-span-1">
             {#if $gameState.data.global.loop >= 2}
               <Button
                 config={{ classMixins: ["mx-2"] }}
@@ -125,9 +171,8 @@
               >
             {/if}
 
-            <Button
-              config={{ classMixins: ["mx-2"] }}
-              on:click={() => ($endRun = null)}>Unwind time</Button
+            <Button config={{ classMixins: ["mx-2"] }} on:click={doUnwind}
+              >Unwind time</Button
             >
           </div>
         </div>

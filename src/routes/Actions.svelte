@@ -7,16 +7,18 @@
   import { actions } from "../statics";
   $: allActions = $displayableActions
     .map((id) => (actions[id] && { action: actions[id], id }) ?? null)
-    .filter(Boolean);
+    .filter(Boolean)
+    .sort((l, r) => (r.action.idx ?? 0) - (l.action.idx ?? 0));
 
-  $: allItems = Object.entries($gameState.data.run.inventory) as [
-    ItemKey,
-    { amount: Number; cooldown: number },
-  ][];
+  $: allItems = Object.entries($gameState.data.run.inventory).filter(
+    ([, { amount }]) => {
+      return amount > 0;
+    }
+  ) as [ItemKey, { amount: Number; cooldown: number }][];
 </script>
 
-<div class="grid grid-cols-12 gap-2">
-  <div class="col-span-8">
+<div class="grid grid-cols-12 h-full gap-2">
+  <div class="col-span-8 h-full overflow-y-auto">
     {#each allActions as { action, id } (id)}
       <SingleAction
         {action}
@@ -32,14 +34,17 @@
         {#each allItems as [key, value] (key)}
           <div>
             {items[key].name}
-            {$gameState.data.run.inventory[key]?.amount ?? 0}/{$gameState.data
-              .run.inventoryCapacity}
+            {$gameState.data.run.inventory[key]?.amount ?? 0}/{items[
+              key
+            ].capacity($gameState)}
           </div>
           <div class="grid grid-cols-2">
             <div class="text-slate-500 text-xs">{items[key].description}</div>
-            <div class="text-slate-500 text-xs text-right">
-              {(value.cooldown / 1000).toFixed(2)}s
-            </div>
+            {#if items[key].consumable}
+              <div class="text-slate-500 text-xs text-right">
+                {(value.cooldown / 1000).toFixed(2)}s
+              </div>
+            {/if}
             <div class="col-span-2">
               <ProgressBar
                 percent={Math.floor((value.cooldown / 5000) * 100)}

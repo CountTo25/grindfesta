@@ -14,6 +14,8 @@ export const EMPTY_RUN: RunState = {
   currentEnergy: 10.0,
   location: "New Arcadia 641",
   inventory: {},
+  initialStats: { exploration: 0, perception: 0, social: 0, engineering: 0 },
+  // Deprecated
   inventoryCapacity: 10,
   subLocation: "Western main street alley",
   stats: { exploration: 0, perception: 0, social: 0, engineering: 0 },
@@ -68,7 +70,10 @@ export type NewArcadiaSubLocation =
   | "Marco's Workshop"
   | "NAWS History Museum"
   | "NAWS History Museum — Main Hall"
-  | "Rapid Delivery Service";
+  | "Rapid Delivery Service"
+  | "Southern main street outskirts"
+  | "Anna's Recycled Goods"
+  | "Southern main street";
 
 export type SkillLevels = {
   [k in Skill]: number;
@@ -102,6 +107,7 @@ export type RunState =
       actionProgress: { [id: string]: { progress: number; complete: boolean } };
       timeSpent: number;
       stats: SkillLevels;
+      initialStats: SkillLevels;
       maxEnergy: number;
       flags: { [key: string]: string | null };
       energyDecayRate: number;
@@ -121,6 +127,7 @@ export type Action = {
   title: string | ((state: GameState) => string);
   skill: Skill;
   weight: number;
+  idx?: number;
   conditions: ((state: GameState) => boolean)[];
   repeatable: boolean;
   crossGeneration: boolean;
@@ -138,4 +145,5 @@ export type Item = {
   consumable: boolean;
   onConsume: StatePatcher[] | StatePatcher;
   consumeRequirement: StateChecker | StateChecker[];
+  capacity: (d: GameState) => number;
 };

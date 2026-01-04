@@ -13,6 +13,7 @@
     CONDITION_CHECKS,
     formatTime,
     LOCATION_CHECKS,
+    skills,
   } from "./utils";
   //LOAD
   CONDITION_CHECKS;
@@ -27,12 +28,6 @@
   import { get } from "svelte/store";
   import EndRun from "./parts/EndRun.svelte";
   import { actions } from "./statics";
-  const skills: Skill[] = [
-    "exploration",
-    "perception",
-    "social",
-    "engineering",
-  ];
   function checkSkillVisibility(skill: Skill, s: GameState) {
     // TODO: refactor this bs, dont force redraws
     return s.data.global.stats[skill] > 0 || s.data.run.stats[skill] > 0;
@@ -132,13 +127,15 @@
     <!-- Main content -->
     <div class="col-span-12 grid grid-cols-12 overflow-hidden flex-col">
       <!-- Left main view -->
-      <div class="col-span-9 overflow-hidden px-2">
-        <Router
-          routingSettings={{
-            actions: Actions,
-          }}
-          currentRoute={$gameState.data.run.mainViewRoute}
-        />
+      <div class="col-span-9 h-full overflow-hidden px-2">
+        <div class="overflow-y-auto h-full flex-1">
+          <Router
+            routingSettings={{
+              actions: Actions,
+            }}
+            currentRoute={$gameState.data.run.mainViewRoute}
+          />
+        </div>
       </div>
 
       <!-- Log view -->

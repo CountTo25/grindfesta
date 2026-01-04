@@ -2,7 +2,7 @@ import type { Action } from "../../types";
 import { CONDITION_CHECKS, COMPLETION_EFFECTS, REVEAL } from "../../utils";
 import { CROSSGEN, NO_CROSSGEN, NO_REPEAT, REPEATABLE } from "./utils";
 
-export const macrosWorkshopActions: { [key: string]: Action } = {
+export const marcosWorkshopActions: { [key: string]: Action } = {
   narcadia_workshop_move: {
     ...NO_CROSSGEN,
     ...REPEATABLE,
@@ -60,6 +60,7 @@ export const macrosWorkshopActions: { [key: string]: Action } = {
     ...REPEATABLE,
     title: "Buy a battery",
     skill: "social",
+    idx: 15,
     weight: 6,
     ...REVEAL.all([
       REVEAL.item("narcadia641_zenny", 1),
@@ -148,6 +149,7 @@ export const macrosWorkshopActions: { [key: string]: Action } = {
       ),
       COMPLETION_EFFECTS.addFlag("narcadia_delivery_finished", "1"),
       COMPLETION_EFFECTS.removeFlag("narcadia_delivery_active_order"),
+      COMPLETION_EFFECTS.removeFlag("marco_charger_on_hand"),
     ],
   },
   narcadia_marco_buy_supercharged_batteries: {
@@ -156,6 +158,7 @@ export const macrosWorkshopActions: { [key: string]: Action } = {
     title: "Purchase supercharged battery",
     flavourText: "4 zeny per piece. Restores 2 energy",
     skill: "social",
+    idx: 10,
     weight: 10,
     ...REVEAL.all([
       REVEAL.item("narcadia641_zenny", 4),
@@ -239,20 +242,150 @@ export const macrosWorkshopActions: { [key: string]: Action } = {
     ],
     postComplete: [COMPLETION_EFFECTS.moveSubLocation("Western main street")],
   },
+  na641_seek_workshop: {
+    ...CROSSGEN,
+    ...NO_REPEAT,
+    title: "Look for some workshop",
+    flavourText:
+      "Your time leap device seems to be off. Probably should find some repair store",
+    skill: "perception",
+    weight: 10,
+    conditions: [
+      CONDITION_CHECKS.inLocation("New Arcadia 641"),
+      CONDITION_CHECKS.inSubLocation("Western main street"),
+      (d) => d.data.global.loop >= 1,
+    ],
+    postComplete: [
+      COMPLETION_EFFECTS.addLog(
+        "There is advert about watchmaker shop being located nearby"
+      ),
+    ],
+  },
   narcadia_workshop_search: {
     ...CROSSGEN,
     ...NO_REPEAT,
     title: "Locate workshop",
     skill: "exploration",
-    flavourText: "Maybe you can find some way to fix your device",
+    flavourText: "Maybe you can find some way to fix your device there",
     weight: 15,
     conditions: [
       CONDITION_CHECKS.inLocation("New Arcadia 641"),
       CONDITION_CHECKS.inSubLocation("Western main street"),
-      CONDITION_CHECKS.ifActionCompleteRun("intro_2"),
-      CONDITION_CHECKS.ifActionCompleteAny("narcadia_seek_init"),
-      CONDITION_CHECKS.ifActionCompleteRun("intro_confirm_tld"),
+      CONDITION_CHECKS.ifActionCompleteAny("na641_seek_workshop"),
     ],
     postComplete: [],
+  },
+  na641_marcos_fix_camera_did_delivery: {
+    ...NO_CROSSGEN,
+    ...NO_REPEAT,
+    title: "Ask if Marco can fix this camera",
+    skill: "social",
+    flavourText: "Might come in handy",
+    conditions: [
+      CONDITION_CHECKS.inLocation("New Arcadia 641"),
+      CONDITION_CHECKS.inSubLocation("Marco's Workshop"),
+      CONDITION_CHECKS.ifActionCompleteRun("narcadia_macro_deliver_charger"),
+      CONDITION_CHECKS.hasItem("na641_broken_camera", 1),
+      CONDITION_CHECKS.ifActionCompleteRun("narcadia_macros_greet"),
+      CONDITION_CHECKS.not(
+        CONDITION_CHECKS.ifActionCompleteRun(
+          "na641_marcos_fix_camera_no_delivery"
+        )
+      ),
+    ],
+    postComplete: [
+      COMPLETION_EFFECTS.addLog(
+        "Either you can use his spare tools or pay 5 Zenny for a fix"
+      ),
+    ],
+    weight: 20,
+  },
+  na641_marcos_fix_camera_no_delivery: {
+    ...NO_CROSSGEN,
+    ...NO_REPEAT,
+    title: "Ask if Marco can fix this camera",
+    skill: "social",
+    flavourText: "Might come in handy",
+    conditions: [
+      CONDITION_CHECKS.inLocation("New Arcadia 641"),
+      CONDITION_CHECKS.inSubLocation("Marco's Workshop"),
+      CONDITION_CHECKS.not(
+        CONDITION_CHECKS.ifActionCompleteRun("narcadia_macro_deliver_charger")
+      ),
+      CONDITION_CHECKS.not(
+        CONDITION_CHECKS.ifActionCompleteRun(
+          "na641_marcos_fix_camera_did_delivery"
+        )
+      ),
+      CONDITION_CHECKS.ifActionCompleteRun("narcadia_macros_greet"),
+      CONDITION_CHECKS.hasItem("na641_broken_camera", 1),
+    ],
+    postComplete: [
+      COMPLETION_EFFECTS.addLog("For 10 Zenny he will make it work again"),
+    ],
+    weight: 20,
+  },
+  na641_marcos_do_fix_camera_no_delivery: {
+    ...NO_CROSSGEN,
+    ...NO_REPEAT,
+    title: "Pay for camera repairs",
+    skill: "social",
+    flavourText: "10 Zenny",
+    ...REVEAL.item("narcadia641_zenny", 10),
+    conditions: [
+      CONDITION_CHECKS.inLocation("New Arcadia 641"),
+      CONDITION_CHECKS.inSubLocation("Marco's Workshop"),
+      CONDITION_CHECKS.ifActionCompleteRun(
+        "na641_marcos_fix_camera_no_delivery"
+      ),
+      CONDITION_CHECKS.hasItem("na641_broken_camera", 1),
+    ],
+    postComplete: [
+      COMPLETION_EFFECTS.removeItem("narcadia641_zenny", 10),
+      COMPLETION_EFFECTS.removeItem("na641_broken_camera", 1),
+      COMPLETION_EFFECTS.addItem("na641_fixed_camera", 5),
+    ],
+    weight: 20,
+  },
+  na641_marcos_diy_fix_camera: {
+    ...NO_CROSSGEN,
+    ...NO_REPEAT,
+    title: "Fix the camera",
+    flavourText: "With a few pointers from Marco it seems pretty doable",
+    skill: "engineering",
+    conditions: [
+      CONDITION_CHECKS.inLocation("New Arcadia 641"),
+      CONDITION_CHECKS.inSubLocation("Marco's Workshop"),
+      CONDITION_CHECKS.ifActionCompleteRun(
+        "na641_marcos_fix_camera_did_delivery"
+      ),
+      CONDITION_CHECKS.hasItem("na641_broken_camera", 1),
+    ],
+    postComplete: [
+      COMPLETION_EFFECTS.removeItem("na641_broken_camera", 1),
+      COMPLETION_EFFECTS.addItem("na641_fixed_camera", 5),
+    ],
+    weight: 150,
+  },
+  na641_marcos_cheap_fix_camera: {
+    ...NO_CROSSGEN,
+    ...NO_REPEAT,
+    title: "Pay Marco for camera repairs",
+    skill: "engineering",
+    ...REVEAL.item("narcadia641_zenny", 5),
+    conditions: [
+      CONDITION_CHECKS.inLocation("New Arcadia 641"),
+      CONDITION_CHECKS.inSubLocation("Marco's Workshop"),
+      CONDITION_CHECKS.ifActionCompleteRun(
+        "na641_marcos_fix_camera_did_delivery"
+      ),
+      CONDITION_CHECKS.hasItem("na641_broken_camera", 1),
+    ],
+    postComplete: [
+      COMPLETION_EFFECTS.removeItem("narcadia641_zenny", 1),
+      COMPLETION_EFFECTS.removeItem("na641_broken_camera", 1),
+      COMPLETION_EFFECTS.addItem("na641_fixed_camera", 5),
+    ],
+    weight: 150,
   },
 };

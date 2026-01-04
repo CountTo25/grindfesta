@@ -68,6 +68,7 @@ export const museumActions: ActionRepository = {
   narcadia_museum_buy_ticket: {
     ...NO_CROSSGEN,
     ...REPEATABLE,
+    stopOnRepeat: true,
     title: "Buy a ticket",
     skill: "social",
     weight: 10,
@@ -138,6 +139,26 @@ export const museumActions: ActionRepository = {
       ),
       COMPLETION_EFFECTS.addKnowledge("narcadia_founding"),
       COMPLETION_EFFECTS.addKnowledge("narcadia_resources"),
+    ],
+  },
+  na641_museum_history_city: {
+    ...CROSSGEN,
+    ...NO_REPEAT,
+    title: "Examine 'Old Arcadia' showcase",
+    skill: "perception",
+    weight: 60,
+    conditions: [
+      CONDITION_CHECKS.inLocation("New Arcadia 641"),
+      CONDITION_CHECKS.inSubLocation("NAWS History Museum — Main Hall"),
+    ],
+    postComplete: [
+      COMPLETION_EFFECTS.addLog(
+        "Quite a long time ago there was the usual Arcadia — before they unveiled large deposites of rather unique metal that allowed for cheap construction"
+      ),
+      COMPLETION_EFFECTS.addLog(
+        "There is still quite a big reserves of it under Arcadia and they are still being mined to this day deep underground"
+      ),
+      COMPLETION_EFFECTS.addKnowledge("narcadia_underground_resources"),
     ],
   },
   narcadia_museum_play_building: {

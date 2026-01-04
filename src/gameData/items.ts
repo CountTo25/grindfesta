@@ -1,4 +1,5 @@
 import type { GameState, Item } from "../types";
+import { TAGS } from "./tags";
 
 // Step 1: Define the items with `as const` to preserve literal keys
 export const items = {
@@ -8,6 +9,11 @@ export const items = {
     consumable: false,
     consumeRequirement: [],
     onConsume: [],
+    capacity: (c) => {
+      let junkWalletMod =
+        c.data.run.flags[TAGS.MODIFIERS.HAS_JUNK_WALLET] ?? null ? 10 : 0;
+      return 10 + junkWalletMod;
+    },
   },
   small_battery: {
     name: "Small battery",
@@ -23,6 +29,7 @@ export const items = {
       );
       return s;
     },
+    capacity: (_) => 10,
   },
   charged_battery: {
     name: "Charged battery",
@@ -38,6 +45,7 @@ export const items = {
       );
       return s;
     },
+    capacity: (_) => 10,
   },
   naws_museum_ticket: {
     name: "NAWS History Museum ticket",
@@ -45,6 +53,23 @@ export const items = {
     consumable: false,
     consumeRequirement: [],
     onConsume: [],
+    capacity: (_) => 10,
+  },
+  na641_broken_camera: {
+    name: "Broken instant camera",
+    description: "Could be fixed",
+    consumable: false,
+    consumeRequirement: [],
+    onConsume: [],
+    capacity: (_) => 1,
+  },
+  na641_fixed_camera: {
+    name: "5-shot instant camera",
+    description: "For precious moments",
+    consumable: false,
+    consumeRequirement: [],
+    onConsume: [],
+    capacity: (_) => 5,
   },
 } as const satisfies Record<string, Item>;
 

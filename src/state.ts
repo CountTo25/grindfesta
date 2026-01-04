@@ -22,9 +22,10 @@ import {
   syncToDebug,
 } from "./utils";
 import { checkItems, save } from "./actions";
+import { items } from "./gameData/items";
 
 ///Globals for quick tinkering here
-const GLOBAL_LEVEL_MOD_RATIO = 1.05;
+export const GLOBAL_LEVEL_MOD_RATIO = 1.05;
 const RUN_LEVEL_MOD_RATIO = 1.08;
 const RUN_EXP_TO_LEVEL_RATIO = 5;
 const RUN_SKILL_GAIN_MOD = 1.35;
@@ -139,30 +140,18 @@ actionsCheckSignal.subscribe((_) => {
       if (!actionRef.repeatable) {
         state.data.run.action = null;
       } else {
-        if (!!actionRef.grants) {
-          for (const itemId of actionRef.grants) {
-            if (!state.data.run.inventory[itemId]) {
-              state.data.run.inventory[itemId] = { amount: 0, cooldown: 0 };
-            }
-            if (
-              state.data.run.inventory[itemId].amount <
-              state.data.run.inventoryCapacity
-            ) {
-              state.data.run.inventory[itemId].amount++;
-              if (
-                state.data.run.inventory[itemId].amount >=
-                state.data.run.inventoryCapacity
-              ) {
-                state.data.run.action = null;
-              }
-            }
-          }
-        }
         state.data.run.actionProgress[ACTION_ID].progress = 0;
         state.data.run.actionProgress[ACTION_ID].complete = false;
         if (
           actionRef.revealCondition !== undefined &&
           !actionRef.revealCondition.every((c) => c(state))
+        ) {
+          state.data.run.action = null;
+          state.data.run.actionProgress[ACTION_ID].progress = 0;
+        }
+        if (
+          actionRef.conditions !== undefined &&
+          !actionRef.conditions.every((c) => c(state))
         ) {
           state.data.run.action = null;
           state.data.run.actionProgress[ACTION_ID].progress = 0;
@@ -243,6 +232,7 @@ tickSignal.subscribe((_) => {
       if (val.data.run.currentEnergy <= 0) {
         endRun.set(val.data.run);
         val.data.run = processCleanGameState(EMPTY_RUN);
+        val.data.run.initialStats = bakery.skills.global;
         val.data.global.loop = val.data.global.loop + 1;
         checkActions();
         bakeSkillLevels();
@@ -290,6 +280,7 @@ tickSignal.subscribe((_) => {
         if (actions[ACTION_ID].crossGeneration) {
           val.data.global.presistentActionProgress.push(ACTION_ID);
         }
+        //if it repeatable, but invisible — stop
         checkActions();
       }
     } else {
