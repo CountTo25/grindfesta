@@ -38,10 +38,12 @@
               key
             ].capacity($gameState)}
           </div>
-          <div class="grid grid-cols-2">
-            <div class="text-slate-500 text-xs">{items[key].description}</div>
+          <div class="grid grid-cols-4">
+            <div class="text-slate-500 text-xs col-span-3">
+              {items[key].description}
+            </div>
             {#if items[key].consumable}
-              <div class="text-slate-500 text-xs text-right">
+              <div class="text-slate-500 text-xs text-right col-span-1">
                 {(value.cooldown / 1000).toFixed(2)}s
               </div>
             {/if}

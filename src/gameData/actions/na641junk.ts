@@ -1,6 +1,7 @@
 import { COMPLETION_EFFECTS, CONDITION_CHECKS, REVEAL } from "../../utils";
 import { TAGS } from "../tags";
 import {
+  CROSSGEN,
   NO_CROSSGEN,
   NO_REPEAT,
   REPEATABLE,
@@ -129,7 +130,7 @@ export const na641junkActions: ActionRepository = {
       CONDITION_CHECKS.inLocation("New Arcadia 641"),
       CONDITION_CHECKS.inSubLocation("Anna's Recycled Goods"),
       CONDITION_CHECKS.ifActionCompleteRun("na641_junk_ask_about_radio"),
-      CONDITION_CHECKS.numFlagLTE(TAGS.NA641.JUNK.FIX_COUNT, 10),
+      CONDITION_CHECKS.numFlagLTE(TAGS.NA641.JUNK.FIX_COUNT, 9),
     ],
     postComplete: [
       COMPLETION_EFFECTS.addItem("narcadia641_zenny", 3),
@@ -165,7 +166,7 @@ export const na641junkActions: ActionRepository = {
     ],
   },
   na641_junk_inspect_display: {
-    ...NO_CROSSGEN,
+    ...CROSSGEN,
     ...NO_REPEAT,
     title: "Inspect display",
     skill: "perception",

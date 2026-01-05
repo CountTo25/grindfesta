@@ -17,7 +17,7 @@ export const items = {
   },
   small_battery: {
     name: "Small battery",
-    description: "Restores 1 energy",
+    description: "Restores 1 energy when consumed",
     consumable: true,
     consumeRequirement: (s) => {
       return s.data.run.currentEnergy < s.data.run.maxEnergy - 1;
@@ -33,7 +33,7 @@ export const items = {
   },
   charged_battery: {
     name: "Charged battery",
-    description: "Restores 2 energy",
+    description: "Restores 2 energy on use",
     consumable: true,
     consumeRequirement: (s) => {
       return s.data.run.currentEnergy < s.data.run.maxEnergy - 2;

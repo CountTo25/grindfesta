@@ -59,6 +59,7 @@ export const marcosWorkshopActions: { [key: string]: Action } = {
     ...NO_CROSSGEN,
     ...REPEATABLE,
     title: "Buy a battery",
+    flavourText: "1 Zenny. Restores 1 energy on use",
     skill: "social",
     idx: 15,
     weight: 6,
@@ -156,7 +157,7 @@ export const marcosWorkshopActions: { [key: string]: Action } = {
     ...NO_CROSSGEN,
     ...REPEATABLE,
     title: "Purchase supercharged battery",
-    flavourText: "4 zeny per piece. Restores 2 energy",
+    flavourText: "4 Zenny per piece. Restores 2 energy",
     skill: "social",
     idx: 10,
     weight: 10,
@@ -405,8 +406,8 @@ export const marcosWorkshopActions: { [key: string]: Action } = {
   na641_marcos_cheap_fix_camera: {
     ...NO_CROSSGEN,
     ...NO_REPEAT,
-    title: "Pay Marco for camera repairs",
-    skill: "engineering",
+    title: "Pay for camera repairs",
+    skill: "social",
     ...REVEAL.item("narcadia641_zenny", 5),
     conditions: [
       CONDITION_CHECKS.inLocation("New Arcadia 641"),
@@ -421,6 +422,6 @@ export const marcosWorkshopActions: { [key: string]: Action } = {
       COMPLETION_EFFECTS.removeItem("na641_broken_camera", 1),
       COMPLETION_EFFECTS.addItem("na641_fixed_camera", 5),
     ],
-    weight: 150,
+    weight: 30,
   },
 };

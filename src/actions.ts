@@ -5,8 +5,10 @@ import type { GameState } from "./types";
 export function checkItems(state: GameState, tickProgress: number): GameState {
   let consumable_ids = Object.entries(state.data.run.inventory)
     .filter(([k, _]) => items[k as ItemKey]!.consumable)
-    .filter(([_, v]) => v.amount >= 0)
+    .filter(([k, v]) => v.amount > 0)
     .map(([k, _]) => k as ItemKey);
+  console.log(consumable_ids);
+  console.log(state.data.run.inventory);
   for (const id of consumable_ids) {
     if (state.data.run.inventory[id]!.cooldown > 0) {
       state.data.run.inventory[id]!.cooldown = Math.max(

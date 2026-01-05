@@ -29,6 +29,7 @@ export const GLOBAL_LEVEL_MOD_RATIO = 1.05;
 const RUN_LEVEL_MOD_RATIO = 1.08;
 const RUN_EXP_TO_LEVEL_RATIO = 5;
 const RUN_SKILL_GAIN_MOD = 1.35;
+const GLOBAL_SKILL_GAIN_MOD = 1.35;
 //
 const DECAY_TEST_MOD = 1;
 //const DECAY_TEST_MOD = 200;
@@ -260,7 +261,7 @@ tickSignal.subscribe((_) => {
         actions[ACTION_ID].weight
       );
       val.data.run.stats[skill] += skillGain * RUN_SKILL_GAIN_MOD;
-      val.data.global.stats[skill] += skillGain;
+      val.data.global.stats[skill] += skillGain * GLOBAL_SKILL_GAIN_MOD;
 
       if (
         val.data.run.stats[skill] >=

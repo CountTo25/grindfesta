@@ -1,5 +1,5 @@
 import { na641junkActions } from "./gameData/actions/na641junk";
-import { marcosWorkshopActions } from "./gameData/actions/na641macros";
+import { marcosWorkshopActions } from "./gameData/actions/na641marcos";
 import { museumActions } from "./gameData/actions/na641museum";
 import { rapidDeliveryActions } from "./gameData/actions/na641rapid";
 import { na641southActions } from "./gameData/actions/na641south";
@@ -202,7 +202,7 @@ export const actions: { [key: string]: Action } = {
         "Apparently theres a lot of goods to scavenge under vendomats on Southern Main street"
       ),
       COMPLETION_EFFECTS.addLog(
-        "Also you might meet Johnny in the ourskirts. He has few questionable but paying job offers (TODO, not implemented yet)"
+        "Also you might meet Johnny in the ourskirts, he'll know about you coming. He has few questionable but paying job offers (TODO, not implemented yet)"
       ),
     ],
   },
