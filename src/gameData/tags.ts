@@ -5,9 +5,11 @@ export const DELIVERY_TAGS = {
 
 export const TAGS = {
   NA641: {
+    SUS_LEVEL: "na641_suspicion",
     DELIVERY: DELIVERY_TAGS,
     JUNK: {
       RADIO: "junk_radio_fixed",
+      FIX_COUNT: "na641_junk_fix_count",
     },
     REPUTATION: {
       HOMELESS: "na641_rep_homeless",

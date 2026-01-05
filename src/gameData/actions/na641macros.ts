@@ -207,7 +207,11 @@ export const marcosWorkshopActions: { [key: string]: Action } = {
         CONDITION_CHECKS.ifActionCompleteRun("narcadia_marco_lie_device")
       ),
     ],
-    postComplete: [],
+    postComplete: [
+      COMPLETION_EFFECTS.addLog(
+        "Despite questioning your sanity, Marco agreed to let you use his in-store tools if you let him watch"
+      ),
+    ],
   },
   narcadia_marco_lie_device: {
     ...NO_CROSSGEN,
@@ -227,7 +231,38 @@ export const marcosWorkshopActions: { [key: string]: Action } = {
         CONDITION_CHECKS.ifActionCompleteRun("narcadia_marco_explain_device")
       ),
     ],
-    postComplete: [],
+    postComplete: [
+      COMPLETION_EFFECTS.addLog(
+        "Seems like he believed your story about this being elaborate prototype of portable phone"
+      ),
+      COMPLETION_EFFECTS.addLog(
+        "If you pay him 25 Zenny, he'll let you use his tools"
+      ),
+    ],
+  },
+  narcadia_stabilize_timeleap_energy: {
+    ...NO_CROSSGEN,
+    ...NO_REPEAT,
+    title: "Tinker with Time Leap Device energy module",
+    skill: "engineering",
+    flavourText:
+      "With tools now available for you, you can start to tinker. Halves energy decay rate",
+    weight: 150,
+    ...REVEAL.skillCheck("engineering", 5),
+    conditions: [
+      CONDITION_CHECKS.inLocation("New Arcadia 641"),
+      CONDITION_CHECKS.inSubLocation("Marco's Workshop"),
+      CONDITION_CHECKS.or([
+        CONDITION_CHECKS.ifActionCompleteRun("narcadia_marco_lie_device"),
+        CONDITION_CHECKS.ifActionCompleteRun("narcadia_marco_explain_device"),
+      ]),
+    ],
+    postComplete: [
+      COMPLETION_EFFECTS.addLog(
+        "Energy decay seems to have stabilized for now"
+      ),
+      COMPLETION_EFFECTS.cutDecay(2),
+    ],
   },
   narcadia_workshop_leave: {
     ...NO_CROSSGEN,

@@ -3,7 +3,13 @@ import { svelte } from "@sveltejs/vite-plugin-svelte";
 
 // https://vite.dev/config/
 export default defineConfig({
-  plugins: [svelte()],
+  plugins: [
+    svelte({
+      compilerOptions: {
+        hmr: false,
+      },
+    }),
+  ],
   base: "/grindfesta/",
   define: {
     __BUILD_TIME__: JSON.stringify(

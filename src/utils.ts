@@ -255,6 +255,12 @@ export const COMPLETION_EFFECTS = {
       return d;
     };
   },
+  cutDecay: (factor: number) => {
+    return (d: GameState) => {
+      d.data.run.energyDecayRate /= factor;
+      return d;
+    };
+  },
   addFlag: (key: string, value: string | null = null) => {
     return (d: GameState) => {
       d.data.run.flags[key] = value;

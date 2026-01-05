@@ -232,6 +232,7 @@ tickSignal.subscribe((_) => {
       if (val.data.run.currentEnergy <= 0) {
         endRun.set(val.data.run);
         val.data.run = processCleanGameState(EMPTY_RUN);
+        bakeSkillLevels();
         val.data.run.initialStats = bakery.skills.global;
         val.data.global.loop = val.data.global.loop + 1;
         checkActions();

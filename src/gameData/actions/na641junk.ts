@@ -97,7 +97,53 @@ export const na641junkActions: ActionRepository = {
       CONDITION_CHECKS.inSubLocation("Anna's Recycled Goods"),
       CONDITION_CHECKS.numFlagGTE("na641_rummage_junk", 3),
     ],
-    postComplete: [COMPLETION_EFFECTS.addFlag(TAGS.NA641.JUNK.RADIO, "true")],
+    postComplete: [],
+  },
+  na641_junk_ask_about_radio: {
+    ...NO_CROSSGEN,
+    ...NO_REPEAT,
+    title: "Ask Anna about fixable radio",
+    skill: "social",
+    idx: 10,
+    weight: 50,
+    conditions: [
+      CONDITION_CHECKS.inLocation("New Arcadia 641"),
+      CONDITION_CHECKS.inSubLocation("Anna's Recycled Goods"),
+      CONDITION_CHECKS.ifActionCompleteAny("na641_junk_figure_radio_out"),
+    ],
+    postComplete: [
+      COMPLETION_EFFECTS.addLog(
+        "Surprised by your craftiness, Anna offers you to tinker with broken stuff from time to time for a few coins"
+      ),
+    ],
+  },
+  na641_junk_fix_pile: {
+    ...NO_CROSSGEN,
+    ...REPEATABLE,
+    title: "Try to fix some of the junk",
+    skill: "engineering",
+    flavourText: "3 Zenny per fixed good",
+    idx: 10,
+    weight: 100,
+    conditions: [
+      CONDITION_CHECKS.inLocation("New Arcadia 641"),
+      CONDITION_CHECKS.inSubLocation("Anna's Recycled Goods"),
+      CONDITION_CHECKS.ifActionCompleteRun("na641_junk_ask_about_radio"),
+      CONDITION_CHECKS.numFlagLTE(TAGS.NA641.JUNK.FIX_COUNT, 10),
+    ],
+    postComplete: [
+      COMPLETION_EFFECTS.addItem("narcadia641_zenny", 3),
+      COMPLETION_EFFECTS.patchFlagNumeric(
+        TAGS.NA641.JUNK.FIX_COUNT,
+        (v) => ++v
+      ),
+      COMPLETION_EFFECTS.if(
+        CONDITION_CHECKS.numFlagGTE(TAGS.NA641.JUNK.FIX_COUNT, 10),
+        COMPLETION_EFFECTS.addLog(
+          "You finished fixing everything that looked fixable"
+        )
+      ),
+    ],
   },
   na641_junk_one_time_camera: {
     ...NO_CROSSGEN,
