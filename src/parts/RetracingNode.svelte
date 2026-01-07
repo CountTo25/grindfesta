@@ -13,7 +13,7 @@
   class="pixel-corners bg-slate-900 grid grid-cols-12 px-2 py-1 hover:bg-slate-600 transition-all cursor-pointer"
   on:click
 >
-  <div class="col-span-12 text-slate-400 text-xs">{title}</div>
+  <div class="col-span-12 text-slate-300 text-xs">{title}</div>
   <div class="col-span-6"></div>
   <div class="col-span-6 text-sm text-slate-500"></div>
 </div>

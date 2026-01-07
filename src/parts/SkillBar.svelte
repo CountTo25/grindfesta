@@ -64,19 +64,19 @@
     style="width: {mainElement.getBoundingClientRect().width}px"
   >
     <div>Run</div>
-    <div class="text-slate-400 text-sm">
+    <div class="text-slate-300 text-sm">
       x{bakery.modifiers.run[skill].toFixed(2)} modifier from current run
     </div>
-    <div class="text-slate-400 text-sm">
+    <div class="text-slate-300 text-sm">
       {currentProgressRun.toFixed(2)} / {bakery.toLevel.run.next[skill].toFixed(
         2
       )} exp to next
     </div>
     <div class="mt-2">Time compression</div>
-    <div class="text-slate-400 text-sm">
+    <div class="text-slate-300 text-sm">
       x{bakery.modifiers.global[skill].toFixed(2)} modifier from time compression
     </div>
-    <div class="text-slate-400 text-sm">
+    <div class="text-slate-300 text-sm">
       {currentProgressGlobal.toFixed(2)} / {bakery.toLevel.global.next[
         skill
       ].toFixed(2)} exp to next

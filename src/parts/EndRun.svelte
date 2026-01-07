@@ -145,7 +145,7 @@
                           String(skill).slice(1)}
                       </div>
                       <div class="pl-2">
-                        <span class="text-slate-400 text-sm">x{initValue}</span>
+                        <span class="text-slate-300 text-sm">x{initValue}</span>
                         <i class="hn hn-angle-right-solid"></i>
                         <span class:text-emerald-700={eorValue > initValue}
                           >x{eorValue}</span

@@ -87,7 +87,7 @@
               2
             )}</span
           >
-          <span class="text-sm text-slate-400"
+          <span class="text-sm text-slate-300"
             >(-{$gameState.data.run.energyDecayRate.toFixed(2)}/s)</span
           >
         </div>

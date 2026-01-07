@@ -30,9 +30,9 @@
 
 <div class="relative z-50">
   <div class="grid grid-cols-2 mb-1">
-    <div class="text-slate-400 col-span-1">{usedConfig.label}</div>
+    <div class="text-slate-300 col-span-1">{usedConfig.label}</div>
     {#if isFocused}
-      <div class="text-slate-400 col-span-1 text-right">
+      <div class="text-slate-300 col-span-1 text-right">
         {filteredEntries.length}/{usedConfig.entries.length}
       </div>
     {/if}

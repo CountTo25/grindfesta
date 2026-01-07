@@ -80,7 +80,7 @@
     <div class="col-span-1 text-center">
       <SkillIcon skill={action.skill} />
     </div>
-    <div class="col-span-8" class:text-slate-500={!isRevealed}>
+    <div class="col-span-8" class:text-slate-300={!isRevealed}>
       {isRevealed ? action.title : isKnown ? action.title : "???"}
     </div>
     <div class="col-span-1 text-center cursor-pointer" on:click={toggleAction}>
@@ -88,15 +88,15 @@
     </div>
     <div class="col-span-2 text-center">
       <GenericIcon icon={"clock"} />
-      <span class=" text-slate-500">{duration.toFixed(2)}s</span>
+      <span class=" text-slate-300">{duration.toFixed(2)}s</span>
     </div>
   </div>
   {#if !isRevealed}
     {#each action.revealConditionExplained ?? [] as condition}
-      <div class="text-xs col-span-12 text-slate-500 pl-2">{condition}</div>
+      <div class="text-xs col-span-12 text-slate-300 pl-2">{condition}</div>
     {/each}
   {:else if action.flavourText}
-    <div class="text-xs col-span-12 text-slate-500 pl-2">
+    <div class="text-xs col-span-12 text-slate-300 pl-2">
       {action.flavourText}
     </div>
   {/if}

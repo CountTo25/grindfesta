@@ -13,7 +13,7 @@
 <div class="relative">
   <div class="grid grid-cols-2 mb-1">
     {#if usedConfig.label}
-      <div class="text-slate-400 col-span-2">
+      <div class="text-slate-300 col-span-2">
         {usedConfig.label}
       </div>
     {/if}
