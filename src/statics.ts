@@ -1,5 +1,6 @@
 import { na641junkActions } from "./gameData/actions/na641junk";
 import { marcosWorkshopActions } from "./gameData/actions/na641marcos";
+import { na641miscActions } from "./gameData/actions/na641misc";
 import { museumActions } from "./gameData/actions/na641museum";
 import { rapidDeliveryActions } from "./gameData/actions/na641rapid";
 import { na641southActions } from "./gameData/actions/na641south";
@@ -173,7 +174,55 @@ export const actions: { [key: string]: Action } = {
     ],
     postComplete: [
       COMPLETION_EFFECTS.addItem("narcadia641_zenny", 1),
-      COMPLETION_EFFECTS.patchFlagNumeric("na641_rummage_naws", (v) => ++v),
+      COMPLETION_EFFECTS.patchFlagNumeric(
+        TAGS.NA641.ACTIONS.RUMMAGE,
+        (v) => ++v
+      ),
+      COMPLETION_EFFECTS.if(
+        CONDITION_CHECKS.numFlag(
+          TAGS.NA641.ACTIONS.RUMMAGE,
+          (v) => v % 10 === 0
+        ),
+        [
+          COMPLETION_EFFECTS.patchFlagNumeric(TAGS.NA641.SUS_LEVEL, (v) => ++v),
+          COMPLETION_EFFECTS.addLog(
+            "People start to wonder what are you doing..."
+          ),
+          //BEAUTIFUL!
+          COMPLETION_EFFECTS.match(
+            (v) => Number.parseInt(v.data.run.flags[TAGS.NA641.SUS_LEVEL]!),
+            [
+              COMPLETION_EFFECTS.MATCHER(
+                1,
+                COMPLETION_EFFECTS.addLog(
+                  "Seems like you draw too much attention going around and looking for coins"
+                )
+              ),
+              COMPLETION_EFFECTS.MATCHER(
+                2,
+                COMPLETION_EFFECTS.addLog(
+                  "Apparently people dont like to see someone scavenging under vendomats"
+                )
+              ),
+              COMPLETION_EFFECTS.MATCHER(
+                (v: number) => v >= 3,
+                [
+                  COMPLETION_EFFECTS.addLog("Someone called guards on you!!"),
+                  COMPLETION_EFFECTS.addFlag(
+                    TAGS.NA641.REPUTATION.COPS_ALERT,
+                    "1"
+                  ),
+                  COMPLETION_EFFECTS.addFlag(
+                    TAGS.NA641.REPUTATION.COPS_ALERT_REASON,
+                    TAGS.NA641.COPS_ALERT_REASONS.JIHANKI
+                  ),
+                  COMPLETION_EFFECTS.addFlag(TAGS.SYSTEM.ACTION_LOCK, "1"),
+                ]
+              ),
+            ]
+          ),
+        ]
+      ),
     ],
   },
   na641_homeless_wistom: {
@@ -212,4 +261,5 @@ export const actions: { [key: string]: Action } = {
   ...rapidDeliveryActions,
   ...na641southActions,
   ...na641junkActions,
+  ...na641miscActions,
 };

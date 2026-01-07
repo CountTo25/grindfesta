@@ -1,13 +1,21 @@
 <script lang="ts">
   import type { ItemKey } from "../gameData/items";
   import { items } from "../gameData/items";
+  import { TAGS } from "../gameData/tags";
   import ProgressBar from "../parts/ProgressBar.svelte";
   import SingleAction from "../parts/SingleAction.svelte";
   import { displayableActions, gameState } from "../state";
   import { actions } from "../statics";
+  import { CONDITION_CHECKS } from "../utils";
   $: allActions = $displayableActions
     .map((id) => (actions[id] && { action: actions[id], id }) ?? null)
     .filter(Boolean)
+    .filter((a) => {
+      return (
+        a.action.ignoresStaticLock ||
+        !CONDITION_CHECKS.flag(TAGS.SYSTEM.ACTION_LOCK)($gameState)
+      );
+    })
     .sort((l, r) => (r.action.idx ?? 0) - (l.action.idx ?? 0));
 
   $: allItems = Object.entries($gameState.data.run.inventory).filter(

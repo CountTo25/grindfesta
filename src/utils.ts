@@ -148,6 +148,17 @@ export const CONDITION_CHECKS = {
       return check(value);
     };
   },
+  numFlag: (
+    key: string,
+    check: (value: number) => boolean = (_) => true
+  ): GenericConditionCheck => {
+    return (d: GameState): boolean => {
+      let value = d.data.run.flags[key] ?? null;
+      if (value === null) return false;
+      let numValue = Number.parseInt(value);
+      return check(numValue);
+    };
+  },
   numFlagGTE: (key: string, target: number): GenericConditionCheck => {
     return (d: GameState): boolean => {
       let value = d.data.run.flags[key] ?? null;
@@ -237,14 +248,64 @@ export const CONDITION_CHECKS = {
   },
 };
 
+type ArrayableStatePatcher =
+  | ((d: GameState) => GameState)
+  | ((d: GameState) => GameState)[];
+function joinStatePatcher(
+  t: ArrayableStatePatcher
+): ((d: GameState) => GameState)[] {
+  let cond: ((d: GameState) => GameState)[] = Array.isArray(t) ? t : [t];
+  return cond;
+}
+
+type MatcherInputParam<V> = {
+  rule: V | ((v: V) => boolean);
+  effect: ArrayableStatePatcher;
+};
+
 export const COMPLETION_EFFECTS = {
-  if: (
-    condition: (d: GameState) => boolean,
-    t: (d: GameState) => GameState
+  MATCHER: <V>(
+    rule: V | ((v: V) => boolean),
+    effect: ArrayableStatePatcher
+  ) => ({
+    rule,
+    effect,
+  }),
+  match: <MatchedType>(
+    extractor: (d: GameState) => MatchedType,
+    d: MatcherInputParam<MatchedType>[]
   ) => {
+    return (dt: GameState) => {
+      let value = extractor(dt);
+      for (const { rule, effect } of d) {
+        let result: boolean;
+        if (typeof rule === "function") {
+          result = (rule as (v: MatchedType) => boolean)(value);
+        } else {
+          result = value === rule;
+        }
+        if (result) {
+          let patchers = joinStatePatcher(effect);
+          console.log(patchers);
+          let mutated = dt;
+          for (const effect of patchers) {
+            mutated = effect(mutated);
+          }
+          return mutated;
+        }
+      }
+      return dt;
+    };
+  },
+  if: (condition: (d: GameState) => boolean, t: ArrayableStatePatcher) => {
     return (d: GameState) => {
       if (condition(d)) {
-        return t(d);
+        let mutated = d;
+        let cond = joinStatePatcher(t);
+        for (const effect of cond) {
+          mutated = effect(mutated);
+        }
+        return mutated;
       }
       return d;
     };
