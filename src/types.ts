@@ -128,7 +128,6 @@ export type Action = {
   skill: Skill;
   weight: number;
   idx?: number;
-  ignoresStaticLock?: boolean;
   conditions: ((state: GameState) => boolean)[];
   repeatable: boolean;
   crossGeneration: boolean;
