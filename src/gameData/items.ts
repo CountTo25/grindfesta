@@ -1,4 +1,5 @@
 import type { GameState, Item } from "../types";
+import { LOCATIONS, SUBLOCATIONS } from "./sublocations";
 import { TAGS } from "./tags";
 
 // Step 1: Define the items with `as const` to preserve literal keys
@@ -11,8 +12,10 @@ export const items = {
     onConsume: [],
     capacity: (c) => {
       let junkWalletMod =
-        c.data.run.flags[TAGS.MODIFIERS.HAS_JUNK_WALLET] ?? null ? 10 : 0;
-      return 10 + junkWalletMod;
+        (c.data.run.flags[TAGS.MODIFIERS.HAS_JUNK_WALLET] ?? null) ? 10 : 0;
+      let trendyWalletMod =
+        (c.data.run.flags[TAGS.MODIFIERS.HAS_TRENDY_WALLET] ?? null) ? 5 : 0;
+      return 10 + junkWalletMod + trendyWalletMod;
     },
   },
   small_battery: {
@@ -25,7 +28,7 @@ export const items = {
     onConsume: (s: GameState) => {
       s.data.run.currentEnergy = Math.min(
         s.data.run.currentEnergy + 1,
-        s.data.run.maxEnergy
+        s.data.run.maxEnergy,
       );
       return s;
     },
@@ -41,7 +44,23 @@ export const items = {
     onConsume: (s: GameState) => {
       s.data.run.currentEnergy = Math.min(
         s.data.run.currentEnergy + 2,
-        s.data.run.maxEnergy
+        s.data.run.maxEnergy,
+      );
+      return s;
+    },
+    capacity: (_) => 10,
+  },
+  all_day_battery: {
+    name: "All-day battery",
+    description: "Restores 4 energy on use",
+    consumable: true,
+    consumeRequirement: (s) => {
+      return s.data.run.currentEnergy < s.data.run.maxEnergy - 4;
+    },
+    onConsume: (s: GameState) => {
+      s.data.run.currentEnergy = Math.min(
+        s.data.run.currentEnergy + 4,
+        s.data.run.maxEnergy,
       );
       return s;
     },
@@ -70,6 +89,50 @@ export const items = {
     consumeRequirement: [],
     onConsume: [],
     capacity: (_) => 5,
+  },
+  na641_travel_boots: {
+    name: "Travel boots",
+    description: "Sturdy boots for rough terrain",
+    consumable: false,
+    consumeRequirement: [],
+    onConsume: [],
+    capacity: (_) => 1,
+  },
+  na641_firestarter_set: {
+    name: "Firestarter set",
+    description: "Portable firestarting tools",
+    consumable: false,
+    consumeRequirement: [],
+    onConsume: [],
+    capacity: (_) => 1,
+  },
+  na641_solar_powered_radio: {
+    name: "Solar-powered radio",
+    description: "Might be of use?",
+    consumable: false,
+    consumeRequirement: [],
+    onConsume: [],
+    capacity: (_) => 1,
+  },
+  na641_modified_solar_radio: {
+    name: "Modified solar-powered radio",
+    description: "Can trickle-charge your device in direct sunlight",
+    consumable: false,
+    consumeRequirement: [],
+    onConsume: [],
+    capacity: (_) => 1,
+  },
+  anchor_ancient_bone: {
+    name: "Ancient Bone",
+    description: "A museum fossil specimen",
+    consumable: false,
+    consumeRequirement: [],
+    onConsume: [],
+    capacity: (_) => 1,
+    anchor: {
+      location: LOCATIONS.bbasin7281,
+      sublocation: SUBLOCATIONS.bbasin7281.sulfurSprings,
+    },
   },
 } as const satisfies Record<string, Item>;
 

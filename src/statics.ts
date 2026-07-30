@@ -1,14 +1,19 @@
 import { na641junkActions } from "./gameData/actions/na641junk";
 import { marcosWorkshopActions } from "./gameData/actions/na641marcos";
+import { departmentStoreActions } from "./gameData/actions/na641departmentStore";
 import { museumActions } from "./gameData/actions/na641museum";
+import { museumBackroomsActions } from "./gameData/actions/na641museumBackrooms";
 import { rapidDeliveryActions } from "./gameData/actions/na641rapid";
+import { na641southernMainStreetActions } from "./gameData/actions/na641southernMainStreet";
 import { na641southActions } from "./gameData/actions/na641south";
+import { bbasin7281Actions } from "./gameData/actions/bbasin7281";
 import {
   NO_REPEAT,
   NO_CROSSGEN,
   CROSSGEN,
   REPEATABLE,
 } from "./gameData/actions/utils";
+import { LOCATIONS, SUBLOCATIONS } from "./gameData/sublocations";
 import { KNOWLEDGE, TAGS } from "./gameData/tags";
 import type { Action, GameState } from "./types";
 import {
@@ -18,19 +23,22 @@ import {
   withLogEntry,
 } from "./utils";
 
+const NA641 = LOCATIONS.na641;
+const NA641_SUBLOCATIONS = SUBLOCATIONS.na641;
+
 export const actions: { [key: string]: Action } = {
   intro_0: {
     title: "Look around",
     skill: "exploration",
     weight: 5,
     conditions: [
-      CONDITION_CHECKS.inLocation("New Arcadia 641"),
-      CONDITION_CHECKS.inSubLocation("Western main street alley"),
+      CONDITION_CHECKS.inLocation(NA641),
+      CONDITION_CHECKS.inSubLocation(NA641_SUBLOCATIONS.westernMainStreetAlley),
     ],
     repeatable: false,
     crossGeneration: false,
     postComplete: withLogEntry(
-      "That is indeed some backalley of some unfamiliar town. You can hear some people wander around somewhere nearby"
+      "That is indeed some backalley of some unfamiliar town. You can hear some people wander around somewhere nearby",
     ),
   },
   intro_1: {
@@ -38,15 +46,15 @@ export const actions: { [key: string]: Action } = {
     skill: "perception",
     weight: 3,
     conditions: [
-      CONDITION_CHECKS.inLocation("New Arcadia 641"),
-      CONDITION_CHECKS.inSubLocation("Western main street alley"),
+      CONDITION_CHECKS.inLocation(NA641),
+      CONDITION_CHECKS.inSubLocation(NA641_SUBLOCATIONS.westernMainStreetAlley),
       CONDITION_CHECKS.ifActionCompleteRun("intro_0"),
       CONDITION_CHECKS.not(CONDITION_CHECKS.ifActionCompleteGlobal("intro_1")),
     ],
     repeatable: false,
     crossGeneration: true,
     postComplete: withLogEntry(
-      "Device on your wrist seems to be intact, but battery seems to rapidly degrade. Seems like you will shortly be back in your own time and (hopefully) place"
+      "Device on your wrist seems to be intact, but battery seems to rapidly degrade. Seems like you will shortly be back in your own time and (hopefully) place",
     ),
   },
   intro_confirm_tld: {
@@ -54,15 +62,15 @@ export const actions: { [key: string]: Action } = {
     skill: "perception",
     weight: 3,
     conditions: [
-      CONDITION_CHECKS.inLocation("New Arcadia 641"),
-      CONDITION_CHECKS.inSubLocation("Western main street alley"),
+      CONDITION_CHECKS.inLocation(NA641),
+      CONDITION_CHECKS.inSubLocation(NA641_SUBLOCATIONS.westernMainStreetAlley),
       CONDITION_CHECKS.ifActionCompleteRun("intro_0"),
       CONDITION_CHECKS.ifActionCompleteGlobal("intro_1"),
     ],
     repeatable: false,
     crossGeneration: false,
     postComplete: withLogEntry(
-      "Device is still intact. Actually, it is in the precisely same state as the last time you've checked it. You are in a time loop!"
+      "Device is still intact. Actually, it is in the precisely same state as the last time you've checked it. You are in a time loop!",
     ),
   },
   intro_2: {
@@ -72,14 +80,14 @@ export const actions: { [key: string]: Action } = {
     skill: "exploration",
     weight: 4,
     conditions: [
-      CONDITION_CHECKS.inLocation("New Arcadia 641"),
-      CONDITION_CHECKS.inSubLocation("Western main street alley"),
+      CONDITION_CHECKS.inLocation(NA641),
+      CONDITION_CHECKS.inSubLocation(NA641_SUBLOCATIONS.westernMainStreetAlley),
       CONDITION_CHECKS.or([
         CONDITION_CHECKS.ifActionCompleteRun("intro_1"),
         CONDITION_CHECKS.ifActionCompleteRun("intro_confirm_tld"),
       ]),
     ],
-    postComplete: [COMPLETION_EFFECTS.moveSubLocation("Western main street")],
+    postComplete: [COMPLETION_EFFECTS.moveSubLocation(NA641_SUBLOCATIONS.westernMainStreet)],
   },
   narcadia_gather_info: {
     ...CROSSGEN,
@@ -88,13 +96,13 @@ export const actions: { [key: string]: Action } = {
     skill: "social",
     weight: 10,
     conditions: [
-      CONDITION_CHECKS.inLocation("New Arcadia 641"),
-      CONDITION_CHECKS.inSubLocation("Western main street"),
+      CONDITION_CHECKS.inLocation(NA641),
+      CONDITION_CHECKS.inSubLocation(NA641_SUBLOCATIONS.westernMainStreet),
       CONDITION_CHECKS.ifActionCompleteRun("intro_2"),
     ],
     postComplete: [
       COMPLETION_EFFECTS.addLog(
-        "Asking around about where you are proved a surefire way to confuse people on the streets. You are on a streets of city called 'New Arcadia'"
+        "Asking around about where you are proved a surefire way to confuse people on the streets. You are on a streets of city called 'New Arcadia'",
       ),
       COMPLETION_EFFECTS.addKnowledge("new_arcadia_town_name"),
     ],
@@ -106,14 +114,14 @@ export const actions: { [key: string]: Action } = {
     skill: "social",
     weight: 20,
     conditions: [
-      CONDITION_CHECKS.inLocation("New Arcadia 641"),
-      CONDITION_CHECKS.inSubLocation("Western main street"),
+      CONDITION_CHECKS.inLocation(NA641),
+      CONDITION_CHECKS.inSubLocation(NA641_SUBLOCATIONS.westernMainStreet),
       CONDITION_CHECKS.ifActionCompleteAny("narcadia_gather_info"),
       CONDITION_CHECKS.ifActionCompleteRun("intro_2"),
     ],
     postComplete: [
       withLogEntry(
-        "The first few people ignored your weird questions, seemingly alarmed. Finally, old guy you pestered went on to say that 'In our 641th year we're still unable to get smoking bins around every corner and now we've got weirdos asking stupid things' when prompted about current year. He is clearly upset with people tossing butts around"
+        "The first few people ignored your weird questions, seemingly alarmed. Finally, old guy you pestered went on to say that 'In our 641th year we're still unable to get smoking bins around every corner and now we've got weirdos asking stupid things' when prompted about current year. He is clearly upset with people tossing butts around",
       ),
       COMPLETION_EFFECTS.addKnowledge("new_arcadia_year"),
     ],
@@ -125,16 +133,16 @@ export const actions: { [key: string]: Action } = {
     skill: "perception",
     weight: 10,
     conditions: [
-      CONDITION_CHECKS.inLocation("New Arcadia 641"),
-      CONDITION_CHECKS.inSubLocation("Western main street"),
+      CONDITION_CHECKS.inLocation(NA641),
+      CONDITION_CHECKS.inSubLocation(NA641_SUBLOCATIONS.westernMainStreet),
       CONDITION_CHECKS.ifActionCompleteRun("intro_2"),
     ],
     postComplete: [
       COMPLETION_EFFECTS.addLog(
-        "Rapid Delivery! Delivery as fast as it is named. Terms and conditions apply"
+        "Rapid Delivery! Delivery as fast as it is named. Terms and conditions apply",
       ),
       COMPLETION_EFFECTS.addLog(
-        "Care for history? Visit the NAWS History Museum!"
+        "Care for history? Visit the NAWS History Museum!",
       ),
     ],
   },
@@ -145,13 +153,13 @@ export const actions: { [key: string]: Action } = {
     skill: "exploration",
     weight: 10,
     conditions: [
-      CONDITION_CHECKS.inLocation("New Arcadia 641"),
-      CONDITION_CHECKS.inSubLocation("Western main street"),
+      CONDITION_CHECKS.inLocation(NA641),
+      CONDITION_CHECKS.inSubLocation(NA641_SUBLOCATIONS.westernMainStreet),
       CONDITION_CHECKS.hasKnowledge("narcadia_currency"),
     ],
     postComplete: [
       COMPLETION_EFFECTS.addLog(
-        "Looking for loose coins under vending machines wouldnt be the worst idea in your situation"
+        "Looking for loose coins under vending machines wouldnt be the worst idea in your situation",
       ),
     ],
   },
@@ -163,11 +171,8 @@ export const actions: { [key: string]: Action } = {
     ...REVEAL.itemNotCappedYet("narcadia641_zenny"),
     weight: 7,
     conditions: [
-      CONDITION_CHECKS.inLocation("New Arcadia 641"),
-      CONDITION_CHECKS.or([
-        CONDITION_CHECKS.inSubLocation("Western main street"),
-        CONDITION_CHECKS.inSubLocation("Southern main street"),
-      ]),
+      CONDITION_CHECKS.inLocation(NA641),
+      CONDITION_CHECKS.inSubLocation(NA641_SUBLOCATIONS.westernMainStreet),
       CONDITION_CHECKS.hasKnowledge("narcadia_currency"),
       CONDITION_CHECKS.ifActionCompleteAny("narcadia_moneymaking_seek"),
     ],
@@ -184,11 +189,11 @@ export const actions: { [key: string]: Action } = {
     skill: "social",
     weight: 60,
     conditions: [
-      CONDITION_CHECKS.inLocation("New Arcadia 641"),
-      CONDITION_CHECKS.inSubLocation("Western main street"),
+      CONDITION_CHECKS.inLocation(NA641),
+      CONDITION_CHECKS.inSubLocation(NA641_SUBLOCATIONS.westernMainStreet),
       CONDITION_CHECKS.hasKnowledge("narcadia_currency"),
       CONDITION_CHECKS.ifActionCompleteAny("narcadia_moneymaking_seek"),
-      CONDITION_CHECKS.numFlagGTE("na641_rummage_naws", 25),
+      CONDITION_CHECKS.numFlagGTE("na641_rummage_naws", 20),
     ],
     postComplete: [
       COMPLETION_EFFECTS.addKnowledge(KNOWLEDGE.NA641.southern_outskirts),
@@ -196,20 +201,24 @@ export const actions: { [key: string]: Action } = {
       COMPLETION_EFFECTS.addKnowledge(KNOWLEDGE.NA641.johnny_contact),
       COMPLETION_EFFECTS.patchFlagNumeric(
         TAGS.NA641.REPUTATION.HOMELESS,
-        (v) => ++v
+        (v) => ++v,
       ),
       COMPLETION_EFFECTS.addLog(
-        "Apparently theres a lot of goods to scavenge under vendomats on Southern Main street"
+        "Apparently theres a lot of goods to scavenge under vendomats on Southern Main street",
       ),
       COMPLETION_EFFECTS.addLog(
-        "Also you might meet Johnny in the ourskirts, he'll know about you coming. He has few questionable but paying job offers (TODO, not implemented yet)"
+        "Also you might meet Johnny in the outskirts, he'll know about you coming. He has few questionable but paying job offers",
       ),
     ],
   },
 
   ...marcosWorkshopActions,
   ...museumActions,
+  ...museumBackroomsActions,
   ...rapidDeliveryActions,
+  ...na641southernMainStreetActions,
+  ...departmentStoreActions,
   ...na641southActions,
   ...na641junkActions,
+  ...bbasin7281Actions,
 };

@@ -17,9 +17,11 @@
   export let config: { classes: string[] } = { classes: [] };
   $: progress = calcProgress($gameState, $actionEndSignal !== null);
   $: percent = (progress / action.weight) * 100;
-  $: isRevealed = checkIsRevealed($actionsCheckSignal !== null);
+  $: isRevealed = checkIsRevealed($gameState, $actionsCheckSignal !== null);
   $: canToggle = checkCanToggle($gameState, isRevealed);
   $: isKnown = checkIsKnown($actionsCheckSignal !== null);
+  $: displayTitle = renderActionText(action.title, $gameState);
+  $: displayFlavourText = renderActionText(action.flavourText, $gameState);
   $: duration =
     ($bakeSignal !== null &&
       action.weight / bakery.modifiers.total[action.skill]!) ||
@@ -43,10 +45,10 @@
     if (!action.grants) {
       return true;
     }
+    return true;
   }
 
-  function checkIsRevealed(_: boolean): boolean {
-    let s = get(gameState);
+  function checkIsRevealed(s: GameState, _: boolean): boolean {
     if (!action.revealCondition) {
       return true;
     }
@@ -58,6 +60,14 @@
   function checkIsKnown(_: boolean): boolean {
     let s = get(gameState);
     return s.data.global.completedActionHistory.includes(id);
+  }
+
+  function renderActionText(
+    text: Action["title"] | Action["flavourText"],
+    state: GameState
+  ): string {
+    if (!text) return "";
+    return typeof text === "function" ? text(state) : text;
   }
 
   const toggleAction = () => {
@@ -81,7 +91,7 @@
       <SkillIcon skill={action.skill} />
     </div>
     <div class="col-span-8" class:text-slate-300={!isRevealed}>
-      {isRevealed ? action.title : isKnown ? action.title : "???"}
+      {isRevealed ? displayTitle : isKnown ? displayTitle : "???"}
     </div>
     <div class="col-span-1 text-center cursor-pointer" on:click={toggleAction}>
       <GenericIcon icon={actionIcon} />
@@ -93,11 +103,13 @@
   </div>
   {#if !isRevealed}
     {#each action.revealConditionExplained ?? [] as condition}
-      <div class="text-xs col-span-12 text-slate-300 pl-2">{condition}</div>
+      <div class="text-xs col-span-12 text-slate-300 pl-2">
+        {renderActionText(condition, $gameState)}
+      </div>
     {/each}
-  {:else if action.flavourText}
+  {:else if displayFlavourText}
     <div class="text-xs col-span-12 text-slate-300 pl-2">
-      {action.flavourText}
+      {displayFlavourText}
     </div>
   {/if}
   <div class="col-span-12 text-center">

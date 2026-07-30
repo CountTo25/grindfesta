@@ -28,7 +28,13 @@ This promo text was written in .md for ease of use by me. Ai agent workflows fre
 
 Code was written using VSCode and NeoVim, both of which are accepting and using AI. My current MacOS version is 26.4, which has AI-related features. 
 
-No AI was used in making of the game, including CI/CD workflows being written manually (it sucks, CI is pain, but imma not paying for hosting to post SPA game). I've used a lot of AI to improve my coding overall, including consulting on different issues arising during my work, meaning my professional skills are related to AI. 
+No AI was used in making of the game, including CI/CD workflows being written manually (it sucks, CI to pages is pain, but imma not paying for hosting to post SPA game). 
+
+I've used a lot of AI to improve my coding overall, including consulting on different issues arising during my work, meaning my professional skills are related to AI. 
+
+Some of the related tooling is made via AI because i have better things to do than making custom VSCode node graph plugin that parses JS AST to show me connected nodes manually that only i will use. Deal with it. You'll never see it anyways.
+
+Migrator migrate.ts is also slopped. Deal with it. Thanks to this im less bothered by having to write migrations when i re-align some content that i didnt like — naming location after my favourite fetch land wasnt the best idea.
 
 I use AI to practice English and Japanese, conversing with me means supporting AI workflows and interacting with slop-based language skills.
 

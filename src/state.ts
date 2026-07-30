@@ -9,6 +9,7 @@ import {
   EMPTY_RUN,
   GameState,
   type Action,
+  type Item,
   type RunState,
   type Skill,
   type SkillLevels,
@@ -22,14 +23,14 @@ import {
   syncToDebug,
 } from "./utils";
 import { checkItems, save } from "./actions";
-import { items } from "./gameData/items";
+import { items, type ItemKey } from "./gameData/items";
 
 ///Globals for quick tinkering here
 export const GLOBAL_LEVEL_MOD_RATIO = 1.05;
-const RUN_LEVEL_MOD_RATIO = 1.08;
-const RUN_EXP_TO_LEVEL_RATIO = 5;
-const RUN_SKILL_GAIN_MOD = 1.35;
-const GLOBAL_SKILL_GAIN_MOD = 1.35;
+export const RUN_LEVEL_MOD_RATIO = 1.08;
+export const RUN_EXP_TO_LEVEL_RATIO = 5;
+export const RUN_SKILL_GAIN_MOD = 1.35;
+export const GLOBAL_SKILL_GAIN_MOD = 1.35;
 //
 const DECAY_TEST_MOD = 1;
 //const DECAY_TEST_MOD = 200;
@@ -52,8 +53,8 @@ window.__dev = {
   },
 };
 
-const BASE_GAIN_RATE = 1;
-const BASE_TPS = 20;
+export const BASE_GAIN_RATE = 1;
+export const BASE_TPS = 20;
 let bakedGainPerTick: number = BASE_GAIN_RATE / BASE_TPS;
 let bakedTimePerTick: number = 1000 / BASE_TPS;
 const BAKED_SKILL: { [k in Skill]: number } = {
@@ -61,6 +62,7 @@ const BAKED_SKILL: { [k in Skill]: number } = {
   exploration: 1,
   perception: 1,
   engineering: 1,
+  survival: 1,
 };
 export const bakery: {
   skills: { run: SkillLevels; global: SkillLevels };
@@ -91,6 +93,40 @@ export const bakery: {
   },
 };
 export type BakedSkills = typeof bakery;
+export function getBakedSkillsForState(snap: GameState): BakedSkills {
+  const baked = deepClone(bakery);
+  for (const skill of [
+    "exploration",
+    "perception",
+    "social",
+    "engineering",
+    "survival",
+  ] as Skill[]) {
+    const run = expToLevel(snap.data.run.stats[skill], RUN_EXP_TO_LEVEL_RATIO);
+    const global = expToLevel(snap.data.global.stats[skill], 15);
+
+    baked.skills.run[skill] = run.level;
+    baked.skills.global[skill] = global.level;
+    baked.modifiers.run[skill] = getModifier(run.level, RUN_LEVEL_MOD_RATIO);
+    baked.modifiers.global[skill] = getModifier(
+      global.level,
+      GLOBAL_LEVEL_MOD_RATIO
+    );
+    baked.modifiers.total[skill] =
+      baked.modifiers.run[skill] * baked.modifiers.global[skill];
+
+    baked.toLevel.run.baseline[skill] = run.expToCurrent;
+    baked.toLevel.run.next[skill] = run.expToNext;
+    baked.toLevel.global.baseline[skill] = global.expToCurrent;
+    baked.toLevel.global.next[skill] = global.expToNext;
+  }
+  return baked;
+}
+
+export function bakeStateSnapshot(snap: GameState): GameState {
+  snap.data.run.bakery = getBakedSkillsForState(snap);
+  return snap;
+}
 /////
 export const ticksPerSecond: Writable<number> = writable(BASE_TPS);
 export const gameState: Writable<GameState> = writable(GameState.new());
@@ -102,6 +138,31 @@ export const knowledgeSignal: Writable<boolean> = writable(false);
 export const subLocationSignal: Writable<boolean> = writable(false);
 export const actionEndSignal: Writable<boolean> = writable(false);
 export const endRun: Writable<RunState | null> = writable(null);
+export type AnchorInventoryItem = {
+  itemId: ItemKey;
+  item: Item;
+  amount: number;
+  anchor: NonNullable<Item["anchor"]>;
+};
+export const anchorItems: Readable<AnchorInventoryItem[]> = derived(
+  gameState,
+  ($gameState) =>
+    Object.entries($gameState.data.run.inventory).flatMap(([rawId, slot]) => {
+      if ((slot?.amount ?? 0) <= 0) return [];
+      const itemId = rawId as ItemKey;
+      const item = items[itemId] as Item | undefined;
+      if (!item?.anchor) return [];
+      return [
+        {
+          itemId,
+          item,
+          amount: slot.amount,
+          anchor: item.anchor,
+        },
+      ];
+    }),
+  [],
+);
 // tools
 const flick = (v: boolean) => !v;
 export const checkActions = () => actionsCheckSignal.update(flick);
@@ -110,6 +171,26 @@ export const sendActionCompleteSignal = () => actionEndSignal.update(flick);
 export const sendKnowledgesignal = () => knowledgeSignal.update(flick);
 export const sendSubLocationSignal = () => subLocationSignal.update(flick);
 setInterval(() => everyTenSeconds.update(flick), 10 * 1000);
+export function applyRunTickCosts(state: GameState, tickMs: number): GameState {
+  state = checkItems(state, tickMs);
+  state.data.run.energyDecayRate +=
+    (state.data.run.energyDecayRate * 0.03) / tickMs;
+  state.data.run.currentEnergy -=
+    (state.data.run.energyDecayRate / tickMs) * DECAY_TEST_MOD;
+  return state;
+}
+
+export function canStartAction(state: GameState, id: string): boolean {
+  const action = actions[id];
+  if (!action) return false;
+  if (!canDisplay(state)([id, action])) return false;
+  if (!action.conditions.every((c) => c(state))) return false;
+  return (action.revealCondition ?? []).every((c) => c(state));
+}
+
+export function canSkipUnavailableRetraceAction(id: string): boolean {
+  return actions[id]?.repeatable ?? false;
+}
 /////
 bakeSkillLevels();
 /////
@@ -170,6 +251,7 @@ actionsCheckSignal.subscribe((_) => {
         state.data.run.actionProgress[ACTION_ID].progress = 0;
         state.data.run.actionProgress[ACTION_ID].complete = false;
       }
+
     }
     if (state.data.run.actionProgress[ACTION_ID].progress === 0) {
       sendActionCompleteSignal();
@@ -225,16 +307,12 @@ tickSignal.subscribe((_) => {
     if (val.data.run.action) {
       const ACTION_ID: string = val.data.run.action.id;
       val.data.run.timeSpent += bakedTimePerTick;
-      val = checkItems(val, bakedTimePerTick);
-      val.data.run.energyDecayRate +=
-        (val.data.run.energyDecayRate * 0.03) / bakedTimePerTick;
-      val.data.run.currentEnergy -=
-        (val.data.run.energyDecayRate / bakedTimePerTick) * DECAY_TEST_MOD;
+      val = applyRunTickCosts(val, bakedTimePerTick);
       if (val.data.run.currentEnergy <= 0) {
         endRun.set(val.data.run);
         val.data.run = processCleanGameState(EMPTY_RUN);
         bakeSkillLevels();
-        val.data.run.initialStats = bakery.skills.global;
+        val.data.run.initialStats = deepClone(bakery.skills.global);
         val.data.global.loop = val.data.global.loop + 1;
         checkActions();
         bakeSkillLevels();
@@ -287,15 +365,26 @@ tickSignal.subscribe((_) => {
       }
     } else {
       if (val.data.run.retraceIdx !== null && get(endRun) === null) {
-        //feed retraced queue to action if we're not progressed yet
-        const actionToAssign =
-          val.data.global.retraceConfig[val.data.run.retraceIdx] ?? null;
-        if (!actionToAssign) {
-          val.data.run.retraceIdx = null;
+        while (val.data.run.retraceIdx !== null) {
+          //feed retraced queue to action if we're not progressed yet
+          const actionToAssign =
+            val.data.global.retraceConfig[val.data.run.retraceIdx] ?? null;
+          if (!actionToAssign) {
+            val.data.run.retraceIdx = null;
+            return val;
+          }
+          if (!canStartAction(val, actionToAssign.id)) {
+            if (canSkipUnavailableRetraceAction(actionToAssign.id)) {
+              val.data.run.retraceIdx = val.data.run.retraceIdx + 1;
+              continue;
+            }
+            val.data.run.retraceIdx = null;
+            return val;
+          }
+          val.data.run.action = { id: actionToAssign.id };
+          val.data.run.retraceIdx = val.data.run.retraceIdx + 1;
           return val;
         }
-        val.data.run.action = { id: actionToAssign.id };
-        val.data.run.retraceIdx = val.data.run.retraceIdx + 1;
       }
     }
     return val;
@@ -320,32 +409,10 @@ function canDisplay(
 
 function bakeSkillLevels() {
   let snap = get(gameState);
-  for (const skill of [
-    "exploration",
-    "perception",
-    "social",
-    "engineering",
-  ] as Skill[]) {
-    let run = expToLevel(snap.data.run.stats[skill], RUN_EXP_TO_LEVEL_RATIO);
-    let global = expToLevel(snap.data.global.stats[skill], 15);
-    bakery.skills.run[skill] = run.level;
-    bakery.skills.global[skill] = global.level;
-    bakery.modifiers.run[skill] = getModifier(run.level, RUN_LEVEL_MOD_RATIO);
-    bakery.modifiers.global[skill] = getModifier(
-      global.level,
-      GLOBAL_LEVEL_MOD_RATIO
-    );
-    bakery.modifiers.total[skill] =
-      bakery.modifiers.run[skill] * bakery.modifiers.global[skill];
-
-    bakery.toLevel.run.baseline[skill] = run.expToCurrent;
-    bakery.toLevel.run.next[skill] = run.expToNext;
-    bakery.toLevel.global.baseline[skill] = global.expToCurrent;
-    bakery.toLevel.global.next[skill] = global.expToNext;
-    gameState.update((gs) => {
-      gs.data.run.bakery = bakery;
-      return gs;
-    });
-  }
+  const baked = getBakedSkillsForState(snap);
+  bakery.skills = baked.skills;
+  bakery.modifiers = baked.modifiers;
+  bakery.toLevel = baked.toLevel;
+  gameState.update((gs) => bakeStateSnapshot(gs));
   sendBakeSignal();
 }

@@ -1,5 +1,6 @@
 import { items, type ItemKey } from "./gameData/items";
 import { knowledge } from "./gameData/knowledge";
+import { LOCATIONS } from "./gameData/sublocations";
 import {
   sendBakeSignal,
   sendKnowledgesignal,
@@ -13,6 +14,9 @@ import type {
   Skill,
   SubLocation,
 } from "./types";
+
+const NA641 = LOCATIONS.na641;
+const BBASIN7281 = LOCATIONS.bbasin7281;
 
 export const syncToDebug = (tag: string) => {
   //@ts-ignore
@@ -65,7 +69,7 @@ export const withLogEntry = (text: string) => {
 
 type RevealCondition = {
   revealCondition: ((state: GameState) => boolean)[];
-  revealConditionExplained: string[];
+  revealConditionExplained: (string | ((state: GameState) => string))[];
 };
 
 export const REVEAL = {
@@ -140,11 +144,13 @@ export const CONDITION_CHECKS = {
 
   flag: (
     key: string,
-    check: (value: string) => boolean = (_) => true
+    check: (value: string | null) => boolean = (_) => true
   ): GenericConditionCheck => {
     return (d: GameState): boolean => {
+      if (!Object.prototype.hasOwnProperty.call(d.data.run.flags, key)) {
+        return false;
+      }
       let value = d.data.run.flags[key] ?? null;
-      if (value === null) return false;
       return check(value);
     };
   },
@@ -170,9 +176,7 @@ export const CONDITION_CHECKS = {
   },
   noFlag: (key: string): GenericConditionCheck => {
     return (d: GameState): boolean => {
-      let value = d.data.run.flags[key] ?? null;
-      if (value === null) return true;
-      return false;
+      return !Object.prototype.hasOwnProperty.call(d.data.run.flags, key);
     };
   },
 
@@ -261,7 +265,16 @@ export const COMPLETION_EFFECTS = {
       return d;
     };
   },
-  addFlag: (key: string, value: string | null = null) => {
+  restoreEnergy: (amount: number) => {
+    return (d: GameState) => {
+      d.data.run.currentEnergy = Math.min(
+        d.data.run.currentEnergy + amount,
+        d.data.run.maxEnergy,
+      );
+      return d;
+    };
+  },
+  addFlag: (key: string, value: string | null = "1") => {
     return (d: GameState) => {
       d.data.run.flags[key] = value;
       return d;
@@ -345,7 +358,7 @@ export const COMPLETION_EFFECTS = {
 export const LOCATION_CHECKS: {
   [k in Location]: (d: GameState) => { text: string | null; show: boolean };
 } = {
-  "New Arcadia 641": (d: GameState) => {
+  [NA641]: (d: GameState) => {
     //TODO research any way to get rust-like match
     let text = null;
     if (d.data.global.knowledge.includes("new_arcadia_town_name")) {
@@ -362,6 +375,12 @@ export const LOCATION_CHECKS: {
       text += " — " + d.data.run.subLocation;
     }
     return { text, show: text != null };
+  },
+  [BBASIN7281]: (d: GameState) => {
+    return {
+      text: d.data.run.subLocation,
+      show: true,
+    };
   },
 };
 
@@ -430,4 +449,5 @@ export const skills: Skill[] = [
   "perception",
   "social",
   "engineering",
+  "survival",
 ];

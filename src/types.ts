@@ -1,6 +1,13 @@
 import { bakery, type BakedSkills } from "./state";
 import { deepClone, mergeDeep } from "./utils";
 import { items, type ItemKey } from "./gameData/items";
+import {
+  LOCATIONS,
+  SUBLOCATIONS,
+  type KnownLocation,
+  type KnownSubLocation,
+} from "./gameData/sublocations";
+import { applySaveMigrations } from "./migrations/migrations";
 
 export const EMPTY_RUN: RunState = {
   retraceIdx: 0,
@@ -12,13 +19,25 @@ export const EMPTY_RUN: RunState = {
   mainViewRoute: "actions",
   timeSpent: 0.0,
   currentEnergy: 10.0,
-  location: "New Arcadia 641",
+  location: LOCATIONS.na641,
   inventory: {},
-  initialStats: { exploration: 0, perception: 0, social: 0, engineering: 0 },
+  initialStats: {
+    exploration: 0,
+    perception: 0,
+    social: 0,
+    engineering: 0,
+    survival: 0,
+  },
   // Deprecated
   inventoryCapacity: 10,
-  subLocation: "Western main street alley",
-  stats: { exploration: 0, perception: 0, social: 0, engineering: 0 },
+  subLocation: SUBLOCATIONS.na641.westernMainStreetAlley,
+  stats: {
+    exploration: 0,
+    perception: 0,
+    social: 0,
+    engineering: 0,
+    survival: 0,
+  },
   logEntries: [
     {
       ts: 0,
@@ -33,8 +52,15 @@ export const EMPTY_RUN: RunState = {
 
 export class GameState {
   data: GameStateInner = {
+    latestMigration: null,
     global: {
-      stats: { exploration: 0, perception: 0, social: 0, engineering: 0 },
+      stats: {
+        exploration: 0,
+        perception: 0,
+        social: 0,
+        engineering: 0,
+        survival: 0,
+      },
       energyDecayRate: 0.1,
       maxEnergy: 10,
       presistentActionProgress: [],
@@ -53,6 +79,7 @@ export class GameState {
     if (saved) {
       gs.data = mergeDeep(gs.data, JSON.parse(saved));
     }
+    applySaveMigrations(gs.data);
     return gs;
   }
 }
@@ -61,24 +88,21 @@ export type CurrentAction = {
   id: string;
 };
 
-export type Skill = "exploration" | "perception" | "social" | "engineering";
-export type Location = "New Arcadia 641";
-export type SubLocation = NewArcadiaSubLocation;
-export type NewArcadiaSubLocation =
-  | "Western main street alley"
-  | "Western main street"
-  | "Marco's Workshop"
-  | "NAWS History Museum"
-  | "NAWS History Museum — Main Hall"
-  | "Rapid Delivery Service"
-  | "Southern main street outskirts"
-  | "Anna's Recycled Goods"
-  | "Southern main street";
+export type Skill =
+  | "exploration"
+  | "perception"
+  | "social"
+  | "engineering"
+  | "survival";
+export type Location = KnownLocation;
+export type SubLocation = KnownSubLocation;
+export type NewArcadiaSubLocation = KnownSubLocation;
 
 export type SkillLevels = {
   [k in Skill]: number;
 };
 type GameStateInner = {
+  latestMigration: string | null;
   run: RunState;
   global: GlobalState;
 };
@@ -123,8 +147,9 @@ export type LogEntry = { ts: number; text: string };
 
 type StatePatcher = (f: GameState) => GameState;
 type StateChecker = (state: GameState) => boolean;
+export type ActionText = string | ((state: GameState) => string);
 export type Action = {
-  title: string | ((state: GameState) => string);
+  title: ActionText;
   skill: Skill;
   weight: number;
   idx?: number;
@@ -132,9 +157,9 @@ export type Action = {
   repeatable: boolean;
   crossGeneration: boolean;
   revealCondition?: ((state: GameState) => boolean)[];
-  revealConditionExplained?: string[];
+  revealConditionExplained?: ActionText[];
   postComplete: StatePatcher | StatePatcher[];
-  flavourText?: string;
+  flavourText?: ActionText;
   stopOnRepeat?: boolean;
   grants?: ItemKey[];
 };
@@ -146,4 +171,8 @@ export type Item = {
   onConsume: StatePatcher[] | StatePatcher;
   consumeRequirement: StateChecker | StateChecker[];
   capacity: (d: GameState) => number;
+  anchor?: {
+    location: Location;
+    sublocation: SubLocation;
+  };
 };

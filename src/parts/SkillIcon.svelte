@@ -6,6 +6,7 @@
     perception: "eye",
     social: "message",
     engineering: "cog",
+    survival: "location-pin",
   }[skill];
 </script>
 

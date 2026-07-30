@@ -2,6 +2,7 @@
   import Router from "./Router.svelte";
   import Actions from "./routes/Actions.svelte";
   import {
+    anchorItems,
     gameState,
     endRun,
     knowledgeSignal,
@@ -21,13 +22,18 @@
   //
   import ProgressBar from "./parts/ProgressBar.svelte";
   import GenericIcon from "./parts/GenericIcon.svelte";
-  import type { GameState, Location, Skill } from "./types";
+  import type { GameState, Skill } from "./types";
   import SkillBar from "./parts/SkillBar.svelte";
   import Button from "./components/Button.svelte";
   import { fade } from "svelte/transition";
   import { get } from "svelte/store";
   import EndRun from "./parts/EndRun.svelte";
   import { actions } from "./statics";
+  import {
+    applyAnchorLeap,
+    getPostLeapEnergyDecayRate,
+    type AnchorInventoryItem,
+  } from "./system/leap";
   function checkSkillVisibility(skill: Skill, s: GameState) {
     // TODO: refactor this bs, dont force redraws
     return s.data.global.stats[skill] > 0 || s.data.run.stats[skill] > 0;
@@ -36,12 +42,36 @@
     text: null,
     show: false,
   };
+  let showLeapModal = false;
+  let visibleSkills: Skill[] = [];
+  let visibleSkillRows: Skill[][] = [];
+
+  $: if ($anchorItems.length === 0 && showLeapModal) {
+    showLeapModal = false;
+  }
+  $: visibleSkills = skills.filter((skill) =>
+    checkSkillVisibility(skill, $gameState),
+  );
+  $: visibleSkillRows =
+    visibleSkills.length === 0
+      ? []
+      : visibleSkills.length > 4
+        ? [visibleSkills.slice(0, 3), visibleSkills.slice(3)]
+        : [visibleSkills];
 
   $: if ($knowledgeSignal !== null || $subLocationSignal !== null) {
     tryBakeLocation(get(gameState));
   }
   function tryBakeLocation(state: GameState) {
     bakedLocation = LOCATION_CHECKS[state.data.run.location](state);
+  }
+  function formatDecayRate(rate: number) {
+    return rate.toFixed(2).replace(/\.?0+$/, "");
+  }
+
+  function selectLeapDestination(anchorItem: AnchorInventoryItem) {
+    applyAnchorLeap($gameState, anchorItem);
+    showLeapModal = false;
   }
 
   ///What would i give for rust blocks =/
@@ -65,15 +95,52 @@
         : "";
     return `Retracing: ${step}/${total}${upNext}`;
   })();
-  $: retracingInfo2 =
-    $gameState.data.run.retraceIdx !== null
-      ? `Retracing: ${$gameState.data.run.retraceIdx}/${$gameState.data.global.retraceConfig.length} — up next <span class="text-white">${actions[$gameState.data.global.retraceConfig[$gameState.data.run.retraceIdx]]}</span>`
-      : "";
 </script>
 
 <main class="h-screen">
   {#if $endRun}
     <EndRun />
+  {/if}
+  {#if showLeapModal}
+    <div
+      class="absolute inset-0 z-20 grid place-items-center backdrop-blur-sm bg-slate-950/40"
+      in:fade
+      out:fade={{ duration: 100 }}
+    >
+      <div
+        class="pixel-corners bg-slate-900 border-4 border-slate-700 p-4 w-[min(640px,90vw)]"
+      >
+        <div class="grid grid-cols-12 gap-2">
+          <div class="col-span-9 text-left text-lg">Leap</div>
+          <Button
+            config={{ classMixins: ["col-span-3 py-1"] }}
+            on:click={() => (showLeapModal = false)}
+          >
+            Close
+          </Button>
+          <div class="col-span-12 pixel-corners bg-slate-950 px-3 py-2 text-left text-sm text-slate-300">
+            Energy consumption doubles:
+            <span class="text-white"
+              >{formatDecayRate($gameState.data.run.energyDecayRate)}/s</span
+            >
+            ->
+            <span class="text-white"
+              >{formatDecayRate(
+                getPostLeapEnergyDecayRate($gameState.data.run.energyDecayRate),
+              )}/s</span
+            >
+          </div>
+          {#each $anchorItems as anchorItem (anchorItem.itemId)}
+            <Button
+              config={{ classMixins: ["col-span-12 text-left"] }}
+              on:click={() => selectLeapDestination(anchorItem)}
+            >
+              {anchorItem.anchor.sublocation}
+            </Button>
+          {/each}
+        </div>
+      </div>
+    </div>
   {/if}
   <div class="grid h-full grid-cols-12 grid-rows-[auto_1fr_auto]">
     <!-- Top header -->
@@ -84,7 +151,7 @@
           <GenericIcon icon={"bolt"} />
           <span
             >{$gameState.data.run.currentEnergy.toFixed(2)} / {$gameState.data.run.maxEnergy.toFixed(
-              2
+              2,
             )}</span
           >
           <span class="text-sm text-slate-300"
@@ -100,24 +167,40 @@
         </div>
       </div>
 
-      <div class="col-span-12 grid grid-cols-4 space-x-1 mt-2">
-        {#each skills as skill}
-          {@const invisible = !checkSkillVisibility(skill, $gameState)}
+      <div class="col-span-12 grid gap-y-1 mt-2">
+        {#each visibleSkillRows as skillRow}
           <div
-            class="transition-all duration-500"
-            class:invisible
-            class:opacity-0={invisible}
+            class="grid gap-x-1"
+            class:grid-cols-1={skillRow.length === 1}
+            class:grid-cols-2={skillRow.length === 2}
+            class:grid-cols-3={skillRow.length === 3}
+            class:grid-cols-4={skillRow.length >= 4}
           >
-            <SkillBar {skill} />
+            {#each skillRow as skill}
+              <SkillBar {skill} />
+            {/each}
           </div>
         {/each}
       </div>
       <div
-        class="col-span-12 grid grid-cols-12 space-x-1 mt-2 bg-slate-900 pixel-corners text-center transition-all"
+        class="col-span-12 grid grid-cols-12 gap-x-1 mt-2 text-center transition-all"
         class:invisible={!bakedLocation.show}
         class:opacity-0={!bakedLocation.show}
       >
-        <div class="col-span-12">
+        {#if $anchorItems.length > 0}
+          <button
+            type="button"
+            class="col-span-3 pixel-corners bg-slate-900 hover:bg-slate-800 transition-all px-3 py-1"
+            on:click={() => (showLeapModal = true)}
+          >
+            Leap
+          </button>
+        {/if}
+        <div
+          class={$anchorItems.length > 0
+            ? "col-span-9 pixel-corners bg-slate-900 py-1"
+            : "col-span-12 pixel-corners bg-slate-900 py-1"}
+        >
           <span>{bakedLocation.text ?? "NO LOCATION DATA"}</span>
           <span></span>
         </div>

@@ -3,20 +3,32 @@
   import { deepClone, formatTime, getModifier, skills } from "../utils";
   import Button from "../components/Button.svelte";
   import {
+    applyRunTickCosts,
+    bakeStateSnapshot,
     bakery,
+    BASE_GAIN_RATE,
+    BASE_TPS,
+    canSkipUnavailableRetraceAction,
+    canStartAction,
     endRun,
     gameState,
     ghostDisplayableActions,
+    GLOBAL_SKILL_GAIN_MOD,
     GLOBAL_LEVEL_MOD_RATIO,
+    RUN_SKILL_GAIN_MOD,
     sendSubLocationSignal,
   } from "../state";
   import RetracingNode from "./RetracingNode.svelte";
+  import ProgressBar from "./ProgressBar.svelte";
   import { actions } from "../statics";
   import { EMPTY_RUN, GameState, type Skill } from "../types";
   import { get } from "svelte/store";
 
   let isRetracing = false;
   let knownNodes = $gameState.data.global.completedActionHistory;
+  let retraceWarning: string | null = null;
+  const RETRACE_TICK_MS = 1000 / BASE_TPS;
+  const MAX_RETRACE_SIM_TICKS = 1_000_000;
 
   type RetracedRecord = {
     id: string;
@@ -35,22 +47,21 @@
     sendSubLocationSignal();
   }
   let retraceRecording: RetracedRecord[] = [];
-  let fake: GameState = deepClone(get(gameState));
-  fake.data.run = deepClone(EMPTY_RUN);
+  let fake: GameState = buildFakeState();
 
-  $: displayableActions = ghostDisplayableActions(fake).filter((v) => {
-    let canExecuteConditions = actions[v].conditions ?? [
-      (_: GameState) => true,
-    ];
-    let canExecute = canExecuteConditions.every((c) => c(fake));
+  $: displayableActions = ghostDisplayableActions(fake).filter(
+    (v) => knownNodes.includes(v) && canStartAction(fake, v)
+  );
+  $: fakeEnergyPercent = Math.max(
+    0,
+    Math.min(100, (fake.data.run.currentEnergy / fake.data.run.maxEnergy) * 100)
+  );
 
-    let revealed = // svelte-ignore reactive_declaration_non_reactive_property
-      (actions[v].revealCondition ?? [(_: GameState) => true]).every((c) =>
-        c(fake)
-      );
-
-    return knownNodes.includes(v) && canExecute && revealed;
-  });
+  function buildFakeState() {
+    const next = deepClone(get(gameState));
+    next.data.run = deepClone(EMPTY_RUN);
+    return bakeStateSnapshot(next);
+  }
 
   function bundleRetraced(records: RetracedRecord[]) {
     const out = [];
@@ -65,54 +76,136 @@
     return out;
   }
 
-  $: bundledRetracedNodes = bundleRetraced(retraceRecording);
+  function actionTitle(id: string) {
+    const title = actions[id].title;
+    return typeof title === "string" ? title : title(fake);
+  }
 
-  function simulateAction(id: string) {
+  $: bundledRetracedNodes = bundleRetraced(retraceRecording);
+  $: reversedBundledRetracedNodes = bundledRetracedNodes.slice().reverse();
+
+  function completeSimulatedAction(id: string) {
     const runState = fake.data.run;
     const actionDef = actions[id];
 
     if (!runState.actionProgress[id]) {
       runState.actionProgress[id] = {
-        complete: true,
-        progress: actionDef.weight,
+        complete: false,
+        progress: 0,
       };
-    } else {
+    }
+
+    if (!fake.data.global.completedActionHistory.includes(id)) {
+      fake.data.global.completedActionHistory.push(id);
+    }
+
+    if (!actionDef.repeatable) {
       runState.actionProgress[id].complete = true;
-      runState.actionProgress[id].progress = actionDef.weight;
     }
 
-    // 2. Handle Repeatable Logic (Reset bar if needed)
-    if (actionDef.stopOnRepeat) {
-      runState.actionProgress[id].complete = false;
-      runState.actionProgress[id].progress = 0;
+    if (
+      actionDef.crossGeneration &&
+      !fake.data.global.presistentActionProgress.includes(id)
+    ) {
+      fake.data.global.presistentActionProgress.push(id);
     }
 
-    // 3. Execute Post-Completion Rewards/Effects
     if (actionDef.postComplete) {
       const todo = Array.isArray(actionDef.postComplete)
         ? actionDef.postComplete
         : [actionDef.postComplete];
 
       for (const effect of todo) {
-        // We update 'fake' entirely because effects might modify Global or Run state
         fake = deepClone(effect(fake));
       }
     }
+
+    if (actionDef.repeatable || actionDef.stopOnRepeat) {
+      fake.data.run.actionProgress[id]!.complete = false;
+      fake.data.run.actionProgress[id]!.progress = 0;
+    }
+
+    fake = bakeStateSnapshot(fake);
+  }
+
+  function simulateAction(id: string) {
+    const actionDef = actions[id];
+    if (!actionDef || !canStartAction(fake, id)) {
+      if (canSkipUnavailableRetraceAction(id)) {
+        return true;
+      }
+      retraceWarning = "Retrace stopped: planned action is no longer available.";
+      return false;
+    }
+
+    if (!fake.data.run.actionProgress[id]) {
+      fake.data.run.actionProgress[id] = {
+        complete: false,
+        progress: 0,
+      };
+    }
+
+    let ticks = 0;
+    while ((fake.data.run.actionProgress[id]?.progress ?? 0) < actionDef.weight) {
+      if (ticks++ > MAX_RETRACE_SIM_TICKS) {
+        retraceWarning = "Retrace stopped: simulation took too long.";
+        return false;
+      }
+
+      fake.data.run.timeSpent += RETRACE_TICK_MS;
+      fake = applyRunTickCosts(fake, RETRACE_TICK_MS);
+      if (fake.data.run.currentEnergy <= 0) {
+        retraceWarning = "Retrace stopped: energy would run out here.";
+        return false;
+      }
+
+      const skillModifier =
+        fake.data.run.bakery?.modifiers.total[actionDef.skill] ??
+        bakery.modifiers.total[actionDef.skill];
+      const actionProgressGain =
+        (BASE_GAIN_RATE / BASE_TPS) * skillModifier;
+      const progress = fake.data.run.actionProgress[id]!;
+      progress.progress += actionProgressGain;
+
+      const rawSkillGain = Math.min(
+        Math.max(actionProgressGain, 0),
+        actionDef.weight
+      );
+      const skillGain = Math.min(
+        rawSkillGain,
+        progress.progress,
+        actionDef.weight
+      );
+      fake.data.run.stats[actionDef.skill] += skillGain * RUN_SKILL_GAIN_MOD;
+      fake.data.global.stats[actionDef.skill] +=
+        skillGain * GLOBAL_SKILL_GAIN_MOD;
+      fake = bakeStateSnapshot(fake);
+    }
+
+    completeSimulatedAction(id);
+    return true;
   }
 
   function handleRetraceAll(newId: string | null = null) {
-    fake = deepClone(get(gameState));
-    fake.data.run = deepClone(EMPTY_RUN);
+    fake = buildFakeState();
+    retraceWarning = null;
 
+    const records = [...retraceRecording];
     if (newId) {
-      retraceRecording.push({ id: newId });
+      records.push({ id: newId });
     }
 
-    for (const record of retraceRecording) {
-      simulateAction(record.id);
+    const nextRecording: RetracedRecord[] = [];
+    for (const record of records) {
+      const before = deepClone(fake);
+      if (!simulateAction(record.id)) {
+        fake = before;
+        break;
+      }
+      nextRecording.push(record);
     }
 
-    retraceRecording = retraceRecording;
+    retraceRecording = nextRecording;
     fake = fake;
     console.log("Rebuild complete. Current Head:", fake.data.run);
   }
@@ -178,25 +271,51 @@
         </div>
       </div>
     {:else}
-      <div class="bg-slate-500 w-full text-center text-slate-900 py-2">
-        Retracing
+      <div
+        class="grid grid-cols-12 gap-x-3 gap-y-2 bg-slate-800 border-b-2 border-slate-700 px-3 py-2"
+      >
+        <div class="col-span-12 sm:col-span-3 text-lg text-slate-100">
+          Retracing
+        </div>
+        <div class="col-span-6 sm:col-span-2 text-xs text-slate-400">
+          Planned time
+          <div class="text-base text-slate-100">{formatTime(fake.data.run.timeSpent)}</div>
+        </div>
+        <div class="col-span-6 sm:col-span-2 text-xs text-slate-400">
+          Actions
+          <div class="text-base text-slate-100">{retraceRecording.length}</div>
+        </div>
+        <div class="col-span-12 sm:col-span-5 text-xs text-slate-400">
+          Sim energy
+          <div class="flex items-center gap-2">
+            <div class="flex-1">
+              <ProgressBar percent={fakeEnergyPercent} rgb={[94, 234, 212]} />
+            </div>
+            <div class="min-w-24 text-right text-sm text-slate-100">
+              {fake.data.run.currentEnergy.toFixed(2)} / {fake.data.run.maxEnergy.toFixed(2)}
+            </div>
+          </div>
+        </div>
       </div>
       <div class="flex-1 grid grid-cols-12 min-h-0">
-        <div class="col-span-3 border-r-slate-500 border-r-2 overflow-y-auto">
-          <div
-            class="px-2 py-1 text-center bg-slate-500 text-slate-900 border-t-2 border-t-slate-900"
-          >
+        <div class="col-span-3 border-r-slate-700 border-r-2 overflow-y-auto">
+          <div class="px-3 py-2 text-sm text-slate-300 border-b border-slate-700">
             Timeline
           </div>
           <div class="pt-2 px-2">
-            {#each bundledRetracedNodes.reverse() as record, idx}
+            {#if reversedBundledRetracedNodes.length === 0}
+              <div class="text-xs text-slate-500 px-1 py-2">
+                No retrace actions yet
+              </div>
+            {/if}
+            {#each reversedBundledRetracedNodes as record, idx}
               <div
-                class="grid grid-cols-5 pixel-corners bg-slate-900 mb-2 p-1 border-b border-slate-700 text-sm"
+                class="grid grid-cols-5 pixel-corners bg-slate-950 mb-2 p-2 border-b border-slate-700 text-sm"
               >
-                <div class="col-span-4">
-                  {actions[record.id].title}
+                <div class="col-span-4 min-w-0">
+                  <div class="truncate">{actionTitle(record.id)}</div>
                   {#if record.count > 1}
-                    x{record.count}
+                    <div class="text-xs text-slate-500">x{record.count}</div>
                   {/if}
                 </div>
                 {#if idx === 0}
@@ -218,10 +337,22 @@
           </div>
         </div>
         <div
-          class="col-span-9 p-2 grid grid-cols-12 grid-rows-12 space-x-1 overflow-auto"
+          class="col-span-9 p-3 grid grid-cols-12 auto-rows-min gap-2 overflow-auto content-start"
         >
+          {#if retraceWarning}
+            <div
+              class="col-span-12 text-sm text-amber-300 border-b border-amber-300/30 pb-2 mb-1"
+            >
+              {retraceWarning}
+            </div>
+          {/if}
+          {#if displayableActions.length === 0}
+            <div class="col-span-12 text-sm text-slate-500">
+              No valid known actions from this simulated point
+            </div>
+          {/if}
           {#each displayableActions as node}
-            <div class="col-span-2">
+            <div class="col-span-12 sm:col-span-6 lg:col-span-4 xl:col-span-3">
               <RetracingNode
                 action={actions[node]}
                 id={node}
@@ -235,7 +366,7 @@
         </div>
       </div>
       <div
-        class="grid grid-cols-12 w-full text-center border-t-slate-500 border-t-2"
+        class="grid grid-cols-12 gap-2 w-full text-center border-t-slate-700 border-t-2 px-2 py-2"
       >
         <Button
           on:click={() => {
@@ -243,7 +374,7 @@
               return { id: r.id };
             });
           }}
-          config={{ classMixins: ["mx-2 my-2"] }}>save</Button
+          config={{ classMixins: ["col-span-4"] }}>save</Button
         >
         <Button
           on:click={() => {
@@ -251,10 +382,10 @@
             retraceRecording = [];
             handleRetraceAll(null);
           }}
-          config={{ classMixins: ["mx-2 my-2"] }}>clear</Button
+          config={{ classMixins: ["col-span-4"] }}>clear</Button
         >
         <Button
-          config={{ classMixins: ["mx-2 my-2"] }}
+          config={{ classMixins: ["col-span-4"] }}
           on:click={() => (isRetracing = false)}>exit</Button
         >
       </div>

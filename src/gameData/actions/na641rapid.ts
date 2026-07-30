@@ -1,4 +1,5 @@
 import { CONDITION_CHECKS, COMPLETION_EFFECTS, REVEAL } from "../../utils";
+import { LOCATIONS, SUBLOCATIONS } from "../sublocations";
 import { DELIVERY_TAGS, KNOWLEDGE } from "../tags";
 import {
   CROSSGEN,
@@ -7,6 +8,9 @@ import {
   REPEATABLE,
   type ActionRepository,
 } from "./utils";
+
+const NA641 = LOCATIONS.na641;
+const NA641_SUBLOCATIONS = SUBLOCATIONS.na641;
 
 const rapidDeliver = () => [
   COMPLETION_EFFECTS.addFlag("narcadia_delivery_finished", "1"),
@@ -28,12 +32,12 @@ export const rapidDeliveryActions: ActionRepository = {
     weight: 7,
     stopOnRepeat: true,
     conditions: [
-      CONDITION_CHECKS.inLocation("New Arcadia 641"),
-      CONDITION_CHECKS.inSubLocation("Western main street"),
+      CONDITION_CHECKS.inLocation(NA641),
+      CONDITION_CHECKS.inSubLocation(NA641_SUBLOCATIONS.westernMainStreet),
       CONDITION_CHECKS.ifActionCompleteAny("narcadia_seek_init"),
     ],
     postComplete: [
-      COMPLETION_EFFECTS.moveSubLocation("Rapid Delivery Service"),
+      COMPLETION_EFFECTS.moveSubLocation(NA641_SUBLOCATIONS.rapidDeliveryService),
     ],
   },
   narcadia_delivery_leave: {
@@ -44,10 +48,10 @@ export const rapidDeliveryActions: ActionRepository = {
     weight: 5,
     stopOnRepeat: true,
     conditions: [
-      CONDITION_CHECKS.inLocation("New Arcadia 641"),
-      CONDITION_CHECKS.inSubLocation("Rapid Delivery Service"),
+      CONDITION_CHECKS.inLocation(NA641),
+      CONDITION_CHECKS.inSubLocation(NA641_SUBLOCATIONS.rapidDeliveryService),
     ],
-    postComplete: [COMPLETION_EFFECTS.moveSubLocation("Western main street")],
+    postComplete: [COMPLETION_EFFECTS.moveSubLocation(NA641_SUBLOCATIONS.westernMainStreet)],
   },
   narcadia_delivery_promo: {
     ...NO_CROSSGEN,
@@ -57,8 +61,8 @@ export const rapidDeliveryActions: ActionRepository = {
     flavourText: "Promoter standing outside if VERY insistent",
     weight: 15,
     conditions: [
-      CONDITION_CHECKS.inLocation("New Arcadia 641"),
-      CONDITION_CHECKS.inSubLocation("Rapid Delivery Service"),
+      CONDITION_CHECKS.inLocation(NA641),
+      CONDITION_CHECKS.inSubLocation(NA641_SUBLOCATIONS.rapidDeliveryService),
     ],
     postComplete: [
       COMPLETION_EFFECTS.addLog(
@@ -74,8 +78,8 @@ export const rapidDeliveryActions: ActionRepository = {
     skill: "social",
     weight: 10,
     conditions: [
-      CONDITION_CHECKS.inLocation("New Arcadia 641"),
-      CONDITION_CHECKS.inSubLocation("Rapid Delivery Service"),
+      CONDITION_CHECKS.inLocation(NA641),
+      CONDITION_CHECKS.inSubLocation(NA641_SUBLOCATIONS.rapidDeliveryService),
       CONDITION_CHECKS.ifActionCompleteRun("narcadia_delivery_promo"),
     ],
     postComplete: [
@@ -92,8 +96,8 @@ export const rapidDeliveryActions: ActionRepository = {
     weight: 20,
     ...REVEAL.hasKnowledge("narcadia_west_main_street_acchikocchi"),
     conditions: [
-      CONDITION_CHECKS.inLocation("New Arcadia 641"),
-      CONDITION_CHECKS.inSubLocation("Rapid Delivery Service"),
+      CONDITION_CHECKS.inLocation(NA641),
+      CONDITION_CHECKS.inSubLocation(NA641_SUBLOCATIONS.rapidDeliveryService),
       CONDITION_CHECKS.ifActionCompleteRun("narcadia_delivery_promo"),
       CONDITION_CHECKS.ifActionCompleteRun("narcadia_delivery_job"),
     ],
@@ -111,8 +115,8 @@ export const rapidDeliveryActions: ActionRepository = {
     conditions: [
       CONDITION_CHECKS.noFlag("narcadia_delivery_active_order"),
       CONDITION_CHECKS.noFlag("narcadia_delivery_finished"),
-      CONDITION_CHECKS.inLocation("New Arcadia 641"),
-      CONDITION_CHECKS.inSubLocation("Rapid Delivery Service"),
+      CONDITION_CHECKS.inLocation(NA641),
+      CONDITION_CHECKS.inSubLocation(NA641_SUBLOCATIONS.rapidDeliveryService),
       CONDITION_CHECKS.ifActionCompleteRun("narcadia_delivery_take_job"),
     ],
     postComplete: [
@@ -133,8 +137,8 @@ export const rapidDeliveryActions: ActionRepository = {
       CONDITION_CHECKS.numFlagGTE("narcadia_delivery_count", 5),
       CONDITION_CHECKS.noFlag("narcadia_delivery_active_order"),
       CONDITION_CHECKS.noFlag("narcadia_delivery_finished"),
-      CONDITION_CHECKS.inLocation("New Arcadia 641"),
-      CONDITION_CHECKS.inSubLocation("Rapid Delivery Service"),
+      CONDITION_CHECKS.inLocation(NA641),
+      CONDITION_CHECKS.inSubLocation(NA641_SUBLOCATIONS.rapidDeliveryService),
       CONDITION_CHECKS.ifActionCompleteRun("narcadia_delivery_take_job"),
     ],
     postComplete: [
@@ -152,8 +156,8 @@ export const rapidDeliveryActions: ActionRepository = {
     skill: "social",
     weight: 5,
     conditions: [
-      CONDITION_CHECKS.inLocation("New Arcadia 641"),
-      CONDITION_CHECKS.inSubLocation("Rapid Delivery Service"),
+      CONDITION_CHECKS.inLocation(NA641),
+      CONDITION_CHECKS.inSubLocation(NA641_SUBLOCATIONS.rapidDeliveryService),
       CONDITION_CHECKS.ifActionCompleteRun("narcadia_delivery_take_job"),
       CONDITION_CHECKS.hasKnowledge("marco_needs_charger"),
       CONDITION_CHECKS.noFlag("narcadia_delivery_active_order"),
@@ -174,8 +178,8 @@ export const rapidDeliveryActions: ActionRepository = {
     skill: "perception",
     weight: 100,
     conditions: [
-      CONDITION_CHECKS.inLocation("New Arcadia 641"),
-      CONDITION_CHECKS.inSubLocation("Rapid Delivery Service"),
+      CONDITION_CHECKS.inLocation(NA641),
+      CONDITION_CHECKS.inSubLocation(NA641_SUBLOCATIONS.rapidDeliveryService),
       CONDITION_CHECKS.ifActionCompleteRun("narcadia_delivery_take_job"),
       CONDITION_CHECKS.hasKnowledge("marco_needs_charger"),
       CONDITION_CHECKS.ifActionCompleteRun("narcadia_delivery_marcos_charger"),
@@ -197,8 +201,8 @@ export const rapidDeliveryActions: ActionRepository = {
     skill: "exploration",
     weight: 10,
     conditions: [
-      CONDITION_CHECKS.inLocation("New Arcadia 641"),
-      CONDITION_CHECKS.inSubLocation("Rapid Delivery Service"),
+      CONDITION_CHECKS.inLocation(NA641),
+      CONDITION_CHECKS.inSubLocation(NA641_SUBLOCATIONS.rapidDeliveryService),
       CONDITION_CHECKS.ifActionCompleteRun("narcadia_delivery_take_job"),
       CONDITION_CHECKS.hasKnowledge("marco_needs_charger"),
       CONDITION_CHECKS.hasKnowledge("narcadia641_macro_charger_location"),
@@ -226,8 +230,8 @@ export const rapidDeliveryActions: ActionRepository = {
     weight: 30,
     stopOnRepeat: true,
     conditions: [
-      CONDITION_CHECKS.inLocation("New Arcadia 641"),
-      CONDITION_CHECKS.inSubLocation("Western main street"),
+      CONDITION_CHECKS.inLocation(NA641),
+      CONDITION_CHECKS.inSubLocation(NA641_SUBLOCATIONS.westernMainStreet),
       CONDITION_CHECKS.flag("narcadia_delivery_active_order"),
       CONDITION_CHECKS.noFlag("marco_charger_on_hand"),
       CONDITION_CHECKS.noFlag("na641_marco_delivery_lock"),
@@ -246,8 +250,8 @@ export const rapidDeliveryActions: ActionRepository = {
     weight: 100,
     stopOnRepeat: true,
     conditions: [
-      CONDITION_CHECKS.inLocation("New Arcadia 641"),
-      CONDITION_CHECKS.inSubLocation("Western main street"),
+      CONDITION_CHECKS.inLocation(NA641),
+      CONDITION_CHECKS.inSubLocation(NA641_SUBLOCATIONS.westernMainStreet),
       CONDITION_CHECKS.flag(DELIVERY_TAGS.active_order),
       CONDITION_CHECKS.flag(DELIVERY_TAGS.junk_delivery),
       CONDITION_CHECKS.not(
@@ -272,8 +276,8 @@ export const rapidDeliveryActions: ActionRepository = {
     conditions: [
       CONDITION_CHECKS.noFlag("narcadia_delivery_active_order"),
       CONDITION_CHECKS.flag("narcadia_delivery_finished"),
-      CONDITION_CHECKS.inLocation("New Arcadia 641"),
-      CONDITION_CHECKS.inSubLocation("Rapid Delivery Service"),
+      CONDITION_CHECKS.inLocation(NA641),
+      CONDITION_CHECKS.inSubLocation(NA641_SUBLOCATIONS.rapidDeliveryService),
       CONDITION_CHECKS.ifActionCompleteRun("narcadia_delivery_take_job"),
     ],
     postComplete: turnInDelivery(),

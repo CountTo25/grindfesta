@@ -1,6 +1,14 @@
 import type { Action } from "../../types";
 import { CONDITION_CHECKS, COMPLETION_EFFECTS, REVEAL } from "../../utils";
+import { LOCATIONS, SUBLOCATIONS } from "../sublocations";
 import { CROSSGEN, NO_CROSSGEN, NO_REPEAT, REPEATABLE } from "./utils";
+
+const NA641 = LOCATIONS.na641;
+const NA641_SUBLOCATIONS = SUBLOCATIONS.na641;
+const HAS_MARCO_TOOLS_ACCESS = CONDITION_CHECKS.or([
+  CONDITION_CHECKS.ifActionCompleteRun("narcadia_marco_lie_device"),
+  CONDITION_CHECKS.ifActionCompleteRun("narcadia_marco_explain_device"),
+]);
 
 export const marcosWorkshopActions: { [key: string]: Action } = {
   narcadia_workshop_move: {
@@ -12,11 +20,13 @@ export const marcosWorkshopActions: { [key: string]: Action } = {
     flavourText: "Marco's Workshop — your go to place for wristwatch service",
     stopOnRepeat: true,
     conditions: [
-      CONDITION_CHECKS.inLocation("New Arcadia 641"),
-      CONDITION_CHECKS.inSubLocation("Western main street"),
+      CONDITION_CHECKS.inLocation(NA641),
+      CONDITION_CHECKS.inSubLocation(NA641_SUBLOCATIONS.westernMainStreet),
       CONDITION_CHECKS.ifActionCompleteAny("narcadia_workshop_search"),
     ],
-    postComplete: [COMPLETION_EFFECTS.moveSubLocation("Marco's Workshop")],
+    postComplete: [
+      COMPLETION_EFFECTS.moveSubLocation(NA641_SUBLOCATIONS.marcosWorkshop),
+    ],
   },
   narcadia_macros_chat_repairs: {
     ...NO_CROSSGEN,
@@ -25,13 +35,13 @@ export const marcosWorkshopActions: { [key: string]: Action } = {
     skill: "social",
     weight: 5,
     conditions: [
-      CONDITION_CHECKS.inLocation("New Arcadia 641"),
-      CONDITION_CHECKS.inSubLocation("Marco's Workshop"),
+      CONDITION_CHECKS.inLocation(NA641),
+      CONDITION_CHECKS.inSubLocation(NA641_SUBLOCATIONS.marcosWorkshop),
       CONDITION_CHECKS.ifActionCompleteRun("narcadia_macros_greet"),
     ],
     postComplete: [
       COMPLETION_EFFECTS.addLog(
-        "Obviously, he wont rent out his instruments to anyone wandering by. He offered you to either pay for his services or scram, since he has work to do"
+        "Obviously, he wont rent out his instruments to anyone wandering by. He offered you to either pay for his services or scram, since he has work to do",
       ),
       COMPLETION_EFFECTS.addKnowledge("narcadia_currency"),
     ],
@@ -44,14 +54,14 @@ export const marcosWorkshopActions: { [key: string]: Action } = {
     weight: 10,
     ...REVEAL.item("narcadia641_zenny", 3),
     conditions: [
-      CONDITION_CHECKS.inLocation("New Arcadia 641"),
-      CONDITION_CHECKS.inSubLocation("Marco's Workshop"),
+      CONDITION_CHECKS.inLocation(NA641),
+      CONDITION_CHECKS.inSubLocation(NA641_SUBLOCATIONS.marcosWorkshop),
       CONDITION_CHECKS.ifActionCompleteRun("narcadia_macros_chat_repairs"),
     ],
     postComplete: [
       COMPLETION_EFFECTS.removeItem("narcadia641_zenny", 3),
       COMPLETION_EFFECTS.addLog(
-        "A bit confused with offered device, Marco was able to figure out how to add a battery slot there. 'Batteries are 1 coin a pop, by the way', he informed you"
+        "A bit confused with offered device, Marco was able to figure out how to add a battery slot there. 'Batteries are 1 coin a pop, by the way', he informed you",
       ),
     ],
   },
@@ -68,8 +78,8 @@ export const marcosWorkshopActions: { [key: string]: Action } = {
       REVEAL.itemNotCappedYet("small_battery"),
     ]),
     conditions: [
-      CONDITION_CHECKS.inLocation("New Arcadia 641"),
-      CONDITION_CHECKS.inSubLocation("Marco's Workshop"),
+      CONDITION_CHECKS.inLocation(NA641),
+      CONDITION_CHECKS.inSubLocation(NA641_SUBLOCATIONS.marcosWorkshop),
       CONDITION_CHECKS.ifActionCompleteRun("narcadia_macros_pay_charger"),
     ],
     postComplete: [
@@ -84,8 +94,8 @@ export const marcosWorkshopActions: { [key: string]: Action } = {
     skill: "social",
     weight: 3,
     conditions: [
-      CONDITION_CHECKS.inLocation("New Arcadia 641"),
-      CONDITION_CHECKS.inSubLocation("Marco's Workshop"),
+      CONDITION_CHECKS.inLocation(NA641),
+      CONDITION_CHECKS.inSubLocation(NA641_SUBLOCATIONS.marcosWorkshop),
     ],
     postComplete: [],
   },
@@ -94,18 +104,35 @@ export const marcosWorkshopActions: { [key: string]: Action } = {
     ...NO_REPEAT,
     title: "Observe Marco's work",
     skill: "engineering",
-    weight: 10,
+    weight: 13,
     flavourText:
       "Master is at work — fixing wristwatches. Maybe you'll notice something useful?",
     conditions: [
-      CONDITION_CHECKS.inLocation("New Arcadia 641"),
-      CONDITION_CHECKS.inSubLocation("Marco's Workshop"),
+      CONDITION_CHECKS.inLocation(NA641),
+      CONDITION_CHECKS.inSubLocation(NA641_SUBLOCATIONS.marcosWorkshop),
     ],
     postComplete: [
       COMPLETION_EFFECTS.addLog(
-        "Marco is finished with repairing some old watch, replacing a battery, and goes back to reading a newspaper"
+        "Marco is finished with repairing some old watch, replacing a battery, and goes back to reading a newspaper",
       ),
     ],
+  },
+  narcadia_macros_salvage_batteries: {
+    ...NO_CROSSGEN,
+    ...REPEATABLE,
+    title: "Salvage spent batteries",
+    skill: "engineering",
+    flavourText:
+      "Marco suggests you can treat yourself if you sort some batteries for him",
+    weight: 60,
+    ...REVEAL.itemNotCappedYet("small_battery"),
+    conditions: [
+      CONDITION_CHECKS.inLocation(NA641),
+      CONDITION_CHECKS.inSubLocation(NA641_SUBLOCATIONS.marcosWorkshop),
+      CONDITION_CHECKS.ifActionCompleteRun("narcadia_macros_observe_work"),
+      CONDITION_CHECKS.ifActionCompleteRun("narcadia_macros_pay_charger"),
+    ],
+    postComplete: [COMPLETION_EFFECTS.addItem("small_battery", 1)],
   },
   narcadia_marco_undercharge: {
     ...CROSSGEN,
@@ -121,13 +148,13 @@ export const marcosWorkshopActions: { [key: string]: Action } = {
     conditions: [
       CONDITION_CHECKS.skillModifier("perception", 1.5),
       CONDITION_CHECKS.skillModifier("engineering", 1.2),
-      CONDITION_CHECKS.inLocation("New Arcadia 641"),
-      CONDITION_CHECKS.inSubLocation("Marco's Workshop"),
+      CONDITION_CHECKS.inLocation(NA641),
+      CONDITION_CHECKS.inSubLocation(NA641_SUBLOCATIONS.marcosWorkshop),
       CONDITION_CHECKS.ifActionCompleteRun("narcadia_macros_observe_work"),
     ],
     postComplete: [
       COMPLETION_EFFECTS.addLog(
-        "Surprised by your remark, Marco says that his charger is a bit broken, but he will new one from delivery a bit later"
+        "Surprised by your remark, Marco says that his charger is a bit broken, but he will new one from delivery a bit later",
       ),
       COMPLETION_EFFECTS.addKnowledge("marco_needs_charger"),
     ],
@@ -139,14 +166,14 @@ export const marcosWorkshopActions: { [key: string]: Action } = {
     skill: "social",
     weight: 10,
     conditions: [
-      CONDITION_CHECKS.inLocation("New Arcadia 641"),
-      CONDITION_CHECKS.inSubLocation("Marco's Workshop"),
+      CONDITION_CHECKS.inLocation(NA641),
+      CONDITION_CHECKS.inSubLocation(NA641_SUBLOCATIONS.marcosWorkshop),
       CONDITION_CHECKS.flag("marco_charger_on_hand"),
       CONDITION_CHECKS.ifActionCompleteRun("narcadia_macros_greet"),
     ],
     postComplete: [
       COMPLETION_EFFECTS.addLog(
-        "With new battery charger set up, it seems Marco is quite happy to provide you new services"
+        "With new battery charger set up, it seems Marco is quite happy to provide you new services",
       ),
       COMPLETION_EFFECTS.addFlag("narcadia_delivery_finished", "1"),
       COMPLETION_EFFECTS.removeFlag("narcadia_delivery_active_order"),
@@ -160,14 +187,14 @@ export const marcosWorkshopActions: { [key: string]: Action } = {
     flavourText: "4 Zenny per piece. Restores 2 energy",
     skill: "social",
     idx: 10,
-    weight: 10,
+    weight: 25,
     ...REVEAL.all([
       REVEAL.item("narcadia641_zenny", 4),
       REVEAL.itemNotCappedYet("charged_battery"),
     ]),
     conditions: [
-      CONDITION_CHECKS.inLocation("New Arcadia 641"),
-      CONDITION_CHECKS.inSubLocation("Marco's Workshop"),
+      CONDITION_CHECKS.inLocation(NA641),
+      CONDITION_CHECKS.inSubLocation(NA641_SUBLOCATIONS.marcosWorkshop),
       CONDITION_CHECKS.ifActionCompleteRun("narcadia_macro_deliver_charger"),
       CONDITION_CHECKS.ifActionCompleteRun("narcadia_macros_pay_charger"),
     ],
@@ -183,14 +210,14 @@ export const marcosWorkshopActions: { [key: string]: Action } = {
     skill: "social",
     weight: 10,
     conditions: [
-      CONDITION_CHECKS.inLocation("New Arcadia 641"),
-      CONDITION_CHECKS.inSubLocation("Marco's Workshop"),
+      CONDITION_CHECKS.inLocation(NA641),
+      CONDITION_CHECKS.inSubLocation(NA641_SUBLOCATIONS.marcosWorkshop),
       CONDITION_CHECKS.ifActionCompleteRun("narcadia_macro_deliver_charger"),
       CONDITION_CHECKS.ifActionCompleteRun("narcadia_macros_pay_charger"),
     ],
     postComplete: [
       COMPLETION_EFFECTS.addLog(
-        "To upgrade something, you need to understand what exactly are you upgrading, tells you Marco"
+        "To upgrade something, you need to understand what exactly are you upgrading, tells you Marco",
       ),
     ],
   },
@@ -201,16 +228,16 @@ export const marcosWorkshopActions: { [key: string]: Action } = {
     skill: "social",
     weight: 30,
     conditions: [
-      CONDITION_CHECKS.inLocation("New Arcadia 641"),
-      CONDITION_CHECKS.inSubLocation("Marco's Workshop"),
+      CONDITION_CHECKS.inLocation(NA641),
+      CONDITION_CHECKS.inSubLocation(NA641_SUBLOCATIONS.marcosWorkshop),
       CONDITION_CHECKS.ifActionCompleteRun("narcadia_marco_more_upgrades"),
       CONDITION_CHECKS.not(
-        CONDITION_CHECKS.ifActionCompleteRun("narcadia_marco_lie_device")
+        CONDITION_CHECKS.ifActionCompleteRun("narcadia_marco_lie_device"),
       ),
     ],
     postComplete: [
       COMPLETION_EFFECTS.addLog(
-        "Despite questioning your sanity, Marco agreed to let you use his in-store tools if you let him watch"
+        "Despite questioning your sanity, Marco agreed to let you use his in-store tools if you let him watch",
       ),
     ],
   },
@@ -225,19 +252,19 @@ export const marcosWorkshopActions: { [key: string]: Action } = {
       REVEAL.skillCheck("engineering", 150),
     ]),
     conditions: [
-      CONDITION_CHECKS.inLocation("New Arcadia 641"),
-      CONDITION_CHECKS.inSubLocation("Marco's Workshop"),
+      CONDITION_CHECKS.inLocation(NA641),
+      CONDITION_CHECKS.inSubLocation(NA641_SUBLOCATIONS.marcosWorkshop),
       CONDITION_CHECKS.ifActionCompleteRun("narcadia_marco_more_upgrades"),
       CONDITION_CHECKS.not(
-        CONDITION_CHECKS.ifActionCompleteRun("narcadia_marco_explain_device")
+        CONDITION_CHECKS.ifActionCompleteRun("narcadia_marco_explain_device"),
       ),
     ],
     postComplete: [
       COMPLETION_EFFECTS.addLog(
-        "Seems like he believed your story about this being elaborate prototype of portable phone"
+        "Seems like he believed your story about this being elaborate prototype of portable phone",
       ),
       COMPLETION_EFFECTS.addLog(
-        "If you pay him 25 Zenny, he'll let you use his tools"
+        "If you pay him 25 Zenny, he'll let you use his tools",
       ),
     ],
   },
@@ -251,18 +278,63 @@ export const marcosWorkshopActions: { [key: string]: Action } = {
     weight: 150,
     ...REVEAL.skillCheck("engineering", 5),
     conditions: [
-      CONDITION_CHECKS.inLocation("New Arcadia 641"),
-      CONDITION_CHECKS.inSubLocation("Marco's Workshop"),
-      CONDITION_CHECKS.or([
-        CONDITION_CHECKS.ifActionCompleteRun("narcadia_marco_lie_device"),
-        CONDITION_CHECKS.ifActionCompleteRun("narcadia_marco_explain_device"),
-      ]),
+      CONDITION_CHECKS.inLocation(NA641),
+      CONDITION_CHECKS.inSubLocation(NA641_SUBLOCATIONS.marcosWorkshop),
+      HAS_MARCO_TOOLS_ACCESS,
     ],
     postComplete: [
       COMPLETION_EFFECTS.addLog(
-        "Energy decay seems to have stabilized for now"
+        "Energy decay seems to have stabilized for now",
       ),
       COMPLETION_EFFECTS.cutDecay(2),
+    ],
+  },
+  na641_marcos_ask_solar_charger: {
+    ...NO_CROSSGEN,
+    ...NO_REPEAT,
+    title: "Discuss solar-powered radio",
+    skill: "social",
+    weight: 500,
+    flavourText: "Maybe it radio can be repurposed",
+    ...REVEAL.skillCheck("engineering", 30),
+    conditions: [
+      CONDITION_CHECKS.inLocation(NA641),
+      CONDITION_CHECKS.inSubLocation(NA641_SUBLOCATIONS.marcosWorkshop),
+      CONDITION_CHECKS.hasItem("na641_solar_powered_radio", 1),
+      CONDITION_CHECKS.skillModifier("engineering", 20),
+      CONDITION_CHECKS.ifActionCompleteRun("narcadia_macros_greet"),
+    ],
+    postComplete: [
+      COMPLETION_EFFECTS.addLog(
+        "TODO: Marco talks through making the radio into a portable battery charger",
+      ),
+    ],
+  },
+  na641_marcos_modify_solar_radio: {
+    ...NO_CROSSGEN,
+    ...NO_REPEAT,
+    title: "Modify solar-powered radio",
+    skill: "engineering",
+    weight: 500,
+    flavourText: "TODO: make the solar-powered radio charge the device",
+    ...REVEAL.all([
+      REVEAL.skillCheck("engineering", 30),
+      REVEAL.itemNotCappedYet("na641_modified_solar_radio"),
+    ]),
+    conditions: [
+      CONDITION_CHECKS.inLocation(NA641),
+      CONDITION_CHECKS.inSubLocation(NA641_SUBLOCATIONS.marcosWorkshop),
+      CONDITION_CHECKS.hasItem("na641_solar_powered_radio", 1),
+      CONDITION_CHECKS.skillModifier("engineering", 20),
+      CONDITION_CHECKS.ifActionCompleteRun("na641_marcos_ask_solar_charger"),
+      HAS_MARCO_TOOLS_ACCESS,
+    ],
+    postComplete: [
+      COMPLETION_EFFECTS.removeItem("na641_solar_powered_radio", 1),
+      COMPLETION_EFFECTS.addItem("na641_modified_solar_radio", 1),
+      COMPLETION_EFFECTS.addLog(
+        "TODO: modified the radio into a portable battery charger",
+      ),
     ],
   },
   narcadia_workshop_leave: {
@@ -273,10 +345,12 @@ export const marcosWorkshopActions: { [key: string]: Action } = {
     weight: 5,
     stopOnRepeat: true,
     conditions: [
-      CONDITION_CHECKS.inLocation("New Arcadia 641"),
-      CONDITION_CHECKS.inSubLocation("Marco's Workshop"),
+      CONDITION_CHECKS.inLocation(NA641),
+      CONDITION_CHECKS.inSubLocation(NA641_SUBLOCATIONS.marcosWorkshop),
     ],
-    postComplete: [COMPLETION_EFFECTS.moveSubLocation("Western main street")],
+    postComplete: [
+      COMPLETION_EFFECTS.moveSubLocation(NA641_SUBLOCATIONS.westernMainStreet),
+    ],
   },
   na641_seek_workshop: {
     ...CROSSGEN,
@@ -287,13 +361,13 @@ export const marcosWorkshopActions: { [key: string]: Action } = {
     skill: "perception",
     weight: 10,
     conditions: [
-      CONDITION_CHECKS.inLocation("New Arcadia 641"),
-      CONDITION_CHECKS.inSubLocation("Western main street"),
+      CONDITION_CHECKS.inLocation(NA641),
+      CONDITION_CHECKS.inSubLocation(NA641_SUBLOCATIONS.westernMainStreet),
       (d) => d.data.global.loop >= 1,
     ],
     postComplete: [
       COMPLETION_EFFECTS.addLog(
-        "There is advert about watchmaker shop being located nearby"
+        "There is advert about watchmaker shop being located nearby",
       ),
     ],
   },
@@ -305,8 +379,8 @@ export const marcosWorkshopActions: { [key: string]: Action } = {
     flavourText: "Maybe you can find some way to fix your device there",
     weight: 15,
     conditions: [
-      CONDITION_CHECKS.inLocation("New Arcadia 641"),
-      CONDITION_CHECKS.inSubLocation("Western main street"),
+      CONDITION_CHECKS.inLocation(NA641),
+      CONDITION_CHECKS.inSubLocation(NA641_SUBLOCATIONS.westernMainStreet),
       CONDITION_CHECKS.ifActionCompleteAny("na641_seek_workshop"),
     ],
     postComplete: [],
@@ -318,20 +392,20 @@ export const marcosWorkshopActions: { [key: string]: Action } = {
     skill: "social",
     flavourText: "Might come in handy",
     conditions: [
-      CONDITION_CHECKS.inLocation("New Arcadia 641"),
-      CONDITION_CHECKS.inSubLocation("Marco's Workshop"),
+      CONDITION_CHECKS.inLocation(NA641),
+      CONDITION_CHECKS.inSubLocation(NA641_SUBLOCATIONS.marcosWorkshop),
       CONDITION_CHECKS.ifActionCompleteRun("narcadia_macro_deliver_charger"),
       CONDITION_CHECKS.hasItem("na641_broken_camera", 1),
       CONDITION_CHECKS.ifActionCompleteRun("narcadia_macros_greet"),
       CONDITION_CHECKS.not(
         CONDITION_CHECKS.ifActionCompleteRun(
-          "na641_marcos_fix_camera_no_delivery"
-        )
+          "na641_marcos_fix_camera_no_delivery",
+        ),
       ),
     ],
     postComplete: [
       COMPLETION_EFFECTS.addLog(
-        "Either you can use his spare tools or pay 5 Zenny for a fix"
+        "Either you can use his spare tools or pay 5 Zenny for a fix",
       ),
     ],
     weight: 20,
@@ -343,15 +417,15 @@ export const marcosWorkshopActions: { [key: string]: Action } = {
     skill: "social",
     flavourText: "Might come in handy",
     conditions: [
-      CONDITION_CHECKS.inLocation("New Arcadia 641"),
-      CONDITION_CHECKS.inSubLocation("Marco's Workshop"),
+      CONDITION_CHECKS.inLocation(NA641),
+      CONDITION_CHECKS.inSubLocation(NA641_SUBLOCATIONS.marcosWorkshop),
       CONDITION_CHECKS.not(
-        CONDITION_CHECKS.ifActionCompleteRun("narcadia_macro_deliver_charger")
+        CONDITION_CHECKS.ifActionCompleteRun("narcadia_macro_deliver_charger"),
       ),
       CONDITION_CHECKS.not(
         CONDITION_CHECKS.ifActionCompleteRun(
-          "na641_marcos_fix_camera_did_delivery"
-        )
+          "na641_marcos_fix_camera_did_delivery",
+        ),
       ),
       CONDITION_CHECKS.ifActionCompleteRun("narcadia_macros_greet"),
       CONDITION_CHECKS.hasItem("na641_broken_camera", 1),
@@ -369,10 +443,10 @@ export const marcosWorkshopActions: { [key: string]: Action } = {
     flavourText: "10 Zenny",
     ...REVEAL.item("narcadia641_zenny", 10),
     conditions: [
-      CONDITION_CHECKS.inLocation("New Arcadia 641"),
-      CONDITION_CHECKS.inSubLocation("Marco's Workshop"),
+      CONDITION_CHECKS.inLocation(NA641),
+      CONDITION_CHECKS.inSubLocation(NA641_SUBLOCATIONS.marcosWorkshop),
       CONDITION_CHECKS.ifActionCompleteRun(
-        "na641_marcos_fix_camera_no_delivery"
+        "na641_marcos_fix_camera_no_delivery",
       ),
       CONDITION_CHECKS.hasItem("na641_broken_camera", 1),
     ],
@@ -390,10 +464,10 @@ export const marcosWorkshopActions: { [key: string]: Action } = {
     flavourText: "With a few pointers from Marco it seems pretty doable",
     skill: "engineering",
     conditions: [
-      CONDITION_CHECKS.inLocation("New Arcadia 641"),
-      CONDITION_CHECKS.inSubLocation("Marco's Workshop"),
+      CONDITION_CHECKS.inLocation(NA641),
+      CONDITION_CHECKS.inSubLocation(NA641_SUBLOCATIONS.marcosWorkshop),
       CONDITION_CHECKS.ifActionCompleteRun(
-        "na641_marcos_fix_camera_did_delivery"
+        "na641_marcos_fix_camera_did_delivery",
       ),
       CONDITION_CHECKS.hasItem("na641_broken_camera", 1),
     ],
@@ -410,10 +484,10 @@ export const marcosWorkshopActions: { [key: string]: Action } = {
     skill: "social",
     ...REVEAL.item("narcadia641_zenny", 5),
     conditions: [
-      CONDITION_CHECKS.inLocation("New Arcadia 641"),
-      CONDITION_CHECKS.inSubLocation("Marco's Workshop"),
+      CONDITION_CHECKS.inLocation(NA641),
+      CONDITION_CHECKS.inSubLocation(NA641_SUBLOCATIONS.marcosWorkshop),
       CONDITION_CHECKS.ifActionCompleteRun(
-        "na641_marcos_fix_camera_did_delivery"
+        "na641_marcos_fix_camera_did_delivery",
       ),
       CONDITION_CHECKS.hasItem("na641_broken_camera", 1),
     ],

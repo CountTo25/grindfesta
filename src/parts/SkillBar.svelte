@@ -17,12 +17,11 @@
     (currentProgressGlobal / bakery.toLevel.global.next[skill]) * 100;
 
   let isHovered = false;
-  let mainElement!: HTMLDivElement;
 </script>
 
 {#if isHovered}
   <div
-    class="absolute z-10 backdrop-blur-sm bg-opacity-50 left-0 top-0 w-full h-full pointer-events-none"
+    class="fixed inset-0 z-10 pointer-events-none backdrop-blur-[2px] bg-slate-950/20"
     in:fade={{ duration: 250 }}
     out:fade={{ duration: 20 }}
   ></div>
@@ -30,18 +29,17 @@
 
 <div
   class="relative w-full"
-  bind:this={mainElement}
   on:mouseenter={() => (isHovered = true)}
   on:mouseleave={() => (isHovered = false)}
-  class:z-20={isHovered}
+  class:z-30={isHovered}
 >
   <!-- main -->
-  <div class="pixel-corners bg-slate-900 grid grid-cols-6 w-full relative">
-    <div class="col-span-6 grid grid-cols-6 p-2">
+  <div class="pixel-corners bg-slate-900 grid grid-cols-8 w-full relative">
+    <div class="col-span-8 grid grid-cols-8 p-2">
       <div class="col-span-1 text-center">
         <SkillIcon {skill} />
       </div>
-      <div class="col-span-2 text-left">
+      <div class="col-span-4 text-left">
         {skill.slice(0, 1).toUpperCase() + skill.slice(1)}
       </div>
       <div class="col-span-3 text-right">
@@ -49,37 +47,39 @@
       </div>
     </div>
 
-    <div class="col-span-6">
+    <div class="col-span-8">
       <ProgressBar percent={runPercent}></ProgressBar>
     </div>
-    <div class="col-span-6">
+    <div class="col-span-8">
       <ProgressBar percent={globalPercent}></ProgressBar>
     </div>
   </div>
-</div>
 
-{#if isHovered}
-  <div
-    class="absolute bg-slate-900 z-20 text-left mt-2 p-2 border-2 border-slate-500"
-    style="width: {mainElement.getBoundingClientRect().width}px"
-  >
-    <div>Run</div>
-    <div class="text-slate-300 text-sm">
-      x{bakery.modifiers.run[skill].toFixed(2)} modifier from current run
+  {#if isHovered}
+    <div
+      class="absolute left-0 top-full z-40 mt-1 w-full min-w-full bg-slate-900 text-left p-2 border-2 border-slate-500 pointer-events-none"
+      in:fade={{ duration: 120 }}
+      out:fade={{ duration: 20 }}
+    >
+      <div>Run</div>
+      <div class="text-slate-300 text-sm">
+        x{bakery.modifiers.run[skill].toFixed(2)} modifier from current run
+      </div>
+      <div class="text-slate-300 text-sm">
+        {currentProgressRun.toFixed(2)} / {bakery.toLevel.run.next[
+          skill
+        ].toFixed(2)} exp to next
+      </div>
+      <div class="mt-2">Time compression</div>
+      <div class="text-slate-300 text-sm">
+        x{bakery.modifiers.global[skill].toFixed(2)} modifier from time
+        compression
+      </div>
+      <div class="text-slate-300 text-sm">
+        {currentProgressGlobal.toFixed(2)} / {bakery.toLevel.global.next[
+          skill
+        ].toFixed(2)} exp to next
+      </div>
     </div>
-    <div class="text-slate-300 text-sm">
-      {currentProgressRun.toFixed(2)} / {bakery.toLevel.run.next[skill].toFixed(
-        2
-      )} exp to next
-    </div>
-    <div class="mt-2">Time compression</div>
-    <div class="text-slate-300 text-sm">
-      x{bakery.modifiers.global[skill].toFixed(2)} modifier from time compression
-    </div>
-    <div class="text-slate-300 text-sm">
-      {currentProgressGlobal.toFixed(2)} / {bakery.toLevel.global.next[
-        skill
-      ].toFixed(2)} exp to next
-    </div>
-  </div>
-{/if}
+  {/if}
+</div>
