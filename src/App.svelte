@@ -13,6 +13,7 @@
     COMPLETION_EFFECTS,
     CONDITION_CHECKS,
     formatTime,
+    getEndRunLocationName,
     LOCATION_CHECKS,
     skills,
   } from "./utils";
@@ -27,7 +28,9 @@
   import Button from "./components/Button.svelte";
   import { fade } from "svelte/transition";
   import { get } from "svelte/store";
-  import EndRun from "./parts/EndRun.svelte";
+  import EndRun from "./routes/EndRun.svelte";
+  import Retracing from "./routes/Retracing.svelte";
+  import EndRunStats from "./parts/EndRunStats.svelte";
   import { actions } from "./statics";
   import {
     applyAnchorLeap,
@@ -58,7 +61,7 @@
       : visibleSkills.length > 4
         ? [visibleSkills.slice(0, 3), visibleSkills.slice(3)]
         : [visibleSkills];
-
+  $: endRunLocationName = getEndRunLocationName($gameState);
   $: if ($knowledgeSignal !== null || $subLocationSignal !== null) {
     tryBakeLocation(get(gameState));
   }
@@ -98,9 +101,6 @@
 </script>
 
 <main class="h-screen">
-  {#if $endRun}
-    <EndRun />
-  {/if}
   {#if showLeapModal}
     <div
       class="absolute inset-0 z-20 grid place-items-center backdrop-blur-sm bg-slate-950/40"
@@ -146,98 +146,103 @@
     <!-- Top header -->
     <div class="col-span-12 grid grid-cols-12 text-center p-2">
       <div class="col-span-12 pixel-corners bg-slate-900">
-        <div>{formatTime($gameState.data.run.timeSpent)}</div>
-        <div>
-          <GenericIcon icon={"bolt"} />
-          <span
-            >{$gameState.data.run.currentEnergy.toFixed(2)} / {$gameState.data.run.maxEnergy.toFixed(
-              2,
-            )}</span
-          >
-          <span class="text-sm text-slate-300"
-            >(-{$gameState.data.run.energyDecayRate.toFixed(2)}/s)</span
-          >
-        </div>
-        <div>
-          <ProgressBar
-            percent={($gameState.data.run.currentEnergy /
-              $gameState.data.run.maxEnergy) *
-              100}
-          />
-        </div>
+        {#if $endRun}
+          <div class="py-2 text-sm text-slate-400">
+            Energy ran out after {formatTime($endRun.timeSpent)}
+          </div>
+        {:else}
+          <div>{formatTime($gameState.data.run.timeSpent)}</div>
+          <div>
+            <GenericIcon icon={"bolt"} />
+            <span
+              >{$gameState.data.run.currentEnergy.toFixed(2)} / {$gameState.data.run.maxEnergy.toFixed(
+                2,
+              )}</span
+            >
+            <span class="text-sm text-slate-300"
+              >(-{$gameState.data.run.energyDecayRate.toFixed(2)}/s)</span
+            >
+          </div>
+          <div>
+            <ProgressBar
+              percent={($gameState.data.run.currentEnergy /
+                $gameState.data.run.maxEnergy) *
+                100}
+            />
+          </div>
+        {/if}
       </div>
 
       <div class="col-span-12 grid gap-y-1 mt-2">
-        {#each visibleSkillRows as skillRow}
-          <div
-            class="grid gap-x-1"
-            class:grid-cols-1={skillRow.length === 1}
-            class:grid-cols-2={skillRow.length === 2}
-            class:grid-cols-3={skillRow.length === 3}
-            class:grid-cols-4={skillRow.length >= 4}
-          >
-            {#each skillRow as skill}
-              <SkillBar {skill} />
-            {/each}
-          </div>
-        {/each}
+        {#if $endRun}
+          <EndRunStats />
+        {:else}
+          {#each visibleSkillRows as skillRow}
+            <div
+              class="grid gap-x-1"
+              class:grid-cols-1={skillRow.length === 1}
+              class:grid-cols-2={skillRow.length === 2}
+              class:grid-cols-3={skillRow.length === 3}
+              class:grid-cols-4={skillRow.length >= 4}
+            >
+              {#each skillRow as skill}
+                <SkillBar {skill} />
+              {/each}
+            </div>
+          {/each}
+        {/if}
       </div>
       <div
         class="col-span-12 grid grid-cols-12 gap-x-1 mt-2 text-center transition-all"
-        class:invisible={!bakedLocation.show}
-        class:opacity-0={!bakedLocation.show}
+        class:invisible={!bakedLocation.show && !$endRun}
+        class:opacity-0={!bakedLocation.show && !$endRun}
       >
-        {#if $anchorItems.length > 0}
-          <button
-            type="button"
-            class="col-span-3 pixel-corners bg-slate-900 hover:bg-slate-800 transition-all px-3 py-1"
-            on:click={() => (showLeapModal = true)}
+        {#if $endRun}
+          <div class="col-span-12 pixel-corners bg-slate-900 py-1">
+            <span>{endRunLocationName}</span>
+          </div>
+        {:else}
+          {#if $anchorItems.length > 0}
+            <button
+              type="button"
+              class="col-span-3 pixel-corners bg-slate-900 hover:bg-slate-800 transition-all px-3 py-1"
+              on:click={() => (showLeapModal = true)}
+            >
+              Leap
+            </button>
+          {/if}
+          <div
+            class={$anchorItems.length > 0
+              ? "col-span-9 pixel-corners bg-slate-900 py-1"
+              : "col-span-12 pixel-corners bg-slate-900 py-1"}
           >
-            Leap
-          </button>
+            <span>{bakedLocation.text ?? "NO LOCATION DATA"}</span>
+            <span></span>
+          </div>
         {/if}
-        <div
-          class={$anchorItems.length > 0
-            ? "col-span-9 pixel-corners bg-slate-900 py-1"
-            : "col-span-12 pixel-corners bg-slate-900 py-1"}
-        >
-          <span>{bakedLocation.text ?? "NO LOCATION DATA"}</span>
-          <span></span>
-        </div>
       </div>
     </div>
 
     <!-- Main content -->
-    <div class="col-span-12 grid grid-cols-12 overflow-hidden flex-col">
-      <!-- Left main view -->
-      <div class="col-span-9 h-full overflow-hidden px-2">
-        <div class="overflow-y-auto h-full flex-1">
-          <Router
-            routingSettings={{
-              actions: Actions,
-            }}
-            currentRoute={$gameState.data.run.mainViewRoute}
-          />
-        </div>
-      </div>
-
-      <!-- Log view -->
-      <div class="col-span-3 h-full overflow-hidden flex flex-col px-2">
-        <div class="overflow-y-auto flex-1">
-          {#each $gameState.data.run.logEntries.toReversed() as { ts, text }}
-            <div class="mb-2 pixel-corners bg-slate-900 px-3 text-sm">
-              <div class="text-right text-slate-500">{formatTime(ts)}</div>
-              <div>{text}</div>
-            </div>
-          {/each}
-        </div>
-      </div>
+    <div class="col-span-12 h-full overflow-hidden">
+      <Router
+        routingSettings={{
+          actions: Actions,
+          endRun: EndRun,
+          retracing: Retracing,
+        }}
+        currentRoute={$endRun?.mainViewRoute ?? $gameState.data.run.mainViewRoute}
+      />
     </div>
 
     <!-- Bottom bar -->
     <div class="col-span-12 px-2 mb-2">
       <div class="pixel-corners grid grid-cols-12 bg-slate-900 px-2 py-2">
-        <div class="col-span-4">{@html retracingInfo}</div>
+        <div class="col-span-4">
+          {#if !$endRun}
+            {@html retracingInfo}
+          {/if}
+        </div>
         <div class="col-span-8 text-sm text-slate-500">
           built @ {__BUILD_TIME__} (<a
             class="underline"

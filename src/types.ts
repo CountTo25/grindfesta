@@ -122,10 +122,12 @@ type GlobalState =
       retraceConfig: { id: string }[];
     } & EnergyData;
 
+export type MainViewRoute = "actions" | "endRun" | "retracing";
+
 export type RunState =
   | {
       retraceIdx: number | null;
-      mainViewRoute: "actions";
+      mainViewRoute: MainViewRoute;
       action: CurrentAction | null;
       logEntries: LogEntry[];
       actionProgress: { [id: string]: { progress: number; complete: boolean } };

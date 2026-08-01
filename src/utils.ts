@@ -384,6 +384,25 @@ export const LOCATION_CHECKS: {
   },
 };
 
+type KnowledgeResolvedName = {
+  requires: string[];
+  text: string;
+};
+
+// Add progressively more specific names here as knowledge for this location
+// becomes available. Until then, its identity remains deliberately unknown.
+const END_RUN_LOCATION_NAMES: KnowledgeResolvedName[] = [];
+
+export function getEndRunLocationName(state: GameState): string {
+  return (
+    END_RUN_LOCATION_NAMES.find(({ requires }) =>
+      requires.every((knowledge) =>
+        state.data.global.knowledge.includes(knowledge),
+      ),
+    )?.text ?? "???"
+  );
+}
+
 export function formatTime(ms: number) {
   const totalSeconds = Math.floor(ms / 1000);
   const hours = String(Math.floor(totalSeconds / 3600)).padStart(2, "0");

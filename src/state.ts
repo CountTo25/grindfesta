@@ -309,6 +309,7 @@ tickSignal.subscribe((_) => {
       val.data.run.timeSpent += bakedTimePerTick;
       val = applyRunTickCosts(val, bakedTimePerTick);
       if (val.data.run.currentEnergy <= 0) {
+        val.data.run.mainViewRoute = "endRun";
         endRun.set(val.data.run);
         val.data.run = processCleanGameState(EMPTY_RUN);
         bakeSkillLevels();
