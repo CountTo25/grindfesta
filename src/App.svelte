@@ -224,7 +224,7 @@
       <!-- Log view -->
       <div class="col-span-3 h-full overflow-hidden flex flex-col px-2">
         <div class="overflow-y-auto flex-1">
-          {#each $gameState.data.run.logEntries.reverse() as { ts, text }}
+          {#each $gameState.data.run.logEntries.toReversed() as { ts, text }}
             <div class="mb-2 pixel-corners bg-slate-900 px-3 text-sm">
               <div class="text-right text-slate-500">{formatTime(ts)}</div>
               <div>{text}</div>

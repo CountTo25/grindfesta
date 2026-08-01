@@ -30,7 +30,7 @@ export const syncToDebug = (tag: string) => {
 
 /**
  * Performs a deep merge of objects and returns new object. Does not modify
- * objects (immutable) and merges arrays via concatenation.
+ * objects (immutable) and replaces arrays with the latest value.
  *
  * @param {...object} objects - Objects to merge
  * @returns {object} New object with merged key/values
@@ -44,9 +44,9 @@ export function mergeDeep<T extends Object>(...objects: T[]): T {
       //@ts-ignore
       const oVal = obj[key];
 
-      if (Array.isArray(pVal) && Array.isArray(oVal)) {
+      if (Array.isArray(oVal)) {
         //@ts-ignore
-        prev[key] = pVal.concat(...oVal);
+        prev[key] = [...oVal];
       } else if (isObject(pVal) && isObject(oVal)) {
         //@ts-ignore
         prev[key] = mergeDeep(pVal, oVal);
