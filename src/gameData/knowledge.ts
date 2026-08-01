@@ -1,5 +1,6 @@
 //basically just flags
 export const knowledge = {
+  time_leap_anchoring: "time leap anchoring",
   new_arcadia_town_name: "New Arcadia",
   new_arcadia_year: "641",
   narcadia_currency: "Zenny",
@@ -32,6 +33,8 @@ export const knowledge = {
     "department store camping goods store location",
   na641_arcadia_travel_restrictions:
     "few people can leave Arcadia",
+  na641_backalley_temporal_calibrator:
+    "broken temporal calibrator in the Western Main Street alley",
   bbasin7281_visited: "Ashbone Basin visit",
   bbasin7281_fossil_origins: "fossil origins",
   bbasin7281_canyon_lizard_sighting: "Ashbone Basin canyon lizard sighting",

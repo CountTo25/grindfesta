@@ -327,6 +327,16 @@ export const COMPLETION_EFFECTS = {
     };
   },
 
+  fillItemToCapacity(itemId: ItemKey) {
+    return (state: GameState) => {
+      if (!state.data.run.inventory[itemId]) {
+        state.data.run.inventory[itemId] = { amount: 0, cooldown: 0 };
+      }
+      state.data.run.inventory[itemId].amount = items[itemId].capacity(state);
+      return state;
+    };
+  },
+
   removeItem: (id: ItemKey, amount: number) => {
     return (d: GameState) => {
       if (d.data.run.inventory[id]) {

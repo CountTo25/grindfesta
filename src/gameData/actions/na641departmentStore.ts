@@ -449,7 +449,7 @@ export const departmentStoreActions: ActionRepository = {
   },
   na641_camping_goods_buy_travel_boots: {
     ...NO_CROSSGEN,
-    ...REPEATABLE,
+    ...NO_REPEAT,
     title: "Buy travel boots",
     flavourText: "20 Zenny",
     skill: "social",
@@ -470,7 +470,7 @@ export const departmentStoreActions: ActionRepository = {
   },
   na641_camping_goods_buy_firestarter_set: {
     ...NO_CROSSGEN,
-    ...REPEATABLE,
+    ...NO_REPEAT,
     title: "Buy firestarter set",
     flavourText: "20 Zenny",
     skill: "social",
@@ -491,7 +491,7 @@ export const departmentStoreActions: ActionRepository = {
   },
   na641_camping_goods_buy_solar_powered_radio: {
     ...NO_CROSSGEN,
-    ...REPEATABLE,
+    ...NO_REPEAT,
     title: "Buy solar-powered radio",
     flavourText: "40 Zenny",
     skill: "social",

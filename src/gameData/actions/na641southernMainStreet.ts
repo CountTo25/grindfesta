@@ -395,6 +395,12 @@ export const na641southernMainStreetActions: ActionRepository = {
       ),
     ],
     postComplete: [
+      COMPLETION_EFFECTS.removeFlag(
+        TAGS.NA641.CITY_HALL.TOP_LEVEL_QUEUE_FINISHED,
+      ),
+      COMPLETION_EFFECTS.removeFlag(
+        TAGS.NA641.CITY_HALL.CITY_HALL_QUEUE_FINISHED,
+      ),
       COMPLETION_EFFECTS.moveSubLocation(NA641_SUBLOCATIONS.southernMainStreet),
     ],
   },
@@ -413,37 +419,6 @@ export const na641southernMainStreetActions: ActionRepository = {
       COMPLETION_EFFECTS.moveSubLocation(
         NA641_SUBLOCATIONS.southernMainStreetUpperLayerElevator,
       ),
-    ],
-  },
-  na641_upper_layer_visit_city_hall: {
-    ...NO_CROSSGEN,
-    ...REPEATABLE,
-    title: "Visit City Hall",
-    skill: "exploration",
-    weight: 35,
-    stopOnRepeat: true,
-    conditions: [
-      CONDITION_CHECKS.inLocation(NA641),
-      CONDITION_CHECKS.inSubLocation(NA641_SUBLOCATIONS.upperLayer),
-      CONDITION_CHECKS.hasKnowledge(KNOWLEDGE.NA641.upper_layer_city_hall),
-    ],
-    postComplete: [
-      COMPLETION_EFFECTS.moveSubLocation(NA641_SUBLOCATIONS.upperLayerCityHall),
-    ],
-  },
-  na641_upper_layer_leave_city_hall: {
-    ...NO_CROSSGEN,
-    ...REPEATABLE,
-    title: "Return to Upper Layer",
-    skill: "exploration",
-    weight: 20,
-    stopOnRepeat: true,
-    conditions: [
-      CONDITION_CHECKS.inLocation(NA641),
-      CONDITION_CHECKS.inSubLocation(NA641_SUBLOCATIONS.upperLayerCityHall),
-    ],
-    postComplete: [
-      COMPLETION_EFFECTS.moveSubLocation(NA641_SUBLOCATIONS.upperLayer),
     ],
   },
 };

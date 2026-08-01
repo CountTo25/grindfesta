@@ -150,4 +150,61 @@ export const na641southActions: ActionRepository = {
       ),
     ],
   },
+  na641_johnny_turn_in_procured_goods: {
+    ...NO_CROSSGEN,
+    ...NO_REPEAT,
+    title: "Turn in procured goods",
+    flavourText: "At least you aren't becoming a criminal in your own time",
+    skill: "social",
+    weight: 100,
+    conditions: [
+      CONDITION_CHECKS.inLocation(NA641),
+      CONDITION_CHECKS.inSubLocation(
+        NA641_SUBLOCATIONS.southernMainStreetOutskirts,
+      ),
+      CONDITION_CHECKS.flag(TAGS.NA641.JOHNNY.MUSEUM_JOB),
+      CONDITION_CHECKS.hasItem("anchor_ancient_bone", 1),
+    ],
+    postComplete: [
+      COMPLETION_EFFECTS.removeItem("anchor_ancient_bone", 1),
+      COMPLETION_EFFECTS.fillItemToCapacity("narcadia641_zenny"),
+      COMPLETION_EFFECTS.removeFlag(TAGS.NA641.JOHNNY.MUSEUM_JOB),
+      COMPLETION_EFFECTS.patchFlagNumeric(
+        TAGS.NA641.REPUTATION.UNDERWORLD,
+        (reputation) => reputation + 5,
+      ),
+      COMPLETION_EFFECTS.addLog(
+        "You're now officially part of Arcadia's underworld. And you've got quite some money!",
+      ),
+    ],
+  },
+  na641_johnny_turn_in_weird_skull: {
+    ...NO_CROSSGEN,
+    ...NO_REPEAT,
+    title: "Try to hand off skull",
+    flavourText: "Lets see if you can satisfy him with this",
+    skill: "social",
+    weight: 1200,
+    ...REVEAL.skillCheck("social", 75),
+    conditions: [
+      CONDITION_CHECKS.skillModifier("social", 10),
+      CONDITION_CHECKS.inLocation(NA641),
+      CONDITION_CHECKS.inSubLocation(
+        NA641_SUBLOCATIONS.southernMainStreetOutskirts,
+      ),
+      CONDITION_CHECKS.flag(TAGS.NA641.JOHNNY.MUSEUM_JOB),
+      CONDITION_CHECKS.hasItem("bbasin7281_weird_skull", 1),
+    ],
+    postComplete: [
+      COMPLETION_EFFECTS.removeItem("bbasin7281_weird_skull", 1),
+      COMPLETION_EFFECTS.removeFlag(TAGS.NA641.JOHNNY.MUSEUM_JOB),
+      COMPLETION_EFFECTS.patchFlagNumeric(
+        TAGS.NA641.REPUTATION.UNDERWORLD,
+        (reputation) => reputation + 3,
+      ),
+      COMPLETION_EFFECTS.addLog(
+        "Johnny accepts your 'lucky find' in place of requested artifact. No money for you, but he is interested in your improvisation skills",
+      ),
+    ],
+  },
 };

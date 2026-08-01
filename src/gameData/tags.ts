@@ -18,6 +18,10 @@ export const TAGS = {
       NO_BACKROOM_ACCESS: "na641_museum_no_backroom_access",
       STAFF_FOLLOWS: "na641_museum_staff_follows",
     },
+    CITY_HALL: {
+      TOP_LEVEL_QUEUE_FINISHED: "na641_city_hall_top_level_queue_finished",
+      CITY_HALL_QUEUE_FINISHED: "na641_city_hall_queue_finished",
+    },
     DEPARTMENT_STORE: {
       SPENT: "na641_department_store_spent",
       POINT_CARD_SUGGESTED: "na641_department_store_point_card_suggested",
@@ -28,6 +32,7 @@ export const TAGS = {
     },
     REPUTATION: {
       HOMELESS: "na641_rep_homeless",
+      UNDERWORLD: "arcadia_underworld_reputation",
     },
   },
   MODIFIERS: {
@@ -41,6 +46,9 @@ export const TAGS = {
 };
 
 export const KNOWLEDGE = {
+  TIME_LEAP: {
+    anchoring: "time_leap_anchoring",
+  },
   NA641: {
     southern_outskirts: "na641_west_to_southern_street_connection",
     junk_shop_location: "na641_junk_shop_location",
@@ -73,6 +81,7 @@ export const KNOWLEDGE = {
     department_store_camping_goods_store:
       "na641_department_store_camping_goods_store",
     arcadia_travel_restrictions: "na641_arcadia_travel_restrictions",
+    backalley_temporal_calibrator: "na641_backalley_temporal_calibrator",
   },
   BBASIN7281: {
     visited: "bbasin7281_visited",

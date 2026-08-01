@@ -1,4 +1,4 @@
-import { CONDITION_CHECKS, COMPLETION_EFFECTS } from "../../utils";
+import { CONDITION_CHECKS, COMPLETION_EFFECTS, REVEAL } from "../../utils";
 import { LOCATIONS, SUBLOCATIONS } from "../sublocations";
 import { KNOWLEDGE, TAGS } from "../tags";
 import {
@@ -64,6 +64,27 @@ export const bbasin7281Actions: ActionRepository = {
     ],
     postComplete: [
       COMPLETION_EFFECTS.addKnowledge(KNOWLEDGE.BBASIN7281.fossil_origins),
+    ],
+  },
+  bbasin7281_remove_weird_skull: {
+    ...NO_CROSSGEN,
+    ...NO_REPEAT,
+    title: "Remove weird skull from pool",
+    flavourText: "This requires some precision",
+    skill: "engineering",
+    weight: 1000,
+    ...REVEAL.skillCheck("engineering", 50),
+    conditions: [
+      CONDITION_CHECKS.skillModifier("perception", 30),
+      CONDITION_CHECKS.inLocation(BBASIN7281),
+      CONDITION_CHECKS.inSubLocation(BBASIN7281_SUBLOCATIONS.sulfurSprings),
+      CONDITION_CHECKS.ifActionCompleteAny("bbasin7281_inspect_remains"),
+      CONDITION_CHECKS.not(
+        CONDITION_CHECKS.hasItem("bbasin7281_weird_skull", 1),
+      ),
+    ],
+    postComplete: [
+      COMPLETION_EFFECTS.addItem("bbasin7281_weird_skull", 1),
     ],
   },
   bbasin7281_sulfur_springs_sunny_recharge: {

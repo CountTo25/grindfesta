@@ -189,6 +189,28 @@ export const na641junkActions: ActionRepository = {
       ),
     ],
   },
+  na641_junk_buy_clanky_mini_printer: {
+    ...NO_CROSSGEN,
+    ...NO_REPEAT,
+    title: "Purchase clanky mini-printer",
+    flavourText: "Decommissioned. Same model as City Hall uses!",
+    skill: "social",
+    weight: 450,
+    ...REVEAL.all([
+      REVEAL.item("narcadia641_zenny", 30),
+      REVEAL.itemNotCappedYet("na641_clanky_mini_printer"),
+    ]),
+    conditions: [
+      CONDITION_CHECKS.inLocation(NA641),
+      CONDITION_CHECKS.inSubLocation(NA641_SUBLOCATIONS.annasRecycledGoods),
+      CONDITION_CHECKS.ifActionCompleteAny("na641_junk_inspect_display"),
+      CONDITION_CHECKS.ifActionCompleteRun("narcadia_junk_greet"),
+    ],
+    postComplete: [
+      COMPLETION_EFFECTS.removeItem("narcadia641_zenny", 30),
+      COMPLETION_EFFECTS.addItem("na641_clanky_mini_printer", 1),
+    ],
+  },
   narcadia_junk_deliver_order: {
     ...NO_CROSSGEN,
     ...NO_REPEAT,

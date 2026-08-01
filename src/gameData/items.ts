@@ -14,7 +14,7 @@ export const items = {
       let junkWalletMod =
         (c.data.run.flags[TAGS.MODIFIERS.HAS_JUNK_WALLET] ?? null) ? 10 : 0;
       let trendyWalletMod =
-        (c.data.run.flags[TAGS.MODIFIERS.HAS_TRENDY_WALLET] ?? null) ? 5 : 0;
+        (c.data.run.flags[TAGS.MODIFIERS.HAS_TRENDY_WALLET] ?? null) ? 10 : 0;
       return 10 + junkWalletMod + trendyWalletMod;
     },
   },
@@ -122,6 +122,46 @@ export const items = {
     onConsume: [],
     capacity: (_) => 1,
   },
+  na641_top_level_pass: {
+    name: "Arcadia top level pass",
+    description: "Grants access to Arcadia's top level",
+    consumable: false,
+    consumeRequirement: [],
+    onConsume: [],
+    capacity: (_) => 1,
+  },
+  new_arcadia_fake_id: {
+    name: "New Arcadia fake ID",
+    description: "A convincing imitation of New Arcadia identification",
+    consumable: false,
+    consumeRequirement: [],
+    onConsume: [],
+    capacity: (_) => 1,
+  },
+  new_arcadia_id: {
+    name: "New Arcadia ID",
+    description: "Official New Arcadia identification",
+    consumable: false,
+    consumeRequirement: [],
+    onConsume: [],
+    capacity: (_) => 1,
+  },
+  bbasin7281_weird_skull: {
+    name: "Weird skull",
+    description: "Removed from the remains at Ashbone Basin",
+    consumable: false,
+    consumeRequirement: [],
+    onConsume: [],
+    capacity: (_) => 1,
+  },
+  na641_clanky_mini_printer: {
+    name: "Clanky mini-printer",
+    description: "A decommissioned City Hall document printer",
+    consumable: false,
+    consumeRequirement: [],
+    onConsume: [],
+    capacity: (_) => 1,
+  },
   anchor_ancient_bone: {
     name: "Ancient Bone",
     description: "A museum fossil specimen",
@@ -132,6 +172,18 @@ export const items = {
     anchor: {
       location: LOCATIONS.bbasin7281,
       sublocation: SUBLOCATIONS.bbasin7281.sulfurSprings,
+    },
+  },
+  anchor_broken_temporal_calibrator: {
+    name: "Broken temporal calibrator",
+    description: "A damaged piece of your lab equipment",
+    consumable: false,
+    consumeRequirement: [],
+    onConsume: [],
+    capacity: (_) => 1,
+    anchor: {
+      location: LOCATIONS.na641,
+      sublocation: SUBLOCATIONS.na641.westernMainStreetAlley,
     },
   },
 } as const satisfies Record<string, Item>;

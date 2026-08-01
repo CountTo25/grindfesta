@@ -28,8 +28,8 @@ export const SUBLOCATIONS = {
       "Southern main street — Department store — Camping goods store",
     southernMainStreetUpperLayerElevator:
       "Southern main street — Upper layer elevator",
+    cityHall: "City Hall",
     upperLayer: "Upper layer",
-    upperLayerCityHall: "Upper layer — City Hall",
   },
   bbasin7281: {
     sulfurSprings: "Ashbone Basin -7281 — Sulfur springs",
