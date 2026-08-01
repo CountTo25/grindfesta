@@ -274,6 +274,12 @@ export const COMPLETION_EFFECTS = {
       return d;
     };
   },
+  setEnergy: (amount: number) => {
+    return (d: GameState) => {
+      d.data.run.currentEnergy = amount;
+      return d;
+    };
+  },
   addFlag: (key: string, value: string | null = "1") => {
     return (d: GameState) => {
       d.data.run.flags[key] = value;

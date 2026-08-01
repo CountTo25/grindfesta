@@ -151,4 +151,32 @@ export const bbasin7281Actions: ActionRepository = {
       CONDITION_CHECKS.inSubLocation(BBASIN7281_SUBLOCATIONS.canyon),
     ],
   },
+  bbasin7281_end_of_content: {
+    ...NO_CROSSGEN,
+    ...NO_REPEAT,
+    title: "END OF CONTENT",
+    flavourText: "dev — finish the run",
+    skill: "perception",
+    weight: 10,
+    conditions: [
+      CONDITION_CHECKS.inLocation(BBASIN7281),
+      CONDITION_CHECKS.inSubLocation(BBASIN7281_SUBLOCATIONS.canyon),
+      CONDITION_CHECKS.ifActionCompleteRun("bbasin7281_fend_off_lizard"),
+    ],
+    postComplete: [COMPLETION_EFFECTS.setEnergy(-100)],
+  },
+  bbasin7281_sudoku: {
+    ...NO_CROSSGEN,
+    ...NO_REPEAT,
+    ...NO_POSTCOMPLETE,
+    title: "SUDOKU",
+    flavourText: "dev — you dont have any energy and will rip in peace now",
+    skill: "perception",
+    weight: 10,
+    conditions: [
+      CONDITION_CHECKS.inLocation(BBASIN7281),
+      CONDITION_CHECKS.inSubLocation(BBASIN7281_SUBLOCATIONS.canyon),
+      CONDITION_CHECKS.ifActionCompleteRun("bbasin7281_end_of_content"),
+    ],
+  },
 };
