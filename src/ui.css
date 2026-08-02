@@ -1,139 +1,247 @@
-.panel {
-    border-radius: 10px;
-    background: #3b2b50;
-    box-shadow:  -5px -5px 10px #322544,
-                 5px 5px 10px #44315c;
-}
+@import "./styles/tokens.css";
+@import "./styles/glass.css";
+@import "./styles/controls.css";
 
-.panel.btn {
-    user-select: none;
-    cursor: pointer;
-    background: #473460;
-    transition: 0.15s ease-in;
-}
-
-.panel.btn.inactive {
-    background: #23192f !important;
-    cursor: default;
-    opacity: 0.5;
-}
-
-.panel.btn:hover {
-    background: #5a427a
-}
-
-.panel.btn:active:not(.inactive) {
-    background: #3b2b50;
-    box-shadow:  0px 0px 0px #322544,
-    0px 0px 0px #44315c; 
-}
 * {
-    color: white;
-    user-select: none;
-}
-html, 
-body, #app {
-    height: 100%;
+  color: inherit;
 }
 
-.hn {
-    line-height: 24px !important;
+.app_shell .text-sm {
+  font-size: var(--ui_font_size_body);
+  line-height: 1.25rem;
 }
 
-.pixel-corners,
-.pixel-corners--wrapper {
-  clip-path: polygon(0px calc(100% - 4px),
-    2px calc(100% - 4px),
-    2px calc(100% - 2px),
-    4px calc(100% - 2px),
-    4px 100%,
-    calc(100% - 4px) 100%,
-    calc(100% - 4px) calc(100% - 2px),
-    calc(100% - 2px) calc(100% - 2px),
-    calc(100% - 2px) calc(100% - 4px),
-    100% calc(100% - 4px),
-    100% 4px,
-    calc(100% - 2px) 4px,
-    calc(100% - 2px) 2px,
-    calc(100% - 4px) 2px,
-    calc(100% - 4px) 0px,
-    4px 0px,
-    4px 2px,
-    2px 2px,
-    2px 4px,
-    0px 4px);
+.app_shell .text-xs {
+  font-size: var(--ui_font_size_detail);
+  line-height: 1rem;
+}
+
+button,
+[role="button"] {
+  -webkit-tap-highlight-color: transparent;
+}
+
+.app_backdrop {
+  background: rgb(0 6 5 / 64%);
+  -webkit-backdrop-filter: blur(7px) saturate(1.12);
+  backdrop-filter: blur(7px) saturate(1.12);
+}
+
+.hover_veil {
+  background: rgb(0 6 5 / 16%);
+  -webkit-backdrop-filter: blur(2px) saturate(1.04);
+  backdrop-filter: blur(2px) saturate(1.04);
+}
+
+.glass_modal {
+  width: min(640px, 90vw);
+  padding: 18px;
+  border-radius: var(--ui_radius_panel);
+}
+
+.glass_stat {
+  padding: 10px 14px;
+  border-radius: var(--ui_radius_control);
+  background: var(--ui_fill);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 7%);
+}
+
+.glass_kicker {
+  color: rgb(var(--ui_accent));
+  font-size: 0.72rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.muted_text {
+  color: var(--ui_text_muted);
+}
+
+.primary_text {
+  color: var(--ui_text);
+}
+
+.subtle_text {
+  color: var(--ui_text_subtle);
+}
+
+.glass_divider_right {
+  border-right: 1px solid var(--ui_stroke);
+}
+
+.glass_divider_top {
+  border-top: 1px solid var(--ui_stroke);
+}
+
+.glass_icon_button {
+  display: inline-grid;
+  width: 32px;
+  min-width: 32px;
+  height: 32px;
+  place-items: center;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--ui_text_muted);
+  cursor: pointer;
+  transition: color 140ms ease, transform 140ms ease;
+}
+
+.glass_icon_button:hover:not(:disabled),
+.glass_icon_button:focus-visible {
+  outline: none;
+  background: transparent;
+  color: rgb(var(--ui_accent));
+}
+
+.glass_icon_button[data-active="true"] {
+  color: rgb(var(--ui_accent));
+}
+
+.glass_icon_button[data-active="true"] .icon_glyph {
+  filter:
+    drop-shadow(0 0 2px rgb(var(--ui_accent) / 78%))
+    drop-shadow(0 0 8px rgb(var(--ui_accent) / 42%));
+}
+
+.glass_icon_button .icon_glyph {
+  transition: filter 160ms ease, transform 160ms ease;
+}
+
+.glass_icon_button:hover:not(:disabled) .icon_glyph,
+.glass_icon_button:focus-visible .icon_glyph {
+  filter:
+    drop-shadow(0 0 2px rgb(var(--ui_accent) / 88%))
+    drop-shadow(0 0 7px rgb(var(--ui_accent) / 58%))
+    drop-shadow(0 0 14px rgb(var(--ui_accent) / 30%));
+  transform: scale(1.05);
+}
+
+.glass_icon_button:focus-visible {
+  box-shadow: 0 0 0 2px rgb(var(--ui_accent) / 30%);
+}
+
+.glass_icon_button:active {
+  transform: scale(0.95);
+}
+
+.glass_icon_button:disabled {
+  cursor: not-allowed;
+  opacity: 0.48;
+}
+
+.glass_scroll {
+  scrollbar-color: rgb(var(--ui_accent) / 40%) transparent;
+  scrollbar-width: thin;
+}
+
+.glass_scroll::-webkit-scrollbar {
+  width: 6px;
+}
+
+.glass_scroll::-webkit-scrollbar-thumb {
+  border-radius: 999px;
+  background: rgb(var(--ui_accent) / 38%);
+}
+
+.glass_scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.scroll_fade_frame {
   position: relative;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
 }
-.pixel-corners {
-  border: 2px solid transparent;
+
+.glass_scroll_fade {
+  --scroll-fade-size: 32px;
+  --scroll-fade-top: 0px;
+  --scroll-fade-bottom: 0px;
+  --scroll-fade-mask: linear-gradient(
+    to bottom,
+    transparent 0,
+    #000 var(--scroll-fade-top),
+    #000 calc(100% - var(--scroll-fade-bottom)),
+    transparent 100%
+  );
+  mask-image: var(--scroll-fade-mask);
+  mask-repeat: no-repeat;
+  -webkit-mask-image: var(--scroll-fade-mask);
+  -webkit-mask-repeat: no-repeat;
 }
-.pixel-corners--wrapper {
-  width: fit-content;
-  height: fit-content;
+
+.glass_scroll_fade[data-scroll-before] {
+  --scroll-fade-top: var(--scroll-fade-size);
 }
-.pixel-corners--wrapper .pixel-corners {
-  display: block;
-  clip-path: polygon(2px 4px,
-    4px 4px,
-    4px 2px,
-    calc(100% - 4px) 2px,
-    calc(100% - 4px) 4px,
-    calc(100% - 2px) 4px,
-    calc(100% - 2px) calc(100% - 4px),
-    calc(100% - 4px) calc(100% - 4px),
-    calc(100% - 4px) calc(100% - 2px),
-    4px calc(100% - 2px),
-    4px calc(100% - 4px),
-    2px calc(100% - 4px));
+
+.glass_scroll_fade[data-scroll-after] {
+  --scroll-fade-bottom: var(--scroll-fade-size);
 }
-.pixel-corners::after,
-.pixel-corners--wrapper::after {
-  content: "";
-  position: absolute;
-  clip-path: polygon(0px calc(100% - 4px),
-    2px calc(100% - 4px),
-    2px calc(100% - 2px),
-    4px calc(100% - 2px),
-    4px 100%,
-    calc(100% - 4px) 100%,
-    calc(100% - 4px) calc(100% - 2px),
-    calc(100% - 2px) calc(100% - 2px),
-    calc(100% - 2px) calc(100% - 4px),
-    100% calc(100% - 4px),
-    100% 4px,
-    calc(100% - 2px) 4px,
-    calc(100% - 2px) 2px,
-    calc(100% - 4px) 2px,
-    calc(100% - 4px) 0px,
-    4px 0px,
-    4px 2px,
-    2px 2px,
-    2px 4px,
-    0px 4px,
-    0px 50%,
-    2px 50%,
-    2px 4px,
-    4px 4px,
-    4px 2px,
-    calc(100% - 4px) 2px,
-    calc(100% - 4px) 4px,
-    calc(100% - 2px) 4px,
-    calc(100% - 2px) calc(100% - 4px),
-    calc(100% - 4px) calc(100% - 4px),
-    calc(100% - 4px) calc(100% - 2px),
-    4px calc(100% - 2px),
-    4px calc(100% - 4px),
-    2px calc(100% - 4px),
-    2px 50%,
-    0px 50%);
-  top: 0;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  background: #64748b;
-  display: block;
-  pointer-events: none;
+
+/* Firefox does not reliably composite a gradient mask around an overflow
+   scroller. Paint the fade above the scroll viewport there instead. */
+@supports (-moz-appearance: none) {
+  .glass_scroll_fade {
+    --scroll-fade-overlay: rgb(0 8 7 / 98%);
+    mask-image: none;
+    -webkit-mask-image: none;
+  }
+
+  .glass_surface .glass_scroll_fade {
+    --scroll-fade-overlay: color-mix(
+      in srgb,
+      var(--ui_surface_solid) 94%,
+      rgb(var(--ui_accent))
+    );
+  }
+
+  .glass_scroll_fade::before,
+  .glass_scroll_fade::after {
+    content: "";
+    position: absolute;
+    z-index: 4;
+    right: 0;
+    left: 0;
+    height: var(--scroll-fade-size);
+    pointer-events: none;
+    background: linear-gradient(
+      to bottom,
+      var(--scroll-fade-overlay) 0%,
+      color-mix(in srgb, var(--scroll-fade-overlay) 62%, transparent) 48%,
+      transparent 100%
+    );
+    opacity: 0;
+    transition: opacity 100ms ease;
+  }
+
+  .glass_scroll_fade::before {
+    top: 0;
+  }
+
+  .glass_scroll_fade::after {
+    bottom: 0;
+    transform: scaleY(-1);
+  }
+
+  .glass_scroll_fade[data-scroll-before]::before,
+  .glass_scroll_fade[data-scroll-after]::after {
+    opacity: 1;
+  }
 }
-.pixel-corners::after {
-  margin: -2px;
+
+@media (prefers-reduced-motion: reduce) {
+  .glass_scroll_fade::before,
+  .glass_scroll_fade::after,
+  .glass_icon_button,
+  .glass_icon_button .icon_glyph {
+    transition: none;
+  }
+
+  .glass_icon_button:active,
+  .glass_icon_button:hover:not(:disabled) .icon_glyph,
+  .glass_icon_button:focus-visible .icon_glyph {
+    transform: none;
+  }
 }

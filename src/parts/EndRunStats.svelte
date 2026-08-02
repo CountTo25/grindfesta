@@ -7,7 +7,7 @@
   } from "../state";
   import type { Skill } from "../types";
   import { getModifier, skills } from "../utils";
-  import SkillIcon from "./SkillIcon.svelte";
+  import GenericIcon from "./GenericIcon.svelte";
 
   function showInitStat(t: Skill): number {
     return getModifier($endRun?.initialStats[t] ?? 0, GLOBAL_LEVEL_MOD_RATIO);
@@ -19,10 +19,6 @@
 
   function formatModifier(value: number): string {
     return value.toFixed(4).replace(/0+$/, "").replace(/\.$/, "");
-  }
-
-  function skillTitle(skill: Skill): string {
-    return skill.charAt(0).toUpperCase() + skill.slice(1);
   }
 
   $: visibleSkills = skills.filter(
@@ -40,22 +36,28 @@
     {@const eorValue = showEORStat(skill)}
     {@const improved = eorValue > initValue}
     <div
-      class="pixel-corners bg-slate-900 px-3 py-2"
+      class="glass_card px-3 py-2"
       data-testid={`result-skill-${skill}`}
     >
       <div class="flex items-center gap-2">
-        <SkillIcon {skill} />
-        <span class="text-sm">{skillTitle(skill)}</span>
+        <GenericIcon icon={skill} />
+        <span class="text-sm capitalize">{skill}</span>
       </div>
       <div class="mt-1 flex items-baseline gap-2 pl-6">
-        <span class="text-xs text-slate-500">x{formatModifier(initValue)}</span>
-        <i class="hn hn-angle-right-solid text-slate-500"></i>
+        <span class="subtle_text text-xs">x{formatModifier(initValue)}</span>
+        <span class="subtle_text"><GenericIcon icon="angle-right-solid" /></span>
         <span
-          class="text-base"
-          class:text-emerald-300={improved}
-          class:text-slate-300={!improved}
+          class:time_compression_gain={improved}
+          class:muted_text={!improved}
         >x{formatModifier(eorValue)}</span>
       </div>
     </div>
   {/each}
 </div>
+
+<style>
+  .time_compression_gain {
+    color: rgb(var(--ui_progress_time_compression));
+    text-shadow: 0 0 10px rgb(var(--ui_progress_time_compression) / 28%);
+  }
+</style>

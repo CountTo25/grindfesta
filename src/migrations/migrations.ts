@@ -55,6 +55,16 @@ function applyActionRenames(data: SaveMigrationData, migration: SaveMigration) {
   if (data.run.action) {
     data.run.action.id = renameValue(data.run.action.id, renames);
   }
+  if (data.run.activeQueuedAction) {
+    data.run.activeQueuedAction.id = renameValue(
+      data.run.activeQueuedAction.id,
+      renames,
+    );
+  }
+  data.run.actionQueue = data.run.actionQueue.map((action) => ({
+    ...action,
+    id: renameValue(action.id, renames),
+  }));
 
   renameKeys(data.run.actionProgress, renames);
   data.global.presistentActionProgress = renameUniqueValues(

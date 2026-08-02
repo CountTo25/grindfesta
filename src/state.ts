@@ -10,6 +10,7 @@ import {
   GameState,
   type Action,
   type Item,
+  type QueuedAction,
   type RunState,
   type Skill,
   type SkillLevels,
@@ -24,6 +25,7 @@ import {
 } from "./utils";
 import { checkItems, save } from "./actions";
 import { items, type ItemKey } from "./gameData/items";
+import { distinctArrayProjection } from "./system/store";
 
 ///Globals for quick tinkering here
 export const GLOBAL_LEVEL_MOD_RATIO = 1.05;
@@ -133,11 +135,24 @@ export const gameState: Writable<GameState> = writable(GameState.new());
 export const actionsCheckSignal: Writable<boolean> = writable(false);
 export const tickSignal: Writable<boolean> = writable(false);
 export const bakeSignal: Writable<boolean> = writable(false);
+export const bakedSkills = derived(bakeSignal, () => bakery, bakery);
 export const everyTenSeconds: Writable<boolean> = writable(false);
 export const knowledgeSignal: Writable<boolean> = writable(false);
 export const subLocationSignal: Writable<boolean> = writable(false);
 export const actionEndSignal: Writable<boolean> = writable(false);
 export const endRun: Writable<RunState | null> = writable(null);
+export type RunDeathTransitionPhase = "idle" | "collapse" | "reveal";
+export const runDeathTransition: Writable<RunDeathTransitionPhase> =
+  writable("idle");
+export const RUN_DEATH_COLLAPSE_MS = 1250;
+export const RUN_DEATH_REVEAL_MS = 750;
+let runDeathTransitionPending = false;
+export type RunLoopTransitionPhase = "idle" | "cover" | "reveal";
+export const runLoopTransition: Writable<RunLoopTransitionPhase> =
+  writable("idle");
+export const RUN_LOOP_COVER_MS = 180;
+export const RUN_LOOP_REVEAL_MS = 320;
+let runLoopTransitionPending = false;
 export type AnchorInventoryItem = {
   itemId: ItemKey;
   item: Item;
@@ -163,6 +178,35 @@ export const anchorItems: Readable<AnchorInventoryItem[]> = derived(
     }),
   [],
 );
+export const liveActionQueue = distinctArrayProjection(
+  gameState,
+  ($gameState) => [
+    ...($gameState.data.run.activeQueuedAction
+      ? [$gameState.data.run.activeQueuedAction]
+      : []),
+    ...$gameState.data.run.actionQueue,
+  ],
+);
+export const queuedActionCountsById = derived(
+  liveActionQueue,
+  ($liveActionQueue) =>
+    $liveActionQueue.reduce<Record<string, number>>((counts, { id }) => {
+      counts[id] = (counts[id] ?? 0) + 1;
+      return counts;
+    }, {}),
+);
+export const queuedActionEstimateSeconds = derived(
+  [liveActionQueue, bakedSkills],
+  ([$liveActionQueue, $bakedSkills]) =>
+    $liveActionQueue.reduce((total, queuedAction) => {
+      const action = actions[queuedAction.id];
+      if (!action) return total;
+
+      const modifier = $bakedSkills.modifiers.total[action.skill] || 1;
+      return total + action.weight / modifier;
+    }, 0),
+  0,
+);
 // tools
 const flick = (v: boolean) => !v;
 export const checkActions = () => actionsCheckSignal.update(flick);
@@ -171,6 +215,28 @@ export const sendActionCompleteSignal = () => actionEndSignal.update(flick);
 export const sendKnowledgesignal = () => knowledgeSignal.update(flick);
 export const sendSubLocationSignal = () => subLocationSignal.update(flick);
 setInterval(() => everyTenSeconds.update(flick), 10 * 1000);
+export function beginNextLoopTransition(): void {
+  if (runLoopTransitionPending || get(endRun) === null) return;
+
+  runLoopTransitionPending = true;
+  runLoopTransition.set("cover");
+
+  globalThis.setTimeout(() => {
+    gameState.update((state) => {
+      clearRunActionQueue(state);
+      state.data.run.actionQueue = buildRetraceQueue(state);
+      return state;
+    });
+    endRun.set(null);
+    sendSubLocationSignal();
+    runLoopTransition.set("reveal");
+
+    globalThis.setTimeout(() => {
+      runLoopTransitionPending = false;
+      runLoopTransition.set("idle");
+    }, RUN_LOOP_REVEAL_MS);
+  }, RUN_LOOP_COVER_MS);
+}
 export function applyRunTickCosts(state: GameState, tickMs: number): GameState {
   state = checkItems(state, tickMs);
   state.data.run.energyDecayRate +=
@@ -182,14 +248,157 @@ export function applyRunTickCosts(state: GameState, tickMs: number): GameState {
 
 export function canStartAction(state: GameState, id: string): boolean {
   const action = actions[id];
-  if (!action) return false;
-  if (!canDisplay(state)([id, action])) return false;
-  if (!action.conditions.every((c) => c(state))) return false;
-  return (action.revealCondition ?? []).every((c) => c(state));
+  if (!action || !canDisplay(state)([id, action])) return false;
+  if (!action.conditions.every((condition) => condition(state))) return false;
+  return (action.revealCondition ?? []).every((condition) => condition(state));
 }
 
 export function canSkipUnavailableRetraceAction(id: string): boolean {
   return actions[id]?.repeatable ?? false;
+}
+
+export function clearRunActionQueue(state: GameState): void {
+  state.data.run.retraceIdx = null;
+  state.data.run.action = null;
+  state.data.run.activeQueuedAction = null;
+  state.data.run.actionQueue = [];
+}
+
+export function stopRunAction(): void {
+  gameState.update((state) => {
+    clearRunActionQueue(state);
+    return state;
+  });
+}
+
+function buildRetraceQueue(state: GameState, startIndex = 0): QueuedAction[] {
+  return state.data.global.retraceConfig.slice(startIndex).map(({ id }) => ({
+    id,
+    mode: "once",
+    source: "retrace",
+  }));
+}
+
+function absorbLegacyRetracing(state: GameState): void {
+  const retraceIdx = state.data.run.retraceIdx;
+  if (retraceIdx === null) return;
+
+  if (state.data.run.action && !state.data.run.activeQueuedAction) {
+    state.data.run.activeQueuedAction = {
+      id: state.data.run.action.id,
+      mode: "once",
+      source: "retrace",
+    };
+  }
+
+  state.data.run.actionQueue = [
+    ...buildRetraceQueue(state, retraceIdx),
+    ...state.data.run.actionQueue,
+  ];
+  state.data.run.retraceIdx = null;
+}
+
+function startNextQueuedAction(state: GameState): GameState {
+  state.data.run.activeQueuedAction = null;
+
+  while (state.data.run.actionQueue.length > 0) {
+    const queuedAction = state.data.run.actionQueue.shift()!;
+    if (!canStartAction(state, queuedAction.id)) {
+      if (
+        queuedAction.source === "retrace" &&
+        !canSkipUnavailableRetraceAction(queuedAction.id)
+      ) {
+        state.data.run.actionQueue = state.data.run.actionQueue.filter(
+          (entry) => entry.source !== "retrace",
+        );
+      }
+      continue;
+    }
+
+    state.data.run.activeQueuedAction = queuedAction;
+    state.data.run.action = { id: queuedAction.id };
+    return state;
+  }
+
+  return state;
+}
+
+export function enqueueRunAction(id: string, singleRun = false): void {
+  const action = actions[id];
+  if (!action) return;
+
+  const queuedAction: QueuedAction = {
+    id,
+    mode: action.repeatable && !singleRun ? "max" : "once",
+    source: "manual",
+  };
+
+  gameState.update((state) => {
+    if (!canStartAction(state, id)) return state;
+
+    const queueIsIdle =
+      state.data.run.activeQueuedAction === null &&
+      state.data.run.actionQueue.length === 0;
+
+    if (queueIsIdle) state.data.run.action = null;
+    state.data.run.actionQueue.push(queuedAction);
+    return queueIsIdle ? startNextQueuedAction(state) : state;
+  });
+}
+
+export function removeRunActionFromQueue(index: number, count = 1): void {
+  gameState.update((state) => {
+    const hasActiveAction = state.data.run.activeQueuedAction !== null;
+    let remainingCount = Math.max(1, Math.floor(count));
+    let queuedIndex = index - (hasActiveAction ? 1 : 0);
+
+    if (hasActiveAction && index === 0) {
+      state.data.run.activeQueuedAction = null;
+      state.data.run.action = null;
+      remainingCount -= 1;
+      queuedIndex = 0;
+    }
+
+    if (
+      remainingCount > 0 &&
+      queuedIndex >= 0 &&
+      queuedIndex < state.data.run.actionQueue.length
+    ) {
+      state.data.run.actionQueue.splice(queuedIndex, remainingCount);
+    }
+
+    return hasActiveAction && index === 0
+      ? startNextQueuedAction(state)
+      : state;
+  });
+}
+
+function beginRunDeathTransition(): void {
+  if (runDeathTransitionPending) return;
+
+  runDeathTransitionPending = true;
+  runDeathTransition.set("collapse");
+
+  globalThis.setTimeout(() => {
+    gameState.update((state) => {
+      state.data.run.mainViewRoute = "endRun";
+      endRun.set(state.data.run);
+      state.data.run = processCleanGameState(EMPTY_RUN);
+      bakeSkillLevels();
+      state.data.run.initialStats = deepClone(bakery.skills.global);
+      state.data.global.loop = state.data.global.loop + 1;
+      checkActions();
+      bakeSkillLevels();
+      return state;
+    });
+
+    runDeathTransition.set("reveal");
+
+    globalThis.setTimeout(() => {
+      runDeathTransitionPending = false;
+      runDeathTransition.set("idle");
+    }, RUN_DEATH_REVEAL_MS);
+  }, RUN_DEATH_COLLAPSE_MS);
 }
 /////
 bakeSkillLevels();
@@ -239,9 +448,11 @@ actionsCheckSignal.subscribe((_) => {
           state.data.run.actionProgress[ACTION_ID].progress = 0;
         }
 
-        //If we're retracing, stop action on complete so we can handle multiple
-        //Of the same without doing it forever
-        if (state.data.run.retraceIdx !== null) {
+        // One-shot queue entries advance after one completion.
+        if (
+          state.data.run.activeQueuedAction?.id === ACTION_ID &&
+          state.data.run.activeQueuedAction.mode === "once"
+        ) {
           state.data.run.action = null;
         }
       }
@@ -252,6 +463,12 @@ actionsCheckSignal.subscribe((_) => {
         state.data.run.actionProgress[ACTION_ID].complete = false;
       }
 
+      if (
+        state.data.run.activeQueuedAction?.id === ACTION_ID &&
+        state.data.run.action === null
+      ) {
+        state.data.run.activeQueuedAction = null;
+      }
     }
     if (state.data.run.actionProgress[ACTION_ID].progress === 0) {
       sendActionCompleteSignal();
@@ -302,21 +519,19 @@ const ticker = derived(
 
 //tick handler
 tickSignal.subscribe((_) => {
+  if (runDeathTransitionPending || runLoopTransitionPending) return;
+
   gameState.update((val) => {
+    absorbLegacyRetracing(val);
+
     //lets treat it as separate module for ease of understanding
     if (val.data.run.action) {
       const ACTION_ID: string = val.data.run.action.id;
       val.data.run.timeSpent += bakedTimePerTick;
       val = applyRunTickCosts(val, bakedTimePerTick);
       if (val.data.run.currentEnergy <= 0) {
-        val.data.run.mainViewRoute = "endRun";
-        endRun.set(val.data.run);
-        val.data.run = processCleanGameState(EMPTY_RUN);
-        bakeSkillLevels();
-        val.data.run.initialStats = deepClone(bakery.skills.global);
-        val.data.global.loop = val.data.global.loop + 1;
-        checkActions();
-        bakeSkillLevels();
+        val.data.run.currentEnergy = 0;
+        beginRunDeathTransition();
         return val;
       }
       const skill = actions[ACTION_ID]!.skill;
@@ -365,28 +580,10 @@ tickSignal.subscribe((_) => {
         checkActions();
       }
     } else {
-      if (val.data.run.retraceIdx !== null && get(endRun) === null) {
-        while (val.data.run.retraceIdx !== null) {
-          //feed retraced queue to action if we're not progressed yet
-          const actionToAssign =
-            val.data.global.retraceConfig[val.data.run.retraceIdx] ?? null;
-          if (!actionToAssign) {
-            val.data.run.retraceIdx = null;
-            return val;
-          }
-          if (!canStartAction(val, actionToAssign.id)) {
-            if (canSkipUnavailableRetraceAction(actionToAssign.id)) {
-              val.data.run.retraceIdx = val.data.run.retraceIdx + 1;
-              continue;
-            }
-            val.data.run.retraceIdx = null;
-            return val;
-          }
-          val.data.run.action = { id: actionToAssign.id };
-          val.data.run.retraceIdx = val.data.run.retraceIdx + 1;
-          return val;
-        }
+      if (val.data.run.activeQueuedAction !== null) {
+        val.data.run.activeQueuedAction = null;
       }
+      startNextQueuedAction(val);
     }
     return val;
   });

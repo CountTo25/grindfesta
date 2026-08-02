@@ -2,119 +2,141 @@
   import { get } from "svelte/store";
   import {
     gameState,
-    bakery,
-    bakeSignal,
+    bakedSkills,
     actionsCheckSignal,
     actionEndSignal,
+    enqueueRunAction,
+    queuedActionCountsById,
+    stopRunAction,
   } from "../state";
   import type { Action, GameState } from "../types";
+  import { resolveActionText } from "../utils";
   import GenericIcon from "./GenericIcon.svelte";
   import ProgressBar from "./ProgressBar.svelte";
-  import SkillIcon from "./SkillIcon.svelte";
   export let action: Action;
   export let id: string;
   export let running: boolean = false;
-  export let config: { classes: string[] } = { classes: [] };
-  $: progress = calcProgress($gameState, $actionEndSignal !== null);
+  export let className = "";
+  $: progress = $gameState.data.run.actionProgress[id]?.progress ?? 0;
   $: percent = (progress / action.weight) * 100;
   $: isRevealed = checkIsRevealed($gameState, $actionsCheckSignal !== null);
-  $: canToggle = checkCanToggle($gameState, isRevealed);
+  $: canToggle = isRevealed;
   $: isKnown = checkIsKnown($actionsCheckSignal !== null);
-  $: displayTitle = renderActionText(action.title, $gameState);
-  $: displayFlavourText = renderActionText(action.flavourText, $gameState);
+  $: displayTitle = resolveActionText(action.title, $gameState);
+  $: displayFlavourText = resolveActionText(action.flavourText, $gameState);
   $: duration =
-    ($bakeSignal !== null &&
-      action.weight / bakery.modifiers.total[action.skill]!) ||
-    action.weight;
+    action.weight / ($bakedSkills.modifiers.total[action.skill] || 1);
 
   $: actionIcon = running
     ? "pause"
     : canToggle && isRevealed
       ? "play"
       : "exclamation-triangle";
-
-  function calcProgress(g: GameState, _: boolean): number {
-    let progress = g.data.run.actionProgress[id]?.progress ?? 0;
-    return progress;
-  }
-
-  function checkCanToggle(s: GameState, revealed: boolean): boolean {
-    if (!revealed) {
-      return false;
-    }
-    if (!action.grants) {
-      return true;
-    }
-    return true;
-  }
+  $: queuedCount = $queuedActionCountsById[id] ?? 0;
 
   function checkIsRevealed(s: GameState, _: boolean): boolean {
-    if (!action.revealCondition) {
-      return true;
-    }
-    if (!action.revealCondition.every((d) => d(s))) {
-      return false;
-    }
-    return true;
+    return action.revealCondition?.every((condition) => condition(s)) ?? true;
   }
   function checkIsKnown(_: boolean): boolean {
     let s = get(gameState);
     return s.data.global.completedActionHistory.includes(id);
   }
 
-  function renderActionText(
-    text: Action["title"] | Action["flavourText"],
-    state: GameState
-  ): string {
-    if (!text) return "";
-    return typeof text === "function" ? text(state) : text;
-  }
-
   const toggleAction = () => {
     if (!canToggle) return;
-    $gameState.data.run.retraceIdx = null;
     if (!running) {
-      $gameState.data.run.action = { id };
-    } else {
-      $gameState.data.run.action = null;
+      enqueueRunAction(id);
+      return;
     }
+
+    stopRunAction();
+  };
+
+  const queueAction = (singleRun: boolean) => {
+    if (!canToggle) return;
+    enqueueRunAction(id, singleRun);
   };
 </script>
 
-<div
-  class="grid grid-cols-12 pixel-corners bg-slate-900 {config.classes.join(
-    ' '
-  )}"
->
-  <div class="grid grid-cols-12 col-span-12 px-3 pt-1">
-    <div class="col-span-1 text-center">
-      <SkillIcon skill={action.skill} />
+<div class="glass_card grid grid-cols-12 {className}">
+  <div class="grid grid-cols-12 col-span-12 items-center px-3 pt-1">
+    <div class="col-span-1 flex items-center justify-center">
+      <GenericIcon icon={action.skill} />
     </div>
-    <div class="col-span-8" class:text-slate-300={!isRevealed}>
+    <div class="col-span-7" class:muted_text={!isRevealed}>
       {isRevealed ? displayTitle : isKnown ? displayTitle : "???"}
     </div>
-    <div class="col-span-1 text-center cursor-pointer" on:click={toggleAction}>
+    <button
+      type="button"
+      class="glass_icon_button queue_action_button col-span-1 justify-self-center"
+      aria-label={action.repeatable
+        ? `Queue ${displayTitle} to maximum; right-click or Shift-click to queue once`
+        : `Queue ${displayTitle}`}
+      aria-pressed={queuedCount > 0}
+      title={action.repeatable
+        ? "Queue to maximum · right-click or Shift-click for one repetition"
+        : "Queue action"}
+      disabled={!canToggle}
+      data-active={queuedCount > 0}
+      on:click={(event) => queueAction(event.shiftKey)}
+      on:contextmenu|preventDefault={() => queueAction(true)}
+    >
+      <GenericIcon icon="list-plus" />
+      {#if queuedCount > 0}
+        <span class="queue_action_count">{queuedCount}</span>
+      {/if}
+    </button>
+    <button
+      type="button"
+      class="glass_icon_button col-span-1 justify-self-center"
+      aria-label={running ? `Pause ${displayTitle}` : `Start ${displayTitle}`}
+      disabled={!canToggle}
+      on:click={toggleAction}
+    >
       <GenericIcon icon={actionIcon} />
-    </div>
-    <div class="col-span-2 text-center">
-      <GenericIcon icon={"clock"} />
-      <span class=" text-slate-300">{duration.toFixed(2)}s</span>
+    </button>
+    <div class="col-span-2 flex items-center justify-center whitespace-nowrap text-xs">
+      <span class="muted_text">{duration.toFixed(2)}s</span>
     </div>
   </div>
   {#if !isRevealed}
     {#each action.revealConditionExplained ?? [] as condition}
-      <div class="text-xs col-span-12 text-slate-300 pl-2">
-        {renderActionText(condition, $gameState)}
+      <div class="muted_text text-xs col-span-12 pl-2">
+        {resolveActionText(condition, $gameState)}
       </div>
     {/each}
   {:else if displayFlavourText}
-    <div class="text-xs col-span-12 text-slate-300 pl-2">
+    <div class="muted_text text-xs col-span-12 -mt-1 pl-2">
       {displayFlavourText}
     </div>
   {/if}
-  <div class="col-span-12 text-center">
+  <div class="glass_content_clip_bottom col-span-12 text-center">
     {#key $actionEndSignal}
       <ProgressBar percent={isRevealed ? percent : 0} />
     {/key}
   </div>
 </div>
+
+<style>
+  .queue_action_button {
+    position: relative;
+  }
+
+  .queue_action_count {
+    position: absolute;
+    top: -2px;
+    right: -1px;
+    display: grid;
+    min-width: 13px;
+    height: 13px;
+    place-items: center;
+    padding: 0 3px;
+    border-radius: 999px;
+    background: rgb(var(--ui_accent) / 88%);
+    color: var(--ui_on_accent);
+    font-size: 9px;
+    font-weight: 800;
+    line-height: 1;
+    box-shadow: 0 0 8px rgb(var(--ui_accent) / 42%);
+  }
+</style>

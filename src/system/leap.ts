@@ -1,5 +1,6 @@
 import {
   checkActions,
+  clearRunActionQueue,
   sendSubLocationSignal,
   type AnchorInventoryItem,
 } from "../state";
@@ -17,7 +18,7 @@ export function applyAnchorLeap(
   gameState: GameState,
   anchorItem: AnchorInventoryItem,
 ) {
-  gameState.data.run.action = null;
+  clearRunActionQueue(gameState);
   gameState.data.run.energyDecayRate = getPostLeapEnergyDecayRate(
     gameState.data.run.energyDecayRate,
   );

@@ -1,122 +1,61 @@
 <script lang="ts">
-  import { onMount, onDestroy } from "svelte";
+  type ProgressTone = "run" | "time_compression" | "simulated_energy";
 
-  export let percent: number = 0; // 0–100
-  export let rgb = [148, 163, 184];
+  export let percent = 0;
+  export let tone: ProgressTone = "run";
 
-  const blockSize = 3;
-  const rows = 2;
-  const canvasHeight = blockSize * rows;
-
-  let canvas: HTMLCanvasElement;
-  let container: HTMLDivElement;
-  let canvasWidth = 0;
-
-  let totalBlocks = 0;
-  let targetBlocks = 0;
-  let animationFrame: number;
-  let opacityMap: number[] = [];
-
-  let resizeObserver: ResizeObserver;
-
-  onMount(() => {
-    resizeObserver = new ResizeObserver((entries) => {
-      for (const entry of entries) {
-        canvasWidth = entry.contentRect.width;
-        updateLayout();
-        draw();
-      }
-    });
-    if (container) resizeObserver.observe(container);
-
-    return () => {
-      resizeObserver.disconnect();
-      cancelAnimationFrame(animationFrame);
-    };
-  });
-
-  // Update layout and targets when percent changes
-
-  function updateLayout() {
-    const cols = Math.floor(canvasWidth / blockSize);
-    totalBlocks = cols * rows;
-
-    // Calculate how many blocks should be visible based on percent
-    const newTarget = Math.floor((percent / 100) * totalBlocks);
-    if (newTarget > targetBlocks) {
-      targetBlocks = newTarget;
-      animateBlocks();
-    } else if (newTarget < targetBlocks) {
-      // Reset and reanimate if going backwards
-      targetBlocks = newTarget;
-      opacityMap = opacityMap.slice(0, targetBlocks);
-      draw();
-    }
-  }
-
-  function animateBlocks() {
-    opacityMap.length = targetBlocks; // Resize array if needed
-    for (let i = 0; i < targetBlocks; i++) {
-      if (opacityMap[i] === undefined) {
-        opacityMap[i] = 0; // Initialize new block
-      }
-    }
-    function step() {
-      let needsRedraw = false;
-      for (let i = 0; i < targetBlocks; i++) {
-        if (opacityMap[i] < 1) {
-          opacityMap[i] += 0.05;
-          if (opacityMap[i] > 1) opacityMap[i] = 1;
-          needsRedraw = true;
-        }
-      }
-      if (needsRedraw) {
-        draw();
-        animationFrame = requestAnimationFrame(step);
-      }
-    }
-    animationFrame = requestAnimationFrame(step);
-  }
-
-  $: percent && updateLayout();
-  $: canvasWidth && updateLayout();
-
-  function draw() {
-    if (!canvas || !canvasWidth) return;
-    canvas.width = canvasWidth;
-    canvas.height = canvasHeight;
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
-
-    if (percent >= 100) {
-      ctx.fillStyle = `rgba(${rgb.join(",")}, 1.0)`; // Solid green
-      ctx.fillRect(0, 0, canvas.width, canvasHeight); // Full canvas height (6px)
-      return;
-    }
-
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    for (let i = 0; i < targetBlocks; i++) {
-      const col = Math.floor(i / rows);
-      const row = i % rows;
-      const x = col * blockSize;
-      const y = row * blockSize;
-      const alpha = opacityMap[i] ?? 0;
-      ctx.fillStyle = `rgba(${rgb.join(",")}, ${alpha.toFixed(2)})`;
-      ctx.fillRect(x, y, blockSize, blockSize);
-    }
-  }
+  $: clampedPercent = Math.max(0, Math.min(100, percent));
 </script>
 
-<div class="wrapper" bind:this={container}>
-  <canvas bind:this={canvas}></canvas>
+<div
+  class="glass_progress"
+  role="progressbar"
+  aria-label="Progress"
+  aria-valuemin="0"
+  aria-valuemax="100"
+  aria-valuenow={Math.round(clampedPercent)}
+>
+  <div
+    class="glass_progress_fill"
+    class:time_compression={tone === "time_compression"}
+    class:simulated_energy={tone === "simulated_energy"}
+    style={`width: ${clampedPercent}%`}
+  ></div>
 </div>
 
 <style>
-  .wrapper {
+  .glass_progress {
     width: 100%;
+    height: 6px;
+    overflow: hidden;
+    border-top: 1px solid rgb(255 255 255 / 7%);
+    background: rgb(0 0 0 / 30%);
+    box-shadow: inset 0 1px 3px rgb(0 0 0 / 40%);
   }
 
-  canvas {
-    display: block;
+  .glass_progress_fill {
+    --progress-rgb: var(--ui_accent);
+    height: 100%;
+    background:
+      linear-gradient(90deg, rgb(255 255 255 / 4%), rgb(255 255 255 / 18%)),
+      rgb(var(--progress-rgb) / 76%);
+    box-shadow:
+      0 0 12px rgb(var(--progress-rgb) / 45%),
+      inset 0 1px 0 rgb(255 255 255 / 34%);
+    transition: width 180ms ease-out;
+  }
+
+  .glass_progress_fill.time_compression {
+    --progress-rgb: var(--ui_progress_time_compression);
+  }
+
+  .glass_progress_fill.simulated_energy {
+    --progress-rgb: var(--ui_progress_simulated_energy);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .glass_progress_fill {
+      transition: none;
+    }
   }
 </style>
