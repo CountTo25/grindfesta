@@ -10,7 +10,9 @@ import {
 import { applySaveMigrations } from "./migrations/migrations";
 
 export const EMPTY_RUN: RunState = {
-  retraceIdx: 0,
+  retraceIdx: null,
+  actionQueue: [],
+  activeQueuedAction: null,
   maxEnergy: 10,
   energyDecayRate: 0.05,
   action: null,
@@ -88,6 +90,14 @@ export type CurrentAction = {
   id: string;
 };
 
+export type QueuedActionMode = "once" | "max";
+
+export type QueuedAction = {
+  id: string;
+  mode: QueuedActionMode;
+  source?: "manual" | "retrace";
+};
+
 export type Skill =
   | "exploration"
   | "perception"
@@ -127,6 +137,8 @@ export type MainViewRoute = "actions" | "endRun" | "retracing";
 export type RunState =
   | {
       retraceIdx: number | null;
+      actionQueue: QueuedAction[];
+      activeQueuedAction: QueuedAction | null;
       mainViewRoute: MainViewRoute;
       action: CurrentAction | null;
       logEntries: LogEntry[];

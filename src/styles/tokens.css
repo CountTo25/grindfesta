@@ -1,0 +1,35 @@
+:root {
+  color-scheme: dark;
+  --ui_page: #060706;
+  --ui_page_soft: #0d0f0e;
+  --ui_surface: rgb(22 23 22 / 48%);
+  --ui_surface_strong: rgb(8 9 9 / 68%);
+  --ui_surface_solid: #141514;
+  --ui_text: #eef7f1;
+  --ui_text_muted: #aebeb4;
+  --ui_text_subtle: #718078;
+  --ui_font_size_body: 0.8125rem;
+  --ui_font_size_detail: 0.6875rem;
+  --ui_font_size_status: 1rem;
+
+  /* Liquid-glass accent: edges, focus, selection, labels, and primary controls. */
+  --ui_accent_new_arcadia: 4 120 87;
+  --ui_accent_ashbone_basin: 194 65 45;
+  --ui_accent: var(--ui_accent_new_arcadia);
+
+  /* Exceptional progress channels stay independently tunable. */
+  --ui_progress_time_compression: 124 58 237;
+  --ui_progress_simulated_energy: 94 234 212;
+
+  --ui_on_accent: #effff9;
+  --ui_fill: rgb(238 247 241 / 7%);
+  --ui_fill_hover: rgb(238 247 241 / 12%);
+  --ui_stroke: rgb(238 247 241 / 13%);
+  --ui_stroke_strong: rgb(255 255 255 / 19%);
+  --ui_shadow: 0 18px 44px rgb(0 0 0 / 34%);
+  --ui_shadow_tight: 0 9px 24px rgb(0 0 0 / 27%);
+  --ui_filter: blur(14px) saturate(1.28) brightness(1.04);
+  --ui_radius_panel: 18px;
+  --ui_radius_control: 13px;
+  --ui_radius_card: 14px;
+}

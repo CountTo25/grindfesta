@@ -7,6 +7,7 @@ import {
   sendSubLocationSignal,
 } from "./state";
 import type {
+  ActionText,
   GameState,
   Location,
   LogEntry,
@@ -17,6 +18,23 @@ import type {
 
 const NA641 = LOCATIONS.na641;
 const BBASIN7281 = LOCATIONS.bbasin7281;
+
+export type AdjacentBundle<T> = T & { count: number; startIndex: number };
+
+export function bundleAdjacentBy<T extends object, Key>(
+  items: readonly T[],
+  getKey: (item: T) => Key,
+): AdjacentBundle<T>[] {
+  return items.reduce<AdjacentBundle<T>[]>((bundles, item, startIndex) => {
+    const previous = bundles[bundles.length - 1];
+    if (previous && Object.is(getKey(previous), getKey(item))) previous.count++;
+    else bundles.push({ ...item, count: 1, startIndex });
+    return bundles;
+  }, []);
+}
+
+export const resolveActionText = (text: ActionText | undefined, state: GameState) =>
+  typeof text === "function" ? text(state) : (text ?? "");
 
 export const syncToDebug = (tag: string) => {
   //@ts-ignore

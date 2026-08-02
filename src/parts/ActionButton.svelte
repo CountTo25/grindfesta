@@ -10,7 +10,7 @@
 <button
   type="button"
   on:click
-  class="grid w-full grid-cols-12 pixel-corners bg-slate-900 text-left transition-all hover:bg-slate-800"
+  class="glass_card interactive_glass grid w-full grid-cols-12 text-left"
   data-testid={testId}
 >
   <span class="col-span-12 grid grid-cols-12 px-3 pt-1">
@@ -25,11 +25,11 @@
     </span>
   </span>
   {#if flavourText}
-    <span class="col-span-12 pl-2 text-xs text-slate-300">
+    <span class="muted_text col-span-12 pl-2 text-xs">
       {flavourText}
     </span>
   {/if}
-  <span class="col-span-12">
+  <span class="glass_content_clip_bottom col-span-12">
     <ProgressBar percent={0} />
   </span>
 </button>

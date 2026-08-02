@@ -7,6 +7,16 @@ export type SaveMigrationData = {
   latestMigration?: string | null;
   run: {
     action: { id: string } | null;
+    actionQueue: {
+      id: string;
+      mode: "once" | "max";
+      source?: "manual" | "retrace";
+    }[];
+    activeQueuedAction: {
+      id: string;
+      mode: "once" | "max";
+      source?: "manual" | "retrace";
+    } | null;
     actionProgress: {
       [id: string]: { progress: number; complete: boolean };
     };

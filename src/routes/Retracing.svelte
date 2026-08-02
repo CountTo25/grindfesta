@@ -2,6 +2,8 @@
   import { onMount } from "svelte";
   import { get } from "svelte/store";
   import Button from "../components/Button.svelte";
+  import ScrollFade from "../components/ScrollFade.svelte";
+  import GenericIcon from "../parts/GenericIcon.svelte";
   import ProgressBar from "../parts/ProgressBar.svelte";
   import RetracingNode from "../parts/RetracingNode.svelte";
   import {
@@ -20,7 +22,12 @@
   } from "../state";
   import { actions } from "../statics";
   import { EMPTY_RUN, GameState } from "../types";
-  import { deepClone, formatTime } from "../utils";
+  import {
+    bundleAdjacentBy,
+    deepClone,
+    formatTime,
+    resolveActionText,
+  } from "../utils";
 
   const RETRACE_TICK_MS = 1000 / BASE_TPS;
   const MAX_RETRACE_SIM_TICKS = 1_000_000;
@@ -43,7 +50,10 @@
     0,
     Math.min(100, (fake.data.run.currentEnergy / fake.data.run.maxEnergy) * 100),
   );
-  $: bundledRetracedNodes = bundleRetraced(retraceRecording);
+  $: bundledRetracedNodes = bundleAdjacentBy(
+    retraceRecording,
+    ({ id }) => id,
+  );
   $: reversedBundledRetracedNodes = bundledRetracedNodes.slice().reverse();
 
   onMount(() => handleRetraceAll());
@@ -54,34 +64,13 @@
     return bakeStateSnapshot(next);
   }
 
-  function bundleRetraced(records: RetracedRecord[]) {
-    const out = [];
-    for (const r of records) {
-      const last = out[out.length - 1];
-      if (last && last.id === r.id) {
-        last.count++;
-      } else {
-        out.push({ id: r.id, count: 1 });
-      }
-    }
-    return out;
-  }
-
   function actionTitle(id: string) {
-    const title = actions[id].title;
-    return typeof title === "string" ? title : title(fake);
+    return resolveActionText(actions[id].title, fake);
   }
 
   function completeSimulatedAction(id: string) {
     const runState = fake.data.run;
     const actionDef = actions[id];
-
-    if (!runState.actionProgress[id]) {
-      runState.actionProgress[id] = {
-        complete: false,
-        progress: 0,
-      };
-    }
 
     if (!fake.data.global.completedActionHistory.includes(id)) {
       fake.data.global.completedActionHistory.push(id);
@@ -216,23 +205,23 @@
   data-testid="retracing-view"
 >
   <div
-    class="grid grid-cols-12 gap-x-3 gap-y-2 pixel-corners bg-slate-800 px-3 py-2"
+    class="glass_surface grid grid-cols-12 gap-x-3 gap-y-2 px-4 py-3"
   >
-    <div class="col-span-6 text-xs text-slate-400 sm:col-span-2">
+    <div class="muted_text col-span-6 text-xs sm:col-span-2">
       Planned time
-      <div class="text-base text-slate-100">{formatTime(fake.data.run.timeSpent)}</div>
+      <div class="primary_text">{formatTime(fake.data.run.timeSpent)}</div>
     </div>
-    <div class="col-span-6 text-xs text-slate-400 sm:col-span-2">
+    <div class="muted_text col-span-6 text-xs sm:col-span-2">
       Actions
-      <div class="text-base text-slate-100">{retraceRecording.length}</div>
+      <div class="primary_text">{retraceRecording.length}</div>
     </div>
-    <div class="col-span-12 text-xs text-slate-400 sm:col-span-8">
+    <div class="muted_text col-span-12 text-xs sm:col-span-8">
       Simulated energy
       <div class="flex items-center gap-2">
         <div class="flex-1">
-          <ProgressBar percent={fakeEnergyPercent} rgb={[94, 234, 212]} />
+          <ProgressBar percent={fakeEnergyPercent} tone="simulated_energy" />
         </div>
-        <div class="min-w-28 text-right text-sm text-slate-100">
+        <div class="primary_text min-w-28 text-right text-sm">
           {fake.data.run.currentEnergy.toFixed(2)} / {fake.data.run.maxEnergy.toFixed(2)}
         </div>
       </div>
@@ -240,47 +229,49 @@
   </div>
 
   <div class="min-h-0 grid grid-cols-12 overflow-hidden pt-2">
-    <aside
-      class="col-span-4 overflow-y-auto border-r-2 border-r-slate-700 sm:col-span-3"
+    <ScrollFade
+      frameClass="glass_divider_right col-span-4 min-h-0 sm:col-span-3"
+      scrollerClass="glass_scroll h-full overflow-y-auto"
     >
-      <div class="px-3 pb-2 text-sm text-slate-300">Timeline</div>
+      <div class="glass_kicker px-3 pb-2">Timeline</div>
       <div class="px-2">
         {#if reversedBundledRetracedNodes.length === 0}
-          <div class="px-1 py-2 text-xs text-slate-500">
+          <div class="subtle_text px-1 py-2 text-xs">
             No retrace actions yet
           </div>
         {/if}
         {#each reversedBundledRetracedNodes as record, idx}
           <div
-            class="mb-2 grid grid-cols-5 pixel-corners bg-slate-950 p-2 text-sm"
+            class="glass_card mb-2 grid grid-cols-5 p-2 text-sm"
           >
             <div class="col-span-4 min-w-0">
               <div class="truncate">{actionTitle(record.id)}</div>
               {#if record.count > 1}
-                <div class="text-xs text-slate-500">x{record.count}</div>
+                <div class="subtle_text text-xs">x{record.count}</div>
               {/if}
             </div>
             {#if idx === 0}
               <button
                 type="button"
                 aria-label="Remove last retrace action"
-                class="col-span-1 text-center text-slate-400 hover:text-white"
+                class="glass_icon_button col-span-1 justify-self-center"
                 on:click={() => {
                   retraceRecording.splice(retraceRecording.length - 1, 1);
                   retraceRecording = retraceRecording;
                   handleRetraceAll();
                 }}
               >
-                <i class="hn hn-trash-alt"></i>
+                <GenericIcon icon="trash" />
               </button>
             {/if}
           </div>
         {/each}
       </div>
-    </aside>
+    </ScrollFade>
 
-    <section
-      class="col-span-8 grid auto-rows-min grid-cols-12 content-start gap-2 overflow-auto pl-3 sm:col-span-9"
+    <ScrollFade
+      frameClass="col-span-8 min-h-0 sm:col-span-9"
+      scrollerClass="glass_scroll grid h-full auto-rows-min grid-cols-12 content-start gap-2 overflow-auto pl-3 pr-1"
     >
       {#if retraceWarning}
         <div
@@ -290,7 +281,7 @@
         </div>
       {/if}
       {#if displayableActions.length === 0}
-        <div class="col-span-12 text-sm text-slate-500">
+        <div class="subtle_text col-span-12 text-sm">
           No valid known actions from this simulated point
         </div>
       {/if}
@@ -298,27 +289,25 @@
         <div class="col-span-12 sm:col-span-6 lg:col-span-4 xl:col-span-3">
           <RetracingNode
             action={actions[node]}
-            id={node}
-            retracing_id={node}
             on:click={() => handleRetraceAll(node)}
           />
         </div>
       {/each}
-    </section>
+    </ScrollFade>
   </div>
 
-  <div class="grid grid-cols-12 gap-2 border-t-2 border-t-slate-700 py-2 text-center">
+  <div class="glass_divider_top grid grid-cols-12 gap-2 py-2 text-center">
     <Button
       testId="save-retracing"
       on:click={saveRetracing}
-      config={{ classMixins: ["col-span-5"] }}>Save plan</Button
+      className="col-span-5">Save plan</Button
     >
     <Button
       on:click={clearRetracing}
-      config={{ classMixins: ["col-span-3"] }}>Clear</Button
+      className="col-span-3">Clear</Button
     >
     <Button
-      config={{ classMixins: ["col-span-4"] }}
+      className="col-span-4"
       on:click={() => $endRun && ($endRun.mainViewRoute = "endRun")}>Back</Button
     >
   </div>

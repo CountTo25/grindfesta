@@ -1,4 +1,5 @@
 <script lang="ts">
+  import ScrollFade from "../components/ScrollFade.svelte";
   import { endRun, gameState } from "../state";
   import { formatTime } from "../utils";
 
@@ -7,13 +8,16 @@
   ).toReversed();
 </script>
 
-<aside class="col-span-3 flex h-full flex-col overflow-hidden px-2">
-  <div class="flex-1 overflow-y-auto">
+<aside class="col-span-3 flex h-full min-h-0 flex-col overflow-hidden">
+  <ScrollFade
+    frameClass="min-h-0 flex-1"
+    scrollerClass="glass_scroll h-full min-h-0 overflow-y-auto pr-1"
+  >
     {#each entries as { ts, text }}
-      <div class="mb-2 pixel-corners bg-slate-900 px-3 text-sm">
-        <div class="text-right text-slate-500">{formatTime(ts)}</div>
-        <div>{text}</div>
+      <div class="glass_card mb-1 px-3 py-2 text-sm">
+        <div class="subtle_text text-right text-xs">{formatTime(ts)}</div>
+        <div class="mt-1">{text}</div>
       </div>
     {/each}
-  </div>
+  </ScrollFade>
 </aside>

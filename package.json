@@ -23,8 +23,9 @@
     "vite": "^5.4.10"
   },
   "dependencies": {
-    "@hackernoon/pixel-icon-library": "^1.0.5",
-    "deepmerge": "^4.3.1",
-    "pixelarticons": "^1.8.0"
+    "@fortawesome/fontawesome-svg-core": "^7.3.1",
+    "@fortawesome/free-solid-svg-icons": "^7.3.1",
+    "@fortawesome/svelte-fontawesome": "^0.2.4",
+    "deepmerge": "^4.3.1"
   }
 }

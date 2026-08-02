@@ -1,38 +1,19 @@
 <script lang="ts">
   export let testId: string | null = null;
-
-  const DEFAULT_CONFIG = {
-    classMixins: [] as string[],
-    disabled: false,
-    loading: false,
-  };
-  export let config: Partial<typeof DEFAULT_CONFIG> = DEFAULT_CONFIG;
-  $: usedConfig = { ...DEFAULT_CONFIG, ...config };
-  const maybeDisabledClasses = (disabled: boolean) => {
-    return disabled
-      ? [
-          "bg-slate-900",
-          "transition-none",
-          "hover:bg-slate-900",
-          "cursor-not-allowed",
-        ]
-      : [];
-  };
-
-  $: mixins = [
-    ...usedConfig.classMixins,
-    ...maybeDisabledClasses(usedConfig.disabled || usedConfig.loading),
-  ].join(" ");
+  export let active = false;
+  export let accent: string | null = null;
+  export let className = "";
+  export let disabled = false;
 </script>
 
 <button
+  type="button"
   on:click
-  class="px-4 py-2 border-4 rounded-md hover:bg-slate-700 transition-all pixel-corners bg-slate-600 border-slate-700 {mixins}"
+  class="glass_control {className}"
+  {disabled}
+  data-active={active || undefined}
   data-testid={testId}
+  style={accent ? `--ui_accent: ${accent}` : undefined}
 >
-  {#if usedConfig.loading}
-    ...
-  {:else}
-    <slot />
-  {/if}
+  <slot />
 </button>
