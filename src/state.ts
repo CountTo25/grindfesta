@@ -491,7 +491,11 @@ function startNextQueuedAction(state: GameState): GameState {
   return state;
 }
 
-export function enqueueRunAction(id: string, singleRun = false): void {
+function queueRunAction(
+  id: string,
+  singleRun: boolean,
+  replaceQueue: boolean,
+): void {
   const action = actions[id];
   if (!action) return;
 
@@ -504,6 +508,12 @@ export function enqueueRunAction(id: string, singleRun = false): void {
   gameState.update((state) => {
     if (!canStartAction(state, id)) return state;
 
+    if (replaceQueue) {
+      clearRunActionQueue(state);
+      state.data.run.actionQueue.push(queuedAction);
+      return startNextQueuedAction(state);
+    }
+
     const queueIsIdle =
       state.data.run.activeQueuedAction === null &&
       state.data.run.actionQueue.length === 0;
@@ -512,6 +522,14 @@ export function enqueueRunAction(id: string, singleRun = false): void {
     state.data.run.actionQueue.push(queuedAction);
     return queueIsIdle ? startNextQueuedAction(state) : state;
   });
+}
+
+export function enqueueRunAction(id: string, singleRun = false): void {
+  queueRunAction(id, singleRun, false);
+}
+
+export function playRunAction(id: string): void {
+  queueRunAction(id, false, true);
 }
 
 export function removeRunActionFromQueue(index: number, count = 1): void {

@@ -5,6 +5,7 @@
     actionEndSignal,
     canStartAction,
     enqueueRunAction,
+    playRunAction,
     queuedActionCountsById,
     stopRunAction,
   } from "../state";
@@ -37,7 +38,7 @@
   const toggleAction = () => {
     if (!canToggle) return;
     if (!running) {
-      enqueueRunAction(id);
+      playRunAction(id);
       return;
     }
 
