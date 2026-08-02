@@ -1,15 +1,14 @@
 <script lang="ts">
-  import { get } from "svelte/store";
   import {
     gameState,
     bakedSkills,
-    actionsCheckSignal,
     actionEndSignal,
+    canStartAction,
     enqueueRunAction,
     queuedActionCountsById,
     stopRunAction,
   } from "../state";
-  import type { Action, GameState } from "../types";
+  import type { Action } from "../types";
   import { resolveActionText } from "../utils";
   import GenericIcon from "./GenericIcon.svelte";
   import ProgressBar from "./ProgressBar.svelte";
@@ -19,9 +18,10 @@
   export let className = "";
   $: progress = $gameState.data.run.actionProgress[id]?.progress ?? 0;
   $: percent = (progress / action.weight) * 100;
-  $: isRevealed = checkIsRevealed($gameState, $actionsCheckSignal !== null);
-  $: canToggle = isRevealed;
-  $: isKnown = checkIsKnown($actionsCheckSignal !== null);
+  $: isRevealed =
+    action.revealCondition?.every((condition) => condition($gameState)) ?? true;
+  $: canToggle = isRevealed && canStartAction($gameState, id);
+  $: isKnown = $gameState.data.global.completedActionHistory.includes(id);
   $: displayTitle = resolveActionText(action.title, $gameState);
   $: displayFlavourText = resolveActionText(action.flavourText, $gameState);
   $: duration =
@@ -29,18 +29,10 @@
 
   $: actionIcon = running
     ? "pause"
-    : canToggle && isRevealed
+    : canToggle
       ? "play"
       : "exclamation-triangle";
   $: queuedCount = $queuedActionCountsById[id] ?? 0;
-
-  function checkIsRevealed(s: GameState, _: boolean): boolean {
-    return action.revealCondition?.every((condition) => condition(s)) ?? true;
-  }
-  function checkIsKnown(_: boolean): boolean {
-    let s = get(gameState);
-    return s.data.global.completedActionHistory.includes(id);
-  }
 
   const toggleAction = () => {
     if (!canToggle) return;

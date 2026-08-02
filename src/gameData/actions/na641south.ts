@@ -235,4 +235,42 @@ export const na641southActions: ActionRepository = {
       COMPLETION_EFFECTS.addItem("na641_johnnys_special_envelope", 1),
     ],
   },
+  na641_johnny_turn_in_information_report: {
+    ...NO_CROSSGEN,
+    ...REPEATABLE,
+    title: "Turn in report",
+    skill: "social",
+    weight: 100,
+    conditions: [
+      CONDITION_CHECKS.inLocation(NA641),
+      CONDITION_CHECKS.inSubLocation(
+        NA641_SUBLOCATIONS.southernMainStreetOutskirts,
+      ),
+      CONDITION_CHECKS.hasItem("na641_johnny_information_report", 1),
+    ],
+    postComplete: [
+      COMPLETION_EFFECTS.removeItem("na641_johnny_information_report", 1),
+      COMPLETION_EFFECTS.addItem("narcadia641_zenny", 5),
+      COMPLETION_EFFECTS.removeFlag(
+        TAGS.NA641.JOHNNY.INFORMATION_AMASSED,
+      ),
+      COMPLETION_EFFECTS.patchFlagNumeric(
+        TAGS.NA641.JOHNNY.INFORMATION_REPORTS,
+        (reports) => reports + 1,
+      ),
+      COMPLETION_EFFECTS.if(
+        (state) =>
+          Number.parseInt(
+            state.data.run.flags[
+              TAGS.NA641.JOHNNY.INFORMATION_REPORTS
+            ] ?? "0",
+          ) % 2 ===
+          0,
+        COMPLETION_EFFECTS.patchFlagNumeric(
+          TAGS.NA641.REPUTATION.UNDERWORLD,
+          (reputation) => reputation + 1,
+        ),
+      ),
+    ],
+  },
 };

@@ -11,6 +11,12 @@ import {
 
 const NA641 = LOCATIONS.na641;
 const NA641_SUBLOCATIONS = SUBLOCATIONS.na641;
+const FOSSIL_JOB_COMPLETE = CONDITION_CHECKS.or([
+  CONDITION_CHECKS.ifActionCompleteRun(
+    "na641_johnny_turn_in_procured_goods",
+  ),
+  CONDITION_CHECKS.ifActionCompleteRun("na641_johnny_turn_in_weird_skull"),
+]);
 
 export const na641southernMainStreetActions: ActionRepository = {
   na641_southern_main_street_move_from_outskirts: {
@@ -96,6 +102,53 @@ export const na641southernMainStreetActions: ActionRepository = {
         "na641_southern_vendomat_loot_count",
         (v) => ++v,
       ),
+    ],
+  },
+  na641_johnny_gather_information: {
+    ...NO_CROSSGEN,
+    ...REPEATABLE,
+    title: "Gather information",
+    flavourText: "Lets provide Johnny's gang with some info",
+    skill: "perception",
+    weight: 300,
+    conditions: [
+      CONDITION_CHECKS.inLocation(NA641),
+      CONDITION_CHECKS.inSubLocation(NA641_SUBLOCATIONS.southernMainStreet),
+      FOSSIL_JOB_COMPLETE,
+      CONDITION_CHECKS.not(
+        CONDITION_CHECKS.numFlagGTE(
+          TAGS.NA641.JOHNNY.INFORMATION_AMASSED,
+          3,
+        ),
+      ),
+    ],
+    postComplete: [
+      COMPLETION_EFFECTS.patchFlagNumeric(
+        TAGS.NA641.JOHNNY.INFORMATION_AMASSED,
+        (information) => information + 1,
+      ),
+    ],
+  },
+  na641_johnny_compile_information_report: {
+    ...NO_CROSSGEN,
+    ...REPEATABLE,
+    title: "Compile report",
+    flavourText: "Bring it back to Johnny after you're done",
+    skill: "social",
+    weight: 250,
+    conditions: [
+      CONDITION_CHECKS.inLocation(NA641),
+      CONDITION_CHECKS.inSubLocation(NA641_SUBLOCATIONS.southernMainStreet),
+      CONDITION_CHECKS.numFlagGTE(
+        TAGS.NA641.JOHNNY.INFORMATION_AMASSED,
+        3,
+      ),
+      CONDITION_CHECKS.not(
+        CONDITION_CHECKS.hasItem("na641_johnny_information_report", 1),
+      ),
+    ],
+    postComplete: [
+      COMPLETION_EFFECTS.addItem("na641_johnny_information_report", 1),
     ],
   },
   na641_southern_main_street_visit_library: {

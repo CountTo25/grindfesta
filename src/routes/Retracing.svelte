@@ -7,18 +7,15 @@
   import ProgressBar from "../parts/ProgressBar.svelte";
   import RetracingNode from "../parts/RetracingNode.svelte";
   import {
-    applyRunTickCosts,
     bakeStateSnapshot,
-    bakery,
-    BASE_GAIN_RATE,
     BASE_TPS,
     canSkipUnavailableRetraceAction,
     canStartAction,
+    completeSimulatedAction,
     endRun,
     gameState,
     ghostDisplayableActions,
-    GLOBAL_SKILL_GAIN_MOD,
-    RUN_SKILL_GAIN_MOD,
+    simulateActionProgress,
   } from "../state";
   import { actions } from "../statics";
   import { EMPTY_RUN, GameState } from "../types";
@@ -68,46 +65,8 @@
     return resolveActionText(actions[id].title, fake);
   }
 
-  function completeSimulatedAction(id: string) {
-    const runState = fake.data.run;
-    const actionDef = actions[id];
-
-    if (!fake.data.global.completedActionHistory.includes(id)) {
-      fake.data.global.completedActionHistory.push(id);
-    }
-
-    if (!actionDef.repeatable) {
-      runState.actionProgress[id].complete = true;
-    }
-
-    if (
-      actionDef.crossGeneration &&
-      !fake.data.global.presistentActionProgress.includes(id)
-    ) {
-      fake.data.global.presistentActionProgress.push(id);
-    }
-
-    if (actionDef.postComplete) {
-      const todo = Array.isArray(actionDef.postComplete)
-        ? actionDef.postComplete
-        : [actionDef.postComplete];
-
-      for (const effect of todo) {
-        fake = deepClone(effect(fake));
-      }
-    }
-
-    if (actionDef.repeatable || actionDef.stopOnRepeat) {
-      fake.data.run.actionProgress[id]!.complete = false;
-      fake.data.run.actionProgress[id]!.progress = 0;
-    }
-
-    fake = bakeStateSnapshot(fake);
-  }
-
   function simulateAction(id: string) {
-    const actionDef = actions[id];
-    if (!actionDef || !canStartAction(fake, id)) {
+    if (!actions[id] || !canStartAction(fake, id)) {
       if (canSkipUnavailableRetraceAction(id)) {
         return true;
       }
@@ -115,51 +74,23 @@
       return false;
     }
 
-    if (!fake.data.run.actionProgress[id]) {
-      fake.data.run.actionProgress[id] = {
-        complete: false,
-        progress: 0,
-      };
+    const tickBudget = { remaining: MAX_RETRACE_SIM_TICKS };
+    const result = simulateActionProgress(
+      fake,
+      id,
+      RETRACE_TICK_MS,
+      tickBudget,
+    );
+    fake = result.state;
+    if (!result.completed) {
+      retraceWarning =
+        fake.data.run.currentEnergy <= 0
+          ? "Retrace stopped: energy would run out here."
+          : "Retrace stopped: simulation took too long.";
+      return false;
     }
 
-    let ticks = 0;
-    while ((fake.data.run.actionProgress[id]?.progress ?? 0) < actionDef.weight) {
-      if (ticks++ > MAX_RETRACE_SIM_TICKS) {
-        retraceWarning = "Retrace stopped: simulation took too long.";
-        return false;
-      }
-
-      fake.data.run.timeSpent += RETRACE_TICK_MS;
-      fake = applyRunTickCosts(fake, RETRACE_TICK_MS);
-      if (fake.data.run.currentEnergy <= 0) {
-        retraceWarning = "Retrace stopped: energy would run out here.";
-        return false;
-      }
-
-      const skillModifier =
-        fake.data.run.bakery?.modifiers.total[actionDef.skill] ??
-        bakery.modifiers.total[actionDef.skill];
-      const actionProgressGain =
-        (BASE_GAIN_RATE / BASE_TPS) * skillModifier;
-      const progress = fake.data.run.actionProgress[id]!;
-      progress.progress += actionProgressGain;
-
-      const rawSkillGain = Math.min(
-        Math.max(actionProgressGain, 0),
-        actionDef.weight,
-      );
-      const skillGain = Math.min(
-        rawSkillGain,
-        progress.progress,
-        actionDef.weight,
-      );
-      fake.data.run.stats[actionDef.skill] += skillGain * RUN_SKILL_GAIN_MOD;
-      fake.data.global.stats[actionDef.skill] +=
-        skillGain * GLOBAL_SKILL_GAIN_MOD;
-      fake = bakeStateSnapshot(fake);
-    }
-
-    completeSimulatedAction(id);
+    fake = completeSimulatedAction(fake, id);
     return true;
   }
 

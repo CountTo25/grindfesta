@@ -13,6 +13,8 @@ export const TAGS = {
     },
     JOHNNY: {
       MUSEUM_JOB: "na641_johnny_museum_job",
+      INFORMATION_AMASSED: "na641_johnny_information_amassed",
+      INFORMATION_REPORTS: "na641_johnny_information_reports",
     },
     MUSEUM: {
       NO_BACKROOM_ACCESS: "na641_museum_no_backroom_access",

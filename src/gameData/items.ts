@@ -187,6 +187,14 @@ export const items = {
     onConsume: [],
     capacity: (_) => 1,
   },
+  na641_johnny_information_report: {
+    name: "Compiled information report",
+    description: "Information gathered for Johnny's gang",
+    consumable: false,
+    consumeRequirement: [],
+    onConsume: [],
+    capacity: (_) => 1,
+  },
   anchor_ancient_bone: {
     name: "Ancient Bone",
     description: "A museum fossil specimen",

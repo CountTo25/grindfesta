@@ -195,16 +195,32 @@ export const queuedActionCountsById = derived(
       return counts;
     }, {}),
 );
-export const queuedActionEstimateSeconds = derived(
-  [liveActionQueue, bakedSkills],
-  ([$liveActionQueue, $bakedSkills]) =>
-    $liveActionQueue.reduce((total, queuedAction) => {
-      const action = actions[queuedAction.id];
-      if (!action) return total;
+type ActionQueueForecast = {
+  estimatedSeconds: number;
+  runTimeAtForecast: number;
+};
 
-      const modifier = $bakedSkills.modifiers.total[action.skill] || 1;
-      return total + action.weight / modifier;
-    }, 0),
+const MAX_QUEUE_FORECAST_TICKS = 200_000;
+
+const actionQueueForecast = derived(
+  [liveActionQueue, bakedSkills, actionEndSignal, ticksPerSecond],
+  ([$liveActionQueue, , , $ticksPerSecond]): ActionQueueForecast =>
+    forecastActionQueue(
+      get(gameState),
+      $liveActionQueue,
+      1000 / $ticksPerSecond,
+    ),
+  { estimatedSeconds: 0, runTimeAtForecast: 0 },
+);
+
+export const queuedActionEstimateSeconds = derived(
+  [actionQueueForecast, gameState],
+  ([$forecast, $gameState]) =>
+    Math.max(
+      0,
+      $forecast.estimatedSeconds -
+        ($gameState.data.run.timeSpent - $forecast.runTimeAtForecast) / 1000,
+    ),
   0,
 );
 // tools
@@ -255,6 +271,158 @@ export function canStartAction(state: GameState, id: string): boolean {
 
 export function canSkipUnavailableRetraceAction(id: string): boolean {
   return actions[id]?.repeatable ?? false;
+}
+
+export function completeSimulatedAction(
+  state: GameState,
+  id: string,
+): GameState {
+  const action = actions[id];
+  const progress = state.data.run.actionProgress[id]!;
+
+  if (!state.data.global.completedActionHistory.includes(id)) {
+    state.data.global.completedActionHistory.push(id);
+  }
+  if (!action.repeatable) progress.complete = true;
+  if (
+    action.crossGeneration &&
+    !state.data.global.presistentActionProgress.includes(id)
+  ) {
+    state.data.global.presistentActionProgress.push(id);
+  }
+
+  const effects = Array.isArray(action.postComplete)
+    ? action.postComplete
+    : [action.postComplete];
+  for (const effect of effects) state = effect(state);
+
+  if (action.repeatable || action.stopOnRepeat) {
+    progress.complete = false;
+    progress.progress = 0;
+  }
+
+  return bakeStateSnapshot(state);
+}
+
+export function simulateActionProgress(
+  state: GameState,
+  id: string,
+  tickMs: number,
+  tickBudget: { remaining: number },
+): { state: GameState; completed: boolean; elapsedMs: number } {
+  const action = actions[id];
+  const progress = (state.data.run.actionProgress[id] ??= {
+    progress: 0,
+    complete: false,
+  });
+  let elapsedMs = 0;
+
+  while (progress.progress < action.weight && tickBudget.remaining-- > 0) {
+    state.data.run.timeSpent += tickMs;
+    state = applyRunTickCosts(state, tickMs);
+    elapsedMs += tickMs;
+    if (state.data.run.currentEnergy <= 0) {
+      state.data.run.currentEnergy = 0;
+      return { state, completed: false, elapsedMs };
+    }
+
+    const baked =
+      state.data.run.bakery ?? getBakedSkillsForState(state);
+    const actionProgressGain =
+      (BASE_GAIN_RATE / (1000 / tickMs)) *
+      baked.modifiers.total[action.skill];
+    progress.progress += actionProgressGain;
+
+    const skillGain = Math.min(
+      Math.max(actionProgressGain, 0),
+      progress.progress,
+      action.weight,
+    );
+    state.data.run.stats[action.skill] += skillGain * RUN_SKILL_GAIN_MOD;
+    state.data.global.stats[action.skill] +=
+      skillGain * GLOBAL_SKILL_GAIN_MOD;
+
+    if (
+      state.data.run.stats[action.skill] >=
+        baked.toLevel.run.baseline[action.skill] +
+          baked.toLevel.run.next[action.skill] ||
+      state.data.global.stats[action.skill] >=
+        baked.toLevel.global.baseline[action.skill] +
+          baked.toLevel.global.next[action.skill]
+    ) {
+      state = bakeStateSnapshot(state);
+    }
+  }
+
+  return {
+    state,
+    completed: progress.progress >= action.weight,
+    elapsedMs,
+  };
+}
+
+function forecastActionQueue(
+  source: GameState,
+  queue: readonly QueuedAction[],
+  tickMs: number,
+): ActionQueueForecast {
+  const runTimeAtForecast = source.data.run.timeSpent;
+  if (queue.length === 0) return { estimatedSeconds: 0, runTimeAtForecast };
+
+  let state = bakeStateSnapshot(deepClone(source));
+  let elapsedMs = 0;
+  const pending = [...queue];
+  const tickBudget = { remaining: MAX_QUEUE_FORECAST_TICKS };
+  const active = source.data.run.activeQueuedAction;
+
+  while (pending.length > 0 && tickBudget.remaining > 0) {
+    const queuedAction = pending.shift()!;
+    const isRunning =
+      queuedAction === queue[0] &&
+      active !== null &&
+      state.data.run.action?.id === queuedAction.id;
+
+    if (!isRunning && !canStartAction(state, queuedAction.id)) {
+      if (
+        queuedAction.source === "retrace" &&
+        !canSkipUnavailableRetraceAction(queuedAction.id)
+      ) {
+        for (let index = pending.length - 1; index >= 0; index--) {
+          if (pending[index].source === "retrace") pending.splice(index, 1);
+        }
+      }
+      continue;
+    }
+
+    do {
+      state.data.run.action = { id: queuedAction.id };
+      const result = simulateActionProgress(
+        state,
+        queuedAction.id,
+        tickMs,
+        tickBudget,
+      );
+      state = result.state;
+      elapsedMs += result.elapsedMs;
+      if (!result.completed) {
+        return {
+          estimatedSeconds: elapsedMs / 1000,
+          runTimeAtForecast,
+        };
+      }
+
+      state = completeSimulatedAction(state, queuedAction.id);
+      if (
+        queuedAction.mode === "once" ||
+        actions[queuedAction.id].stopOnRepeat ||
+        !canStartAction(state, queuedAction.id)
+      ) {
+        break;
+      }
+    } while (tickBudget.remaining > 0);
+  }
+
+  return { estimatedSeconds: elapsedMs / 1000, runTimeAtForecast };
 }
 
 export function clearRunActionQueue(state: GameState): void {
@@ -406,6 +574,7 @@ bakeSkillLevels();
 everyTenSeconds.subscribe(save(gameState));
 
 actionsCheckSignal.subscribe((_) => {
+  let actionEnded = false;
   gameState.update((state) => {
     if (!state.data.run.action) return state;
     const ACTION_ID = state.data.run.action.id;
@@ -471,10 +640,11 @@ actionsCheckSignal.subscribe((_) => {
       }
     }
     if (state.data.run.actionProgress[ACTION_ID].progress === 0) {
-      sendActionCompleteSignal();
+      actionEnded = true;
     }
     return state;
   });
+  if (actionEnded) sendActionCompleteSignal();
 });
 export const gainPerTick = derived(
   [ticksPerSecond, gameState],
