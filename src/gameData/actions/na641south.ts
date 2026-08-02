@@ -207,4 +207,32 @@ export const na641southActions: ActionRepository = {
       ),
     ],
   },
+  na641_johnny_take_setup_job: {
+    ...NO_CROSSGEN,
+    ...NO_REPEAT,
+    title: "Take on setup job",
+    flavourText:
+      "Some guy crossed Johnny — lets help him chill in prison for a bit",
+    skill: "social",
+    weight: 400,
+    ...REVEAL.skillCheck("social", 1),
+    conditions: [
+      CONDITION_CHECKS.inLocation(NA641),
+      CONDITION_CHECKS.inSubLocation(
+        NA641_SUBLOCATIONS.southernMainStreetOutskirts,
+      ),
+      CONDITION_CHECKS.ifActionCompleteRun("narcadia_delivery_take_job"),
+      CONDITION_CHECKS.or([
+        CONDITION_CHECKS.ifActionCompleteRun(
+          "na641_johnny_turn_in_procured_goods",
+        ),
+        CONDITION_CHECKS.ifActionCompleteRun(
+          "na641_johnny_turn_in_weird_skull",
+        ),
+      ]),
+    ],
+    postComplete: [
+      COMPLETION_EFFECTS.addItem("na641_johnnys_special_envelope", 1),
+    ],
+  },
 };

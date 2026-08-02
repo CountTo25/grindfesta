@@ -162,6 +162,31 @@ export const items = {
     onConsume: [],
     capacity: (_) => 1,
   },
+  na641_to_be_compromised_package: {
+    name: "To-be-compromised package",
+    description: "Johnny's special delivery package",
+    consumable: false,
+    consumeRequirement: [],
+    onConsume: [],
+    capacity: (_) => 1,
+  },
+  na641_johnnys_special_envelope: {
+    name: "Special envelope",
+    description: "A special envelope from Johnny",
+    consumable: false,
+    consumeRequirement: [],
+    onConsume: [],
+    capacity: (_) => 1,
+  },
+  na641_compromised_package: {
+    name: "Compromised package",
+    description:
+      "Johnny's envelope is hidden inside. Target is in Southern Main Street",
+    consumable: false,
+    consumeRequirement: [],
+    onConsume: [],
+    capacity: (_) => 1,
+  },
   anchor_ancient_bone: {
     name: "Ancient Bone",
     description: "A museum fossil specimen",

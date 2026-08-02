@@ -11,6 +11,10 @@ import {
 
 const NA641 = LOCATIONS.na641;
 const NA641_SUBLOCATIONS = SUBLOCATIONS.na641;
+const HAS_DELIVERED_FOUR_ORDERS = CONDITION_CHECKS.numFlagGTE(
+  "narcadia_delivery_count",
+  4,
+);
 
 const rapidDeliver = () => [
   COMPLETION_EFFECTS.addFlag("narcadia_delivery_finished", "1"),
@@ -103,6 +107,69 @@ export const rapidDeliveryActions: ActionRepository = {
     ],
     postComplete: [
       COMPLETION_EFFECTS.addLog("You can take on delivery jobs from now on"),
+    ],
+  },
+  na641_delivery_ask_for_johnnys_package: {
+    ...NO_CROSSGEN,
+    ...NO_REPEAT,
+    title: "Ask to deliver Johnny's Special Package",
+    skill: "social",
+    weight: 600,
+    conditions: [
+      CONDITION_CHECKS.inLocation(NA641),
+      CONDITION_CHECKS.inSubLocation(NA641_SUBLOCATIONS.rapidDeliveryService),
+      CONDITION_CHECKS.ifActionCompleteRun("na641_johnny_take_setup_job"),
+      CONDITION_CHECKS.ifActionCompleteRun("narcadia_delivery_take_job"),
+      CONDITION_CHECKS.not(HAS_DELIVERED_FOUR_ORDERS),
+    ],
+    postComplete: [],
+  },
+  na641_delivery_pick_up_compromised_package: {
+    ...NO_CROSSGEN,
+    ...NO_REPEAT,
+    title: "Pick up to-be-compromised package",
+    flavourText: "Target is in Southern Main Street",
+    skill: "exploration",
+    weight: 50,
+    conditions: [
+      CONDITION_CHECKS.inLocation(NA641),
+      CONDITION_CHECKS.inSubLocation(NA641_SUBLOCATIONS.rapidDeliveryService),
+      CONDITION_CHECKS.ifActionCompleteRun("na641_johnny_take_setup_job"),
+      CONDITION_CHECKS.ifActionCompleteRun("narcadia_delivery_take_job"),
+      CONDITION_CHECKS.or([
+        CONDITION_CHECKS.ifActionCompleteRun(
+          "na641_delivery_ask_for_johnnys_package",
+        ),
+        HAS_DELIVERED_FOUR_ORDERS,
+      ]),
+      CONDITION_CHECKS.not(
+        CONDITION_CHECKS.hasItem("na641_to_be_compromised_package", 1),
+      ),
+    ],
+    postComplete: [
+      COMPLETION_EFFECTS.addItem("na641_to_be_compromised_package", 1),
+    ],
+  },
+  na641_delivery_slide_envelope_into_package: {
+    ...NO_CROSSGEN,
+    ...NO_REPEAT,
+    title: "Slide in envelope",
+    flavourText: "You need to be real careful to not make it look suspicious",
+    skill: "perception",
+    weight: 1200,
+    conditions: [
+      CONDITION_CHECKS.inLocation(NA641),
+      CONDITION_CHECKS.inSubLocation(NA641_SUBLOCATIONS.rapidDeliveryService),
+      CONDITION_CHECKS.ifActionCompleteRun(
+        "na641_delivery_pick_up_compromised_package",
+      ),
+      CONDITION_CHECKS.hasItem("na641_to_be_compromised_package", 1),
+      CONDITION_CHECKS.hasItem("na641_johnnys_special_envelope", 1),
+    ],
+    postComplete: [
+      COMPLETION_EFFECTS.removeItem("na641_to_be_compromised_package", 1),
+      COMPLETION_EFFECTS.removeItem("na641_johnnys_special_envelope", 1),
+      COMPLETION_EFFECTS.addItem("na641_compromised_package", 1),
     ],
   },
   narcadia_delivery_take_order: {
