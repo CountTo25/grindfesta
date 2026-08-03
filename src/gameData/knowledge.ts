@@ -45,6 +45,9 @@ export const knowledge = {
     "Professor Naoto wrote about ancient monsters",
   na641_professor_naoto_house:
     "Professor Naoto's house on Western Main Street",
+  na641_library_master_librarian: "New Arcadia's Master Librarian",
+  na641_library_master_librarian_chambers:
+    "Master Librarian chambers in the Southern Main Street library",
   na641_backalley_temporal_calibrator:
     "broken temporal calibrator in the Western Main Street alley",
   bbasin7281_visited: "Ashbone Basin visit",
@@ -53,7 +56,10 @@ export const knowledge = {
   bbasin7281_canyon_lizard_weak_points:
     "Ashbone Basin canyon lizard weak points",
   bbasin7281_scaring_off_lizard: "Scaring off the lizard",
+  bbasin7281_prehistoric_mutations:
+    "prehistoric mutations and ancient fauna",
   bbasin7281_ancient_monster_books:
     "library books about ancient lizard-like monsters",
   bbasin7281_ancient_lizard_research: "ancient lizard research",
+  eternian_language_basics: "Eternian language basics",
 };

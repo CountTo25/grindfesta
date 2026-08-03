@@ -93,6 +93,9 @@
   }
 
   .settings_menu {
+    --ui_surface: rgb(17 23 20 / 96%);
+    --ui_surface_strong: rgb(5 10 8 / 98%);
+    --ui_filter: blur(18px) saturate(1.2) brightness(0.92);
     position: absolute;
     right: -1px;
     bottom: calc(100% + 10px);

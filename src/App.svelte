@@ -53,6 +53,7 @@
   const LOCATION_ACCENTS: Record<Location, string> = {
     [LOCATIONS.na641]: "var(--ui_accent_new_arcadia)",
     [LOCATIONS.bbasin7281]: "var(--ui_accent_ashbone_basin)",
+    [LOCATIONS.pantheon31349]: "var(--ui_accent_pantheon_age)",
   };
 
   function checkSkillVisibility(skill: Skill, s: GameState) {

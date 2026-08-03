@@ -239,6 +239,18 @@ export const items = {
       sublocation: SUBLOCATIONS.na641.westernMainStreetAlley,
     },
   },
+  anchor_aurexite_tome: {
+    name: "Aurexite tome",
+    description: "An archaic tome on loan from the Master Librarian",
+    consumable: false,
+    consumeRequirement: [],
+    onConsume: [],
+    capacity: (_) => 1,
+    anchor: {
+      location: LOCATIONS.pantheon31349,
+      sublocation: SUBLOCATIONS.pantheon31349.greatLibrary,
+    },
+  },
 } as const satisfies Record<string, Item>;
 
 // Step 2: Create a type that extracts the keys

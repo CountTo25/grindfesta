@@ -18,6 +18,7 @@ import type {
 
 const NA641 = LOCATIONS.na641;
 const BBASIN7281 = LOCATIONS.bbasin7281;
+const PANTHEON31349 = LOCATIONS.pantheon31349;
 
 export type AdjacentBundle<T> = T & { count: number; startIndex: number };
 
@@ -434,6 +435,12 @@ export const LOCATION_CHECKS: {
     return { text, show: text != null };
   },
   [BBASIN7281]: (d: GameState) => {
+    return {
+      text: d.data.run.subLocation,
+      show: true,
+    };
+  },
+  [PANTHEON31349]: (d: GameState) => {
     return {
       text: d.data.run.subLocation,
       show: true,
