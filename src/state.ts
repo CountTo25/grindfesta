@@ -39,7 +39,6 @@ const DECAY_TEST_MOD = 1;
 //002;
 
 ///DEV
-//@ts-ignore
 window.__dev = {
   sudoku: () => {
     gameState.update((gs) => {

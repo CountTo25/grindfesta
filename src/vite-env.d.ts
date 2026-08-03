@@ -3,3 +3,11 @@
 
 declare const __BUILD_TIME__: string;
 declare const __COMMIT_TITLE__: string;
+
+interface Window {
+  __dev: {
+    sudoku: () => void;
+    state: () => unknown;
+    reset: () => void;
+  };
+}
