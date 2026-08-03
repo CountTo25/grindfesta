@@ -1,7 +1,7 @@
 export const LOCATIONS = {
   na641: "New Arcadia 641",
   bbasin7281: "Ashbone Basin -7281",
-  pantheon31349: "Pantheon Age -31349",
+  eternia31349: "Eternia -31349",
 } as const;
 
 export const SUBLOCATIONS = {
@@ -44,8 +44,9 @@ export const SUBLOCATIONS = {
     sulfurSprings: "Ashbone Basin -7281 — Sulfur springs",
     canyon: "Ashbone Basin -7281 — Canyon",
   },
-  pantheon31349: {
-    greatLibrary: "Pantheon Age -31349 — Great Library",
+  eternia31349: {
+    scholarsDistrict: "Eternia — Scholar's District",
+    greatLibrary: "Eternia — Scholar's District — Library",
   },
 } as const;
 

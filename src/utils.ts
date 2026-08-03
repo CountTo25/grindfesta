@@ -1,6 +1,7 @@
 import { items, type ItemKey } from "./gameData/items";
 import { knowledge } from "./gameData/knowledge";
 import { LOCATIONS } from "./gameData/sublocations";
+import { KNOWLEDGE } from "./gameData/tags";
 import {
   sendBakeSignal,
   sendKnowledgesignal,
@@ -18,7 +19,7 @@ import type {
 
 const NA641 = LOCATIONS.na641;
 const BBASIN7281 = LOCATIONS.bbasin7281;
-const PANTHEON31349 = LOCATIONS.pantheon31349;
+const ETERNIA31349 = LOCATIONS.eternia31349;
 
 export type AdjacentBundle<T> = T & { count: number; startIndex: number };
 
@@ -440,13 +441,33 @@ export const LOCATION_CHECKS: {
       show: true,
     };
   },
-  [PANTHEON31349]: (d: GameState) => {
+  [ETERNIA31349]: (d: GameState) => {
     return {
-      text: d.data.run.subLocation,
+      text: getSubLocationDisplayName(
+        d,
+        ETERNIA31349,
+        d.data.run.subLocation,
+      ),
       show: true,
     };
   },
 };
+
+export function getSubLocationDisplayName(
+  state: GameState,
+  location: Location,
+  sublocation: SubLocation,
+) {
+  if (
+    location === ETERNIA31349 &&
+    !state.data.global.knowledge.includes(
+      KNOWLEDGE.PANTHEON31349.whereabouts,
+    )
+  ) {
+    return sublocation.replace(/^Eternia/, "???");
+  }
+  return sublocation;
+}
 
 type KnowledgeResolvedName = {
   requires: string[];
@@ -481,17 +502,26 @@ export function formatTime(ms: number) {
 //todo: refactor this bs
 export function expToLevel(
   exp: number,
-  baseExp: number
+  baseExp: number,
+  levelFrequency: number = 1,
 ): { level: number; expToNext: number; expToCurrent: number } {
   let level = 1;
-  let requiredExp = baseExp;
+  let fullRequiredExp = baseExp;
+  let requiredExp = fullRequiredExp / levelFrequency;
   let expToCurrent = 0;
+  let levelsAtCurrentRequirement = 0;
 
   while (exp >= requiredExp) {
     exp -= requiredExp;
     expToCurrent += requiredExp;
     level++;
-    requiredExp = Math.floor(requiredExp * 1.2);
+    levelsAtCurrentRequirement++;
+    // A frequency above one splits a requirement evenly across smaller levels.
+    if (levelsAtCurrentRequirement === levelFrequency) {
+      fullRequiredExp = Math.floor(fullRequiredExp * 1.2);
+      levelsAtCurrentRequirement = 0;
+    }
+    requiredExp = fullRequiredExp / levelFrequency;
   }
 
   return {

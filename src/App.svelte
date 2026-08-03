@@ -19,6 +19,7 @@
     CONDITION_CHECKS,
     formatTime,
     getEndRunLocationName,
+    getSubLocationDisplayName,
     LOCATION_CHECKS,
     skills,
   } from "./utils";
@@ -46,6 +47,7 @@
   import { distinctArrayProjection } from "./system/store";
   import SettingsMenu from "./parts/SettingsMenu.svelte";
   import { decodeSave, encodeSave } from "./system/saveSharing";
+  import LeapButton from "./parts/LeapButton.svelte";
 
   type SettingsDialog = "export" | "import" | null;
   type AppRoute = "game" | "iconGen";
@@ -53,7 +55,7 @@
   const LOCATION_ACCENTS: Record<Location, string> = {
     [LOCATIONS.na641]: "var(--ui_accent_new_arcadia)",
     [LOCATIONS.bbasin7281]: "var(--ui_accent_ashbone_basin)",
-    [LOCATIONS.pantheon31349]: "var(--ui_accent_pantheon_age)",
+    [LOCATIONS.eternia31349]: "var(--ui_accent_pantheon_age)",
   };
 
   function checkSkillVisibility(skill: Skill, s: GameState) {
@@ -104,6 +106,13 @@
   $: activeAccent = $endRun
     ? "var(--ui_progress_time_compression)"
     : LOCATION_ACCENTS[$gameState.data.run.location];
+  $: leapAccentColors = [
+    ...new Set(
+      $anchorItems.map(
+        (anchorItem) => LOCATION_ACCENTS[anchorItem.anchor.location],
+      ),
+    ),
+  ];
   $: if ($knowledgeSignal !== null || $subLocationSignal !== null) {
     tryBakeLocation(get(gameState));
   }
@@ -276,7 +285,11 @@
               accent={LOCATION_ACCENTS[anchorItem.anchor.location]}
               on:click={() => selectLeapDestination(anchorItem)}
             >
-              {anchorItem.anchor.sublocation}
+              {getSubLocationDisplayName(
+                $gameState,
+                anchorItem.anchor.location,
+                anchorItem.anchor.sublocation,
+              )}
             </Button>
           {/each}
         </div>
@@ -353,14 +366,11 @@
             </div>
           {:else}
             {#if $anchorItems.length > 0}
-              <button
-                type="button"
-                class="glass_control col-span-3 px-3 py-1"
-                data-active="true"
+              <LeapButton
+                accentColors={leapAccentColors}
+                className="col-span-3 px-3 py-1"
                 on:click={() => (showLeapModal = true)}
-              >
-                Leap
-              </button>
+              />
             {/if}
             <div
               class={$anchorItems.length > 0

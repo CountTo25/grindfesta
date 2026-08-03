@@ -2,12 +2,16 @@ import type { SaveMigration, SaveMigrationData } from "./types";
 import migration20260610Wsheath7281ToBbasin7281 from "./20260610_wsheath7281_to_bbasin7281";
 import migration20260610143202UpperLayerCityHall from "./20260610_143202_upper_layer_city_hall";
 import migration20260803SolarRadioUpgradeFlags from "./20260803_solar_radio_upgrade_flags";
+import migration20260804PantheonAgeToEternia from "./20260804_pantheon_age_to_eternia";
+import migration20260804EternianBasicSymbolics from "./20260804_eternian_basic_symbolics";
 // add-migration-imports-above
 
 const SAVE_MIGRATIONS: SaveMigration[] = [
   migration20260610Wsheath7281ToBbasin7281,
   migration20260610143202UpperLayerCityHall,
   migration20260803SolarRadioUpgradeFlags,
+  migration20260804PantheonAgeToEternia,
+  migration20260804EternianBasicSymbolics,
   // add-migration-entries-above
 ];
 

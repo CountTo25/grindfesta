@@ -59,6 +59,10 @@ export const TAGS = {
     SULFUR_SPRINGS_SUNNY_SPOT_CHARGES:
       "bbasin7281_sulfur_springs_sunny_spot_charges",
   },
+  PANTHEON31349: {
+    HSAK_FOLLOWS: "hsak_follows",
+    HSAK_IN_LIBRARY: "hsak_in_library",
+  },
 };
 
 export const KNOWLEDGE = {
@@ -123,5 +127,9 @@ export const KNOWLEDGE = {
   },
   PANTHEON31349: {
     language_basics: "eternian_language_basics",
+    basic_symbolics: "eternian_basic_symbolics",
+    magic: "eternian_magic",
+    whereabouts: "pantheon31349_eternia_whereabouts",
+    book_assortment: "pantheon31349_great_library_book_assortment",
   },
 };

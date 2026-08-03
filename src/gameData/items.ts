@@ -247,8 +247,8 @@ export const items = {
     onConsume: [],
     capacity: (_) => 1,
     anchor: {
-      location: LOCATIONS.pantheon31349,
-      sublocation: SUBLOCATIONS.pantheon31349.greatLibrary,
+      location: LOCATIONS.eternia31349,
+      sublocation: SUBLOCATIONS.eternia31349.greatLibrary,
     },
   },
 } as const satisfies Record<string, Item>;

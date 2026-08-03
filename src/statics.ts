@@ -1,5 +1,6 @@
 import { bbasin7281Actions } from "./gameData/actions/bbasin7281";
-import { pantheon31349Actions } from "./gameData/actions/pantheon31349";
+import { pantheon31349LibraryActions } from "./gameData/actions/pantheon31349Library";
+import { pantheon31349ScholarsDistrictActions } from "./gameData/actions/pantheon31349ScholarsDistrict";
 import {
   na641BackalleyActions,
   na641WesternMainStreetActions,
@@ -32,5 +33,6 @@ export const actions: ActionRepository = {
   ...na641southActions,
   ...na641junkActions,
   ...bbasin7281Actions,
-  ...pantheon31349Actions,
+  ...pantheon31349LibraryActions,
+  ...pantheon31349ScholarsDistrictActions,
 };

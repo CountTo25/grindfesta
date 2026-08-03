@@ -62,4 +62,9 @@ export const knowledge = {
     "library books about ancient lizard-like monsters",
   bbasin7281_ancient_lizard_research: "ancient lizard research",
   eternian_language_basics: "Eternian language basics",
+  eternian_basic_symbolics: "Basic symbolics",
+  eternian_magic: "Eternian magic",
+  pantheon31349_eternia_whereabouts: "Eternia whereabouts",
+  pantheon31349_great_library_book_assortment:
+    "Great Library book assortment",
 };
