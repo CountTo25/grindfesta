@@ -1,6 +1,7 @@
 export const LOCATIONS = {
   na641: "New Arcadia 641",
   bbasin7281: "Ashbone Basin -7281",
+  eternia31349: "Eternia -31349",
 } as const;
 
 export const SUBLOCATIONS = {
@@ -24,6 +25,8 @@ export const SUBLOCATIONS = {
     annasRecycledGoods: "Anna's Recycled Goods",
     southernMainStreet: "Southern main street",
     southernMainStreetLibrary: "Southern main street — Library",
+    southernMainStreetLibraryMasterLibrarianChambers:
+      "Southern Main Street — Library — Master Librarian chambers",
     southernMainStreetLeatherworks: "Southern Main Street — Leatherworks",
     southernMainStreetDepartmentStore: "Southern main street — Department store",
     southernMainStreetDepartmentStoreTechStore:
@@ -40,6 +43,10 @@ export const SUBLOCATIONS = {
   bbasin7281: {
     sulfurSprings: "Ashbone Basin -7281 — Sulfur springs",
     canyon: "Ashbone Basin -7281 — Canyon",
+  },
+  eternia31349: {
+    scholarsDistrict: "Eternia — Scholar's District",
+    greatLibrary: "Eternia — Scholar's District — Library",
   },
 } as const;
 

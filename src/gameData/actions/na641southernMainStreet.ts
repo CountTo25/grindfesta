@@ -315,7 +315,7 @@ export const na641southernMainStreetActions: ActionRepository = {
     ...NO_REPEAT,
     title: "Look around the reading room",
     skill: "exploration",
-    weight: 1000,
+    weight: 400,
     conditions: [
       CONDITION_CHECKS.inLocation(NA641),
       CONDITION_CHECKS.inSubLocation(
@@ -335,7 +335,7 @@ export const na641southernMainStreetActions: ActionRepository = {
     title: "Read Society of New Arcadia",
     flavourText: "Learn all about the glorious state of New Arcadia!",
     skill: "social",
-    weight: 4500,
+    weight: 2000,
     conditions: [
       CONDITION_CHECKS.inLocation(NA641),
       CONDITION_CHECKS.inSubLocation(
@@ -355,7 +355,7 @@ export const na641southernMainStreetActions: ActionRepository = {
     ...NO_REPEAT,
     title: "Go through the shelves",
     skill: "perception",
-    weight: 1500,
+    weight: 600,
     conditions: [
       CONDITION_CHECKS.inLocation(NA641),
       CONDITION_CHECKS.inSubLocation(
@@ -377,7 +377,7 @@ export const na641southernMainStreetActions: ActionRepository = {
     ...NO_REPEAT,
     title: 'Read "Structural Properties of Aurexite"',
     skill: "engineering",
-    weight: 6000,
+    weight: 2500,
     conditions: [
       CONDITION_CHECKS.inLocation(NA641),
       CONDITION_CHECKS.inSubLocation(
@@ -399,7 +399,7 @@ export const na641southernMainStreetActions: ActionRepository = {
     ...NO_REPEAT,
     title: "Check the topmost shelf",
     skill: "exploration",
-    weight: 2000,
+    weight: 800,
     conditions: [
       CONDITION_CHECKS.inLocation(NA641),
       CONDITION_CHECKS.inSubLocation(
@@ -420,7 +420,7 @@ export const na641southernMainStreetActions: ActionRepository = {
     title: "Read Charting Arcadia",
     flavourText: "Everything about how New Arcadia changed",
     skill: "exploration",
-    weight: 7500,
+    weight: 3000,
     conditions: [
       CONDITION_CHECKS.inLocation(NA641),
       CONDITION_CHECKS.inSubLocation(
@@ -438,7 +438,7 @@ export const na641southernMainStreetActions: ActionRepository = {
     ...NO_REPEAT,
     title: "Find books about ancient monsters",
     skill: "perception",
-    weight: 600,
+    weight: 300,
     conditions: [
       CONDITION_CHECKS.inLocation(NA641),
       CONDITION_CHECKS.inSubLocation(
@@ -461,7 +461,7 @@ export const na641southernMainStreetActions: ActionRepository = {
     title: "Read about ancient monsters",
     flavourText: "pen is mightier than humongous lizard",
     skill: "survival",
-    weight: 600,
+    weight: 300,
     conditions: [
       CONDITION_CHECKS.inLocation(NA641),
       CONDITION_CHECKS.inSubLocation(
@@ -484,7 +484,7 @@ export const na641southernMainStreetActions: ActionRepository = {
     title: "Check out author's note on monsters",
     flavourText: "That might come in helpful",
     skill: "perception",
-    weight: 1700,
+    weight: 500,
     conditions: [
       CONDITION_CHECKS.inLocation(NA641),
       CONDITION_CHECKS.inSubLocation(
@@ -499,6 +499,56 @@ export const na641southernMainStreetActions: ActionRepository = {
       COMPLETION_EFFECTS.addKnowledge(KNOWLEDGE.NA641.professor_naoto_lead),
       COMPLETION_EFFECTS.addLog(
         "Luckily, he lives nearby — let's see if you can find Professor Naoto on Western Main Street",
+      ),
+    ],
+  },
+  na641_library_ask_about_further_reading: {
+    ...CROSSGEN,
+    ...NO_REPEAT,
+    title: "Ask about further reading",
+    flavourText: "You've read everything that piqued your interest",
+    skill: "social",
+    weight: 1200,
+    conditions: [
+      CONDITION_CHECKS.inLocation(NA641),
+      CONDITION_CHECKS.inSubLocation(
+        NA641_SUBLOCATIONS.southernMainStreetLibrary,
+      ),
+      CONDITION_CHECKS.flag(TAGS.NA641.LIBRARY.CARD),
+      CONDITION_CHECKS.ifActionCompleteAny([
+        "na641_library_read_society_of_new_arcadia",
+        "na641_library_read_aurexite_structural_properties",
+        "na641_library_read_charting_arcadia",
+        "na641_library_read_about_ancient_monsters",
+        "na641_library_check_monster_authors_note",
+      ]),
+    ],
+    postComplete: [
+      COMPLETION_EFFECTS.addKnowledge(
+        KNOWLEDGE.NA641.library_master_librarian,
+      ),
+    ],
+  },
+  na641_library_find_directors_office: {
+    ...CROSSGEN,
+    ...NO_REPEAT,
+    title: "Find director's office",
+    flavourText: "Lets see if there's anything interesting",
+    skill: "exploration",
+    weight: 1200,
+    conditions: [
+      CONDITION_CHECKS.inLocation(NA641),
+      CONDITION_CHECKS.inSubLocation(
+        NA641_SUBLOCATIONS.southernMainStreetLibrary,
+      ),
+      CONDITION_CHECKS.flag(TAGS.NA641.LIBRARY.CARD),
+      CONDITION_CHECKS.hasKnowledge(
+        KNOWLEDGE.NA641.library_master_librarian,
+      ),
+    ],
+    postComplete: [
+      COMPLETION_EFFECTS.addKnowledge(
+        KNOWLEDGE.NA641.library_master_librarian_chambers,
       ),
     ],
   },

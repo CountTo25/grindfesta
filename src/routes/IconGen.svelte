@@ -15,6 +15,9 @@
     "bbasin7281_investigate_surroundings",
     "bbasin7281_remove_weird_skull",
     "bbasin7281_fend_off_lizard",
+    "pantheon31349_greet_author",
+    "pantheon31349_decipher_authors_answer",
+    "pantheon31349_clarify_whereabouts",
     "na641_delivery_hack_terminal",
     "na641_delivery_give_yourself_promotion",
     "na641_department_store_look_around",
@@ -49,6 +52,8 @@
       flavourText,
       accent: id.startsWith("bbasin7281")
         ? "var(--ui_accent_ashbone_basin)"
+        : id.startsWith("pantheon31349")
+          ? "var(--ui_accent_pantheon_age)"
         : "var(--ui_accent_new_arcadia)",
       progress: (index * 23 + 11) % 96,
       rotation: CARD_ROTATIONS[index % CARD_ROTATIONS.length],

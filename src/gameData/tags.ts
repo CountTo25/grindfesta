@@ -59,6 +59,10 @@ export const TAGS = {
     SULFUR_SPRINGS_SUNNY_SPOT_CHARGES:
       "bbasin7281_sulfur_springs_sunny_spot_charges",
   },
+  PANTHEON31349: {
+    HSAK_FOLLOWS: "hsak_follows",
+    HSAK_IN_LIBRARY: "hsak_in_library",
+  },
 };
 
 export const KNOWLEDGE = {
@@ -106,6 +110,9 @@ export const KNOWLEDGE = {
     arcadia_travel_restrictions: "na641_arcadia_travel_restrictions",
     professor_naoto_lead: "na641_professor_naoto_lead",
     professor_naoto_house: "na641_professor_naoto_house",
+    library_master_librarian: "na641_library_master_librarian",
+    library_master_librarian_chambers:
+      "na641_library_master_librarian_chambers",
     backalley_temporal_calibrator: "na641_backalley_temporal_calibrator",
   },
   BBASIN7281: {
@@ -114,7 +121,15 @@ export const KNOWLEDGE = {
     canyon_lizard_sighting: "bbasin7281_canyon_lizard_sighting",
     canyon_lizard_weak_points: "bbasin7281_canyon_lizard_weak_points",
     scaring_off_lizard: "bbasin7281_scaring_off_lizard",
+    prehistoric_mutations: "bbasin7281_prehistoric_mutations",
     ancient_monster_books: "bbasin7281_ancient_monster_books",
     ancient_lizard_research: "bbasin7281_ancient_lizard_research",
+  },
+  PANTHEON31349: {
+    language_basics: "eternian_language_basics",
+    basic_symbolics: "eternian_basic_symbolics",
+    magic: "eternian_magic",
+    whereabouts: "pantheon31349_eternia_whereabouts",
+    book_assortment: "pantheon31349_great_library_book_assortment",
   },
 };

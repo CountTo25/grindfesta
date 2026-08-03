@@ -28,7 +28,13 @@ import { items, type ItemKey } from "./gameData/items";
 import { distinctArrayProjection } from "./system/store";
 
 ///Globals for quick tinkering here
-export const GLOBAL_LEVEL_MOD_RATIO = 1.05;
+// Split each old time-compression tier into smaller levels while preserving
+// the old modifier at the end of every tier.
+const TIME_COMPRESSION_LEVEL_FREQUENCY = 2;
+export const GLOBAL_LEVEL_MOD_RATIO = Math.pow(
+  1.05,
+  1 / TIME_COMPRESSION_LEVEL_FREQUENCY,
+);
 export const RUN_LEVEL_MOD_RATIO = 1.08;
 export const RUN_EXP_TO_LEVEL_RATIO = 5;
 export const RUN_SKILL_GAIN_MOD = 1.35;
@@ -104,7 +110,11 @@ export function getBakedSkillsForState(snap: GameState): BakedSkills {
     "survival",
   ] as Skill[]) {
     const run = expToLevel(snap.data.run.stats[skill], RUN_EXP_TO_LEVEL_RATIO);
-    const global = expToLevel(snap.data.global.stats[skill], 15);
+    const global = expToLevel(
+      snap.data.global.stats[skill],
+      15,
+      TIME_COMPRESSION_LEVEL_FREQUENCY,
+    );
 
     baked.skills.run[skill] = run.level;
     baked.skills.global[skill] = global.level;

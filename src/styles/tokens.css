@@ -15,6 +15,7 @@
   /* Liquid-glass accent: edges, focus, selection, labels, and primary controls. */
   --ui_accent_new_arcadia: 4 120 87;
   --ui_accent_ashbone_basin: 194 65 45;
+  --ui_accent_pantheon_age: 218 177 61; /* #DAB13D */
   --ui_accent: var(--ui_accent_new_arcadia);
 
   /* Exceptional progress channels stay independently tunable. */
