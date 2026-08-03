@@ -7,6 +7,7 @@ export const SUBLOCATIONS = {
   na641: {
     westernMainStreetAlley: "Western main street alley",
     westernMainStreet: "Western main street",
+    professorNaotosHouse: "Western Main Street — Professor Naoto's house",
     marcosWorkshop: "Marco's Workshop",
     nawsHistoryMuseum: "NAWS History Museum",
     nawsHistoryMuseumMainHall: "NAWS History Museum — Main Hall",
@@ -15,10 +16,15 @@ export const SUBLOCATIONS = {
       "NAWS History Museum — Paleontology exhibit storage",
     nawsHistoryMuseumMaintenanceRoom: "NAWS History Museum — Maintenance room",
     rapidDeliveryService: "Rapid Delivery Service",
+    rapidDeliverySpecialStorage:
+      "Rapid Delivery Service — Special delivery storage",
     southernMainStreetOutskirts: "Southern main street outskirts",
+    johnnysGangHideout:
+      "Southern main street outskirts — Johnny's Gang Hideout",
     annasRecycledGoods: "Anna's Recycled Goods",
     southernMainStreet: "Southern main street",
     southernMainStreetLibrary: "Southern main street — Library",
+    southernMainStreetLeatherworks: "Southern Main Street — Leatherworks",
     southernMainStreetDepartmentStore: "Southern main street — Department store",
     southernMainStreetDepartmentStoreTechStore:
       "Southern main street — Department store — Tech store",

@@ -22,9 +22,17 @@ export const knowledge = {
   na641_charting_arcadia: "Charting Arcadia",
   na641_southern_main_street_department_store:
     "Southern Main Street department store location",
+  na641_southern_main_street_leatherworks:
+    "Southern Main Street Leatherworks location",
   na641_southern_main_street_upper_layer_elevator:
     "Southern Main Street upper layer elevator location",
   na641_upper_layer_city_hall: "Upper Layer City Hall location",
+  na641_city_hall_requires_identification:
+    "City Hall requires identification",
+  na641_blank_id_cards: "blank New Arcadia ID cards",
+  na641_blank_ids_sources: "sources of blank New Arcadia ID cards",
+  na641_taking_all_blank_ids_bad_idea:
+    "taking every blank ID was a bad idea",
   na641_department_store_tech_store: "department store tech store location",
   na641_department_store_accessory_store:
     "department store accessory store location",
@@ -33,11 +41,18 @@ export const knowledge = {
     "department store camping goods store location",
   na641_arcadia_travel_restrictions:
     "few people can leave Arcadia",
+  na641_professor_naoto_lead:
+    "Professor Naoto wrote about ancient monsters",
+  na641_professor_naoto_house:
+    "Professor Naoto's house on Western Main Street",
   na641_backalley_temporal_calibrator:
     "broken temporal calibrator in the Western Main Street alley",
   bbasin7281_visited: "Ashbone Basin visit",
   bbasin7281_fossil_origins: "fossil origins",
   bbasin7281_canyon_lizard_sighting: "Ashbone Basin canyon lizard sighting",
+  bbasin7281_canyon_lizard_weak_points:
+    "Ashbone Basin canyon lizard weak points",
+  bbasin7281_scaring_off_lizard: "Scaring off the lizard",
   bbasin7281_ancient_monster_books:
     "library books about ancient lizard-like monsters",
   bbasin7281_ancient_lizard_research: "ancient lizard research",

@@ -1,6 +1,7 @@
 import type { Action } from "../../types";
 import { CONDITION_CHECKS, COMPLETION_EFFECTS, REVEAL } from "../../utils";
 import { LOCATIONS, SUBLOCATIONS } from "../sublocations";
+import { KNOWLEDGE, TAGS } from "../tags";
 import { CROSSGEN, NO_CROSSGEN, NO_REPEAT, REPEATABLE } from "./utils";
 
 const NA641 = LOCATIONS.na641;
@@ -124,7 +125,7 @@ export const marcosWorkshopActions: { [key: string]: Action } = {
     skill: "engineering",
     flavourText:
       "Marco suggests you can treat yourself if you sort some batteries for him",
-    weight: 60,
+    weight: 45,
     ...REVEAL.itemNotCappedYet("small_battery"),
     conditions: [
       CONDITION_CHECKS.inLocation(NA641),
@@ -178,6 +179,25 @@ export const marcosWorkshopActions: { [key: string]: Action } = {
       COMPLETION_EFFECTS.addFlag("narcadia_delivery_finished", "1"),
       COMPLETION_EFFECTS.removeFlag("narcadia_delivery_active_order"),
       COMPLETION_EFFECTS.removeFlag("marco_charger_on_hand"),
+    ],
+  },
+  na641_marco_ask_about_professor_naoto: {
+    ...CROSSGEN,
+    ...NO_REPEAT,
+    title: "See if Marco knows Naoto",
+    skill: "social",
+    weight: 1400,
+    conditions: [
+      CONDITION_CHECKS.inLocation(NA641),
+      CONDITION_CHECKS.inSubLocation(NA641_SUBLOCATIONS.marcosWorkshop),
+      CONDITION_CHECKS.ifActionCompleteRun("narcadia_macro_deliver_charger"),
+      CONDITION_CHECKS.hasKnowledge(KNOWLEDGE.NA641.professor_naoto_lead),
+      CONDITION_CHECKS.not(
+        CONDITION_CHECKS.hasKnowledge(KNOWLEDGE.NA641.professor_naoto_house),
+      ),
+    ],
+    postComplete: [
+      COMPLETION_EFFECTS.addKnowledge(KNOWLEDGE.NA641.professor_naoto_house),
     ],
   },
   narcadia_marco_buy_supercharged_batteries: {
@@ -317,24 +337,44 @@ export const marcosWorkshopActions: { [key: string]: Action } = {
     skill: "engineering",
     weight: 500,
     flavourText: "TODO: make the solar-powered radio charge the device",
-    ...REVEAL.all([
-      REVEAL.skillCheck("engineering", 30),
-      REVEAL.itemNotCappedYet("na641_modified_solar_radio"),
-    ]),
+    ...REVEAL.skillCheck("engineering", 30),
     conditions: [
       CONDITION_CHECKS.inLocation(NA641),
       CONDITION_CHECKS.inSubLocation(NA641_SUBLOCATIONS.marcosWorkshop),
       CONDITION_CHECKS.hasItem("na641_solar_powered_radio", 1),
       CONDITION_CHECKS.skillModifier("engineering", 20),
       CONDITION_CHECKS.ifActionCompleteRun("na641_marcos_ask_solar_charger"),
+      CONDITION_CHECKS.noFlag(TAGS.NA641.RADIO.CHARGER_MODIFIED),
       HAS_MARCO_TOOLS_ACCESS,
     ],
     postComplete: [
-      COMPLETION_EFFECTS.removeItem("na641_solar_powered_radio", 1),
-      COMPLETION_EFFECTS.addItem("na641_modified_solar_radio", 1),
+      COMPLETION_EFFECTS.addFlag(
+        TAGS.NA641.RADIO.CHARGER_MODIFIED,
+        "1",
+      ),
       COMPLETION_EFFECTS.addLog(
         "TODO: modified the radio into a portable battery charger",
       ),
+    ],
+  },
+  na641_marcos_amplify_solar_radio: {
+    ...NO_CROSSGEN,
+    ...NO_REPEAT,
+    title: "Modify Solar-powered radio speaker",
+    flavourText: "Radically improve sound output power",
+    skill: "engineering",
+    weight: 2500,
+    ...REVEAL.skillCheck("engineering", 50),
+    conditions: [
+      CONDITION_CHECKS.inLocation(NA641),
+      CONDITION_CHECKS.inSubLocation(NA641_SUBLOCATIONS.marcosWorkshop),
+      CONDITION_CHECKS.hasKnowledge(KNOWLEDGE.BBASIN7281.scaring_off_lizard),
+      CONDITION_CHECKS.hasItem("na641_solar_powered_radio", 1),
+      CONDITION_CHECKS.noFlag(TAGS.NA641.RADIO.SPEAKER_AMPLIFIED),
+      HAS_MARCO_TOOLS_ACCESS,
+    ],
+    postComplete: [
+      COMPLETION_EFFECTS.addFlag(TAGS.NA641.RADIO.SPEAKER_AMPLIFIED, "1"),
     ],
   },
   narcadia_workshop_leave: {

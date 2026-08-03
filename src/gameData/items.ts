@@ -15,7 +15,11 @@ export const items = {
         (c.data.run.flags[TAGS.MODIFIERS.HAS_JUNK_WALLET] ?? null) ? 10 : 0;
       let trendyWalletMod =
         (c.data.run.flags[TAGS.MODIFIERS.HAS_TRENDY_WALLET] ?? null) ? 10 : 0;
-      return 10 + junkWalletMod + trendyWalletMod;
+      let handcraftedWalletMod =
+        (c.data.run.flags[TAGS.MODIFIERS.HAS_HANDCRAFTED_WALLET] ?? null)
+          ? 5
+          : 0;
+      return 10 + junkWalletMod + trendyWalletMod + handcraftedWalletMod;
     },
   },
   small_battery: {
@@ -90,6 +94,14 @@ export const items = {
     onConsume: [],
     capacity: (_) => 5,
   },
+  bbasin7281_lizard_photo: {
+    name: "Photo of the huge lizard",
+    description: "Proof of the creature in Ashbone Basin",
+    consumable: false,
+    consumeRequirement: [],
+    onConsume: [],
+    capacity: (_) => 1,
+  },
   na641_travel_boots: {
     name: "Travel boots",
     description: "Sturdy boots for rough terrain",
@@ -114,14 +126,6 @@ export const items = {
     onConsume: [],
     capacity: (_) => 1,
   },
-  na641_modified_solar_radio: {
-    name: "Modified solar-powered radio",
-    description: "Can trickle-charge your device in direct sunlight",
-    consumable: false,
-    consumeRequirement: [],
-    onConsume: [],
-    capacity: (_) => 1,
-  },
   na641_top_level_pass: {
     name: "Arcadia top level pass",
     description: "Grants access to Arcadia's top level",
@@ -131,7 +135,7 @@ export const items = {
     capacity: (_) => 1,
   },
   new_arcadia_fake_id: {
-    name: "New Arcadia fake ID",
+    name: "Fake New Arcadia ID",
     description: "A convincing imitation of New Arcadia identification",
     consumable: false,
     consumeRequirement: [],
@@ -190,6 +194,22 @@ export const items = {
   na641_johnny_information_report: {
     name: "Compiled information report",
     description: "Information gathered for Johnny's gang",
+    consumable: false,
+    consumeRequirement: [],
+    onConsume: [],
+    capacity: (_) => 1,
+  },
+  na641_blank_id_shipment: {
+    name: "Pack of blank IDs",
+    description: "A pack of blank New Arcadia ID cards",
+    consumable: false,
+    consumeRequirement: [],
+    onConsume: [],
+    capacity: (_) => 1,
+  },
+  na641_blank_id: {
+    name: "Blank ID",
+    description: "A single blank New Arcadia ID card",
     consumable: false,
     consumeRequirement: [],
     onConsume: [],

@@ -98,7 +98,13 @@ export const bbasin7281Actions: ActionRepository = {
       CONDITION_CHECKS.inLocation(BBASIN7281),
       CONDITION_CHECKS.inSubLocation(BBASIN7281_SUBLOCATIONS.sulfurSprings),
       CONDITION_CHECKS.hasKnowledge(KNOWLEDGE.BBASIN7281.visited),
-      CONDITION_CHECKS.hasItem("na641_modified_solar_radio", 1),
+      CONDITION_CHECKS.hasItem("na641_solar_powered_radio", 1),
+      CONDITION_CHECKS.or([
+        CONDITION_CHECKS.flag(TAGS.NA641.RADIO.CHARGER_MODIFIED),
+        CONDITION_CHECKS.ifActionCompleteRun(
+          "na641_marcos_modify_solar_radio",
+        ),
+      ]),
       (state) => state.data.run.currentEnergy < state.data.run.maxEnergy,
       CONDITION_CHECKS.numFlagLTE(
         TAGS.BBASIN7281.SULFUR_SPRINGS_SUNNY_SPOT_CHARGES,
@@ -149,6 +155,48 @@ export const bbasin7281Actions: ActionRepository = {
     conditions: [
       CONDITION_CHECKS.inLocation(BBASIN7281),
       CONDITION_CHECKS.inSubLocation(BBASIN7281_SUBLOCATIONS.canyon),
+      CONDITION_CHECKS.not(
+        CONDITION_CHECKS.ifActionCompleteRun("bbasin7281_blast_lizard_noise"),
+      ),
+    ],
+  },
+  bbasin7281_blast_lizard_noise: {
+    ...NO_CROSSGEN,
+    ...NO_REPEAT,
+    title: "Blast some noise",
+    flavourText:
+      "That should scare it, right? Will spend 15 energy. TODO: max energy cap mods",
+    skill: "engineering",
+    weight: 4000,
+    ...REVEAL.energy(15),
+    conditions: [
+      CONDITION_CHECKS.inLocation(BBASIN7281),
+      CONDITION_CHECKS.inSubLocation(BBASIN7281_SUBLOCATIONS.canyon),
+      CONDITION_CHECKS.flag(TAGS.NA641.RADIO.SPEAKER_AMPLIFIED),
+      CONDITION_CHECKS.hasItem("na641_solar_powered_radio", 1),
+      CONDITION_CHECKS.not(
+        CONDITION_CHECKS.ifActionCompleteRun("bbasin7281_fend_off_lizard"),
+      ),
+    ],
+    postComplete: [COMPLETION_EFFECTS.spendEnergy(15)],
+  },
+  bbasin7281_photograph_lizard: {
+    ...NO_CROSSGEN,
+    ...NO_REPEAT,
+    title: "Photograph the lizard",
+    skill: "perception",
+    weight: 900,
+    conditions: [
+      CONDITION_CHECKS.inLocation(BBASIN7281),
+      CONDITION_CHECKS.inSubLocation(BBASIN7281_SUBLOCATIONS.canyon),
+      CONDITION_CHECKS.hasItem("na641_fixed_camera", 1),
+      CONDITION_CHECKS.not(
+        CONDITION_CHECKS.hasItem("bbasin7281_lizard_photo", 1),
+      ),
+    ],
+    postComplete: [
+      COMPLETION_EFFECTS.removeItem("na641_fixed_camera", 1),
+      COMPLETION_EFFECTS.addItem("bbasin7281_lizard_photo", 1),
     ],
   },
   bbasin7281_end_of_content: {
@@ -161,7 +209,10 @@ export const bbasin7281Actions: ActionRepository = {
     conditions: [
       CONDITION_CHECKS.inLocation(BBASIN7281),
       CONDITION_CHECKS.inSubLocation(BBASIN7281_SUBLOCATIONS.canyon),
-      CONDITION_CHECKS.ifActionCompleteRun("bbasin7281_fend_off_lizard"),
+      CONDITION_CHECKS.or([
+        CONDITION_CHECKS.ifActionCompleteRun("bbasin7281_fend_off_lizard"),
+        CONDITION_CHECKS.ifActionCompleteRun("bbasin7281_blast_lizard_noise"),
+      ]),
     ],
     postComplete: [COMPLETION_EFFECTS.setEnergy(-100)],
   },

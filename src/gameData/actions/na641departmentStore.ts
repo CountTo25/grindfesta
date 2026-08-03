@@ -379,6 +379,31 @@ export const departmentStoreActions: ActionRepository = {
       ...trackStorePurchase(20),
     ],
   },
+  na641_accessory_store_consult_further_wallet_selection: {
+    ...CROSSGEN,
+    ...NO_REPEAT,
+    title: "Consult about further wallet selection",
+    skill: "social",
+    weight: 400,
+    ...REVEAL.skillCheck("social", 20),
+    conditions: [
+      CONDITION_CHECKS.inLocation(NA641),
+      CONDITION_CHECKS.inSubLocation(
+        NA641_SUBLOCATIONS.southernMainStreetDepartmentStoreAccessoryStore,
+      ),
+      CONDITION_CHECKS.flag(TAGS.MODIFIERS.HAS_TRENDY_WALLET),
+      CONDITION_CHECKS.not(
+        CONDITION_CHECKS.hasKnowledge(
+          KNOWLEDGE.NA641.southern_main_street_leatherworks,
+        ),
+      ),
+    ],
+    postComplete: [
+      COMPLETION_EFFECTS.addKnowledge(
+        KNOWLEDGE.NA641.southern_main_street_leatherworks,
+      ),
+    ],
+  },
   na641_department_store_visit_camping_goods_store: {
     ...NO_CROSSGEN,
     ...REPEATABLE,

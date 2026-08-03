@@ -109,6 +109,27 @@ export const rapidDeliveryActions: ActionRepository = {
       COMPLETION_EFFECTS.addLog("You can take on delivery jobs from now on"),
     ],
   },
+  na641_delivery_talk_to_manager: {
+    ...NO_CROSSGEN,
+    ...NO_REPEAT,
+    title: "Talk to manager",
+    flavourText: "You're up for promotion!",
+    skill: "social",
+    weight: 200,
+    conditions: [
+      CONDITION_CHECKS.inLocation(NA641),
+      CONDITION_CHECKS.inSubLocation(NA641_SUBLOCATIONS.rapidDeliveryService),
+      CONDITION_CHECKS.ifActionCompleteRun("narcadia_delivery_take_job"),
+      CONDITION_CHECKS.numFlagGTE("narcadia_delivery_count", 10),
+      CONDITION_CHECKS.noFlag(DELIVERY_TAGS.advanced_access),
+    ],
+    postComplete: [
+      COMPLETION_EFFECTS.addFlag(DELIVERY_TAGS.advanced_access, "1"),
+      COMPLETION_EFFECTS.addLog(
+        "Now you have access to advanced deliveries",
+      ),
+    ],
+  },
   na641_delivery_ask_for_johnnys_package: {
     ...NO_CROSSGEN,
     ...NO_REPEAT,
@@ -170,6 +191,179 @@ export const rapidDeliveryActions: ActionRepository = {
       COMPLETION_EFFECTS.removeItem("na641_to_be_compromised_package", 1),
       COMPLETION_EFFECTS.removeItem("na641_johnnys_special_envelope", 1),
       COMPLETION_EFFECTS.addItem("na641_compromised_package", 1),
+    ],
+  },
+  na641_delivery_hack_terminal: {
+    ...NO_CROSSGEN,
+    ...NO_REPEAT,
+    title: "Hack into terminal",
+    flavourText: "Now lets see where they are kept",
+    skill: "perception",
+    weight: 900,
+    ...REVEAL.skillCheck("engineering", 60),
+    conditions: [
+      CONDITION_CHECKS.inLocation(NA641),
+      CONDITION_CHECKS.inSubLocation(NA641_SUBLOCATIONS.rapidDeliveryService),
+      CONDITION_CHECKS.hasKnowledge(KNOWLEDGE.NA641.blank_ids_sources),
+    ],
+    postComplete: [],
+  },
+  na641_delivery_give_yourself_promotion: {
+    ...NO_CROSSGEN,
+    ...NO_REPEAT,
+    title: "Give yourself a promotion",
+    flavourText: "More deliveries, more permissions. A bit shady",
+    skill: "engineering",
+    weight: 1100,
+    ...REVEAL.skillCheck("engineering", 70),
+    conditions: [
+      CONDITION_CHECKS.inLocation(NA641),
+      CONDITION_CHECKS.inSubLocation(NA641_SUBLOCATIONS.rapidDeliveryService),
+      CONDITION_CHECKS.ifActionCompleteRun("na641_delivery_hack_terminal"),
+      CONDITION_CHECKS.noFlag(DELIVERY_TAGS.advanced_access),
+    ],
+    postComplete: [
+      COMPLETION_EFFECTS.addFlag(DELIVERY_TAGS.advanced_access, "1"),
+      COMPLETION_EFFECTS.addLog(
+        "Now you have access to advanced deliveries",
+      ),
+    ],
+  },
+  na641_delivery_find_professor_naoto: {
+    ...CROSSGEN,
+    ...NO_REPEAT,
+    title: "Look for Naoto in delivery records",
+    skill: "perception",
+    weight: 2000,
+    conditions: [
+      CONDITION_CHECKS.inLocation(NA641),
+      CONDITION_CHECKS.inSubLocation(NA641_SUBLOCATIONS.rapidDeliveryService),
+      CONDITION_CHECKS.flag(DELIVERY_TAGS.advanced_access),
+      CONDITION_CHECKS.hasKnowledge(KNOWLEDGE.NA641.professor_naoto_lead),
+      CONDITION_CHECKS.not(
+        CONDITION_CHECKS.hasKnowledge(KNOWLEDGE.NA641.professor_naoto_house),
+      ),
+    ],
+    postComplete: [
+      COMPLETION_EFFECTS.addKnowledge(KNOWLEDGE.NA641.professor_naoto_house),
+    ],
+  },
+  na641_delivery_visit_special_storage: {
+    ...NO_CROSSGEN,
+    ...REPEATABLE,
+    title: "Visit special delivery storage",
+    skill: "exploration",
+    weight: 850,
+    stopOnRepeat: true,
+    conditions: [
+      CONDITION_CHECKS.inLocation(NA641),
+      CONDITION_CHECKS.inSubLocation(NA641_SUBLOCATIONS.rapidDeliveryService),
+      CONDITION_CHECKS.flag(DELIVERY_TAGS.advanced_access),
+      CONDITION_CHECKS.hasKnowledge(KNOWLEDGE.NA641.blank_ids_sources),
+    ],
+    postComplete: [
+      COMPLETION_EFFECTS.moveSubLocation(
+        NA641_SUBLOCATIONS.rapidDeliverySpecialStorage,
+      ),
+    ],
+  },
+  na641_delivery_find_blank_ids: {
+    ...CROSSGEN,
+    ...NO_REPEAT,
+    title: "Find blank IDs",
+    skill: "perception",
+    weight: 2000,
+    conditions: [
+      CONDITION_CHECKS.inLocation(NA641),
+      CONDITION_CHECKS.inSubLocation(
+        NA641_SUBLOCATIONS.rapidDeliverySpecialStorage,
+      ),
+    ],
+    postComplete: [],
+  },
+  na641_delivery_damage_blank_id_case: {
+    ...NO_CROSSGEN,
+    ...NO_REPEAT,
+    title: "Damage the case",
+    flavourText: "Let's make this look like an accident",
+    skill: "engineering",
+    weight: 700,
+    conditions: [
+      CONDITION_CHECKS.inLocation(NA641),
+      CONDITION_CHECKS.inSubLocation(
+        NA641_SUBLOCATIONS.rapidDeliverySpecialStorage,
+      ),
+      CONDITION_CHECKS.ifActionCompleteAny("na641_delivery_find_blank_ids"),
+      CONDITION_CHECKS.hasKnowledge(
+        KNOWLEDGE.NA641.taking_all_blank_ids_bad_idea,
+      ),
+      CONDITION_CHECKS.noFlag(DELIVERY_TAGS.took_all_the_ids),
+      CONDITION_CHECKS.noFlag(DELIVERY_TAGS.damaged_blank_id_case),
+    ],
+    postComplete: [
+      COMPLETION_EFFECTS.addFlag(
+        DELIVERY_TAGS.damaged_blank_id_case,
+        "1",
+      ),
+    ],
+  },
+  na641_delivery_take_blank_id_shipment: {
+    ...NO_CROSSGEN,
+    ...NO_REPEAT,
+    title: "Get your hands on blanks",
+    flavourText: "Here they are",
+    skill: "exploration",
+    weight: 250,
+    conditions: [
+      CONDITION_CHECKS.inLocation(NA641),
+      CONDITION_CHECKS.inSubLocation(
+        NA641_SUBLOCATIONS.rapidDeliverySpecialStorage,
+      ),
+      CONDITION_CHECKS.ifActionCompleteAny("na641_delivery_find_blank_ids"),
+      CONDITION_CHECKS.not(
+        CONDITION_CHECKS.hasItem("na641_blank_id_shipment", 1),
+      ),
+      CONDITION_CHECKS.noFlag(DELIVERY_TAGS.damaged_blank_id_case),
+    ],
+    postComplete: [
+      COMPLETION_EFFECTS.addItem("na641_blank_id_shipment", 1),
+      COMPLETION_EFFECTS.addFlag(DELIVERY_TAGS.took_all_the_ids, "1"),
+    ],
+  },
+  na641_delivery_take_single_blank_id: {
+    ...NO_CROSSGEN,
+    ...NO_REPEAT,
+    title: "Pick up single blank",
+    flavourText: "Let's not overdo it",
+    skill: "exploration",
+    weight: 200,
+    conditions: [
+      CONDITION_CHECKS.inLocation(NA641),
+      CONDITION_CHECKS.inSubLocation(
+        NA641_SUBLOCATIONS.rapidDeliverySpecialStorage,
+      ),
+      CONDITION_CHECKS.flag(DELIVERY_TAGS.damaged_blank_id_case),
+      CONDITION_CHECKS.not(CONDITION_CHECKS.hasItem("na641_blank_id", 1)),
+    ],
+    postComplete: [
+      COMPLETION_EFFECTS.addItem("na641_blank_id", 1),
+    ],
+  },
+  na641_delivery_leave_special_storage: {
+    ...NO_CROSSGEN,
+    ...REPEATABLE,
+    title: "Return to Rapid Delivery Service",
+    skill: "exploration",
+    weight: 30,
+    stopOnRepeat: true,
+    conditions: [
+      CONDITION_CHECKS.inLocation(NA641),
+      CONDITION_CHECKS.inSubLocation(
+        NA641_SUBLOCATIONS.rapidDeliverySpecialStorage,
+      ),
+    ],
+    postComplete: [
+      COMPLETION_EFFECTS.moveSubLocation(NA641_SUBLOCATIONS.rapidDeliveryService),
     ],
   },
   narcadia_delivery_take_order: {

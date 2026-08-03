@@ -151,6 +151,124 @@ export const na641southernMainStreetActions: ActionRepository = {
       COMPLETION_EFFECTS.addItem("na641_johnny_information_report", 1),
     ],
   },
+  na641_delivery_look_for_package_recipient: {
+    ...NO_CROSSGEN,
+    ...NO_REPEAT,
+    title: "Look for package recipient",
+    flavourText: "It was in some small store...",
+    skill: "perception",
+    weight: 1400,
+    conditions: [
+      CONDITION_CHECKS.inLocation(NA641),
+      CONDITION_CHECKS.inSubLocation(NA641_SUBLOCATIONS.southernMainStreet),
+      CONDITION_CHECKS.hasItem("na641_compromised_package", 1),
+    ],
+    postComplete: [
+      COMPLETION_EFFECTS.addKnowledge(
+        KNOWLEDGE.NA641.southern_main_street_leatherworks,
+      ),
+    ],
+  },
+  na641_southern_main_street_visit_leatherworks: {
+    ...NO_CROSSGEN,
+    ...REPEATABLE,
+    title: "Visit Leatherworks",
+    skill: "exploration",
+    weight: 35,
+    stopOnRepeat: true,
+    conditions: [
+      CONDITION_CHECKS.inLocation(NA641),
+      CONDITION_CHECKS.inSubLocation(NA641_SUBLOCATIONS.southernMainStreet),
+      CONDITION_CHECKS.hasKnowledge(
+        KNOWLEDGE.NA641.southern_main_street_leatherworks,
+      ),
+    ],
+    postComplete: [
+      COMPLETION_EFFECTS.moveSubLocation(
+        NA641_SUBLOCATIONS.southernMainStreetLeatherworks,
+      ),
+    ],
+  },
+  na641_southern_main_street_leave_leatherworks: {
+    ...NO_CROSSGEN,
+    ...REPEATABLE,
+    title: "Return to Southern Main Street",
+    skill: "exploration",
+    weight: 20,
+    stopOnRepeat: true,
+    conditions: [
+      CONDITION_CHECKS.inLocation(NA641),
+      CONDITION_CHECKS.inSubLocation(
+        NA641_SUBLOCATIONS.southernMainStreetLeatherworks,
+      ),
+    ],
+    postComplete: [
+      COMPLETION_EFFECTS.moveSubLocation(NA641_SUBLOCATIONS.southernMainStreet),
+    ],
+  },
+  na641_leatherworks_look_at_wares: {
+    ...CROSSGEN,
+    ...NO_REPEAT,
+    title: "Look at wares",
+    flavourText: "Quite a selection of handcrafted goods. Mostly wallets",
+    skill: "perception",
+    weight: 300,
+    conditions: [
+      CONDITION_CHECKS.inLocation(NA641),
+      CONDITION_CHECKS.inSubLocation(
+        NA641_SUBLOCATIONS.southernMainStreetLeatherworks,
+      ),
+    ],
+    postComplete: [],
+  },
+  na641_leatherworks_buy_handcrafted_wallet: {
+    ...NO_CROSSGEN,
+    ...NO_REPEAT,
+    title: "Buy handcrafted wallet",
+    flavourText: "20 Zenny",
+    skill: "social",
+    weight: 400,
+    ...REVEAL.item("narcadia641_zenny", 20),
+    conditions: [
+      CONDITION_CHECKS.inLocation(NA641),
+      CONDITION_CHECKS.inSubLocation(
+        NA641_SUBLOCATIONS.southernMainStreetLeatherworks,
+      ),
+      CONDITION_CHECKS.ifActionCompleteAny(
+        "na641_leatherworks_look_at_wares",
+      ),
+      CONDITION_CHECKS.noFlag(TAGS.MODIFIERS.HAS_HANDCRAFTED_WALLET),
+    ],
+    postComplete: [
+      COMPLETION_EFFECTS.removeItem("narcadia641_zenny", 20),
+      COMPLETION_EFFECTS.addFlag(
+        TAGS.MODIFIERS.HAS_HANDCRAFTED_WALLET,
+        "true",
+      ),
+    ],
+  },
+  na641_leatherworks_deliver_special_package: {
+    ...NO_CROSSGEN,
+    ...NO_REPEAT,
+    title: "Deliver the special package",
+    flavourText: "Surely nothing bad will happen",
+    skill: "social",
+    weight: 900,
+    conditions: [
+      CONDITION_CHECKS.inLocation(NA641),
+      CONDITION_CHECKS.inSubLocation(
+        NA641_SUBLOCATIONS.southernMainStreetLeatherworks,
+      ),
+      CONDITION_CHECKS.hasItem("na641_compromised_package", 1),
+    ],
+    postComplete: [
+      COMPLETION_EFFECTS.removeItem("na641_compromised_package", 1),
+      COMPLETION_EFFECTS.addFlag(
+        TAGS.NA641.LEATHERWORKS.COMPROMISED,
+        "1",
+      ),
+    ],
+  },
   na641_southern_main_street_visit_library: {
     ...NO_CROSSGEN,
     ...REPEATABLE,
@@ -217,7 +335,7 @@ export const na641southernMainStreetActions: ActionRepository = {
     title: "Read Society of New Arcadia",
     flavourText: "Learn all about the glorious state of New Arcadia!",
     skill: "social",
-    weight: 6000,
+    weight: 4500,
     conditions: [
       CONDITION_CHECKS.inLocation(NA641),
       CONDITION_CHECKS.inSubLocation(
@@ -259,7 +377,7 @@ export const na641southernMainStreetActions: ActionRepository = {
     ...NO_REPEAT,
     title: 'Read "Structural Properties of Aurexite"',
     skill: "engineering",
-    weight: 9000,
+    weight: 6000,
     conditions: [
       CONDITION_CHECKS.inLocation(NA641),
       CONDITION_CHECKS.inSubLocation(
@@ -302,7 +420,7 @@ export const na641southernMainStreetActions: ActionRepository = {
     title: "Read Charting Arcadia",
     flavourText: "Everything about how New Arcadia changed",
     skill: "exploration",
-    weight: 15000,
+    weight: 7500,
     conditions: [
       CONDITION_CHECKS.inLocation(NA641),
       CONDITION_CHECKS.inSubLocation(
@@ -357,6 +475,30 @@ export const na641southernMainStreetActions: ActionRepository = {
     postComplete: [
       COMPLETION_EFFECTS.addKnowledge(
         KNOWLEDGE.BBASIN7281.ancient_lizard_research,
+      ),
+    ],
+  },
+  na641_library_check_monster_authors_note: {
+    ...CROSSGEN,
+    ...NO_REPEAT,
+    title: "Check out author's note on monsters",
+    flavourText: "That might come in helpful",
+    skill: "perception",
+    weight: 1700,
+    conditions: [
+      CONDITION_CHECKS.inLocation(NA641),
+      CONDITION_CHECKS.inSubLocation(
+        NA641_SUBLOCATIONS.southernMainStreetLibrary,
+      ),
+      CONDITION_CHECKS.flag(TAGS.NA641.LIBRARY.CARD),
+      CONDITION_CHECKS.ifActionCompleteAny(
+        "na641_library_read_about_ancient_monsters",
+      ),
+    ],
+    postComplete: [
+      COMPLETION_EFFECTS.addKnowledge(KNOWLEDGE.NA641.professor_naoto_lead),
+      COMPLETION_EFFECTS.addLog(
+        "Luckily, he lives nearby — let's see if you can find Professor Naoto on Western Main Street",
       ),
     ],
   },

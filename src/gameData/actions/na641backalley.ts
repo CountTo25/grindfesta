@@ -265,7 +265,7 @@ export const na641BackalleyActions: ActionRepository = {
     flavourText: "With all those violent zaps, maybe there is something",
     skill: "perception",
     weight: 1000,
-    ...REVEAL.skillCheck("perception", 100),
+    ...REVEAL.skillCheck("perception", 50),
     conditions: [
       CONDITION_CHECKS.inLocation(NA641),
       CONDITION_CHECKS.inSubLocation(

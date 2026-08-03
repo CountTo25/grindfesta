@@ -1,6 +1,6 @@
 import { COMPLETION_EFFECTS, CONDITION_CHECKS, REVEAL } from "../../utils";
 import { LOCATIONS, SUBLOCATIONS } from "../sublocations";
-import { TAGS } from "../tags";
+import { KNOWLEDGE, TAGS } from "../tags";
 import {
   CROSSGEN,
   NO_CROSSGEN,
@@ -221,6 +221,9 @@ export const na641CityHallActions: ActionRepository = {
     ],
     postComplete: [
       COMPLETION_EFFECTS.addLog("You are asked to present your ID"),
+      COMPLETION_EFFECTS.addKnowledge(
+        KNOWLEDGE.NA641.city_hall_requires_identification,
+      ),
     ],
   },
   na641_city_hall_excuse_and_retreat: {

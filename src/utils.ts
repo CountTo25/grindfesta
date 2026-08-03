@@ -91,6 +91,14 @@ type RevealCondition = {
 };
 
 export const REVEAL = {
+  energy: (amount: number): RevealCondition => {
+    return {
+      revealCondition: [
+        (state: GameState) => state.data.run.currentEnergy >= amount,
+      ],
+      revealConditionExplained: [`Requires ${amount} energy`],
+    };
+  },
   skillCheck: (t: Skill, modifier: number): RevealCondition => {
     return {
       revealCondition: [
@@ -292,6 +300,12 @@ export const COMPLETION_EFFECTS = {
       return d;
     };
   },
+  spendEnergy: (amount: number) => {
+    return (d: GameState) => {
+      d.data.run.currentEnergy -= amount;
+      return d;
+    };
+  },
   setEnergy: (amount: number) => {
     return (d: GameState) => {
       d.data.run.currentEnergy = amount;
@@ -318,6 +332,15 @@ export const COMPLETION_EFFECTS = {
       let numValue = Number.parseInt(rawValue ?? "0");
       let newValue = patcher(numValue);
       d.data.run.flags[key] = newValue.toString();
+      return d;
+    };
+  },
+  decreaseFlagNumeric: (key: string, amount: number, floor: number = 0) => {
+    return (d: GameState) => {
+      const value = Number.parseInt(d.data.run.flags[key] ?? "0");
+      if (value > floor) {
+        d.data.run.flags[key] = Math.max(floor, value - amount).toString();
+      }
       return d;
     };
   },
