@@ -26,6 +26,10 @@ export const pantheon31349BankActions: ActionRepository = {
     flavourText: "I guess you'll need a card too",
     skill: "social",
     weight: 1000,
+    ...REVEAL.runFlag(
+      TAGS.PANTHEON31349.MAGIC_IMBUED,
+      "Requires being imbued with magic",
+    ),
     conditions: [
       CONDITION_CHECKS.inLocation(ETERNIA31349),
       CONDITION_CHECKS.inSubLocation(ETERNIA31349_SUBLOCATIONS.bankBranch),

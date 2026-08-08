@@ -206,8 +206,6 @@ export type Action = {
   crossGeneration: boolean;
   revealCondition?: ((state: GameState) => boolean)[];
   revealConditionExplained?: ActionText[];
-  availabilityCondition?: StateChecker[];
-  availabilityConditionExplained?: ActionText[];
   postComplete: StatePatcher | StatePatcher[];
   flavourText?: ActionText;
   stopOnRepeat?: boolean;

@@ -44,7 +44,7 @@ function suggestPointCardIfEligible() {
     (d) =>
       CONDITION_CHECKS.numFlagGTE(
         TAGS.NA641.DEPARTMENT_STORE.SPENT,
-        100,
+        30,
       )(d) &&
       CONDITION_CHECKS.noFlag(
         TAGS.NA641.DEPARTMENT_STORE.POINT_CARD_SUGGESTED,
@@ -190,6 +190,8 @@ export const departmentStoreActions: ActionRepository = {
     ...NO_CROSSGEN,
     ...NO_REPEAT,
     title: "Apply for point card",
+    flavourText:
+      "Deals on tech store goods! Limited to customers who spent more than 30Z today!",
     skill: "social",
     weight: 300,
     conditions: [

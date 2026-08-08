@@ -174,26 +174,6 @@ export const REVEAL = {
   },
 };
 
-type AvailabilityCondition = {
-  availabilityCondition: ((state: GameState) => boolean)[];
-  availabilityConditionExplained: (
-    | string
-    | ((state: GameState) => string)
-  )[];
-};
-
-export const AVAILABILITY = {
-  energyRoom: (amount: number): AvailabilityCondition => ({
-    availabilityCondition: [
-      (state: GameState) =>
-        state.data.run.currentEnergy <= state.data.run.maxEnergy - amount,
-    ],
-    availabilityConditionExplained: [
-      `Needs room for ${amount} energy`,
-    ],
-  }),
-};
-
 type GenericConditionCheck = (d: GameState) => boolean;
 export const CONDITION_CHECKS = {
   or: (conditions: GenericConditionCheck[]): GenericConditionCheck => {

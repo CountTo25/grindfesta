@@ -180,7 +180,7 @@ export const professorNaotoActions: ActionRepository = {
     title: "Ask the professor about lizard weaknesses",
     flavourText: "Lets learn more",
     skill: "survival",
-    weight: 200,
+    weight: 100,
     conditions: [
       ...IN_NAOTO_HOUSE,
       CONDITION_CHECKS.flag(TAGS.NA641.PROFESSOR_NAOTO.READY_TO_LISTEN),
@@ -243,7 +243,7 @@ export const professorNaotoActions: ActionRepository = {
     flavourText:
       "With the whole photo in your hands, you can understand even more about this guy",
     skill: "survival",
-    weight: 120,
+    weight: 80,
     conditions: [
       ...IN_NAOTO_HOUSE,
       CONDITION_CHECKS.or([
@@ -288,8 +288,15 @@ export const professorNaotoActions: ActionRepository = {
     weight: 1,
     conditions: [
       ...IN_NAOTO_HOUSE,
+      CONDITION_CHECKS.flag(TAGS.NA641.PROFESSOR_NAOTO.READY_TO_LISTEN),
       CONDITION_CHECKS.ifActionCompleteGlobal(
         "na641_naoto_discuss_further_cooperation",
+      ),
+      CONDITION_CHECKS.ifActionCompleteGlobal(
+        "na641_naoto_ask_about_lizard_weaknesses",
+      ),
+      CONDITION_CHECKS.ifActionCompleteGlobal(
+        "na641_naoto_ask_about_specimen",
       ),
     ],
     postComplete: [],

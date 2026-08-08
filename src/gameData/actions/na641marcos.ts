@@ -135,7 +135,7 @@ export const marcosWorkshopActions: ActionRepository = {
     skill: "engineering",
     flavourText:
       "Marco suggests you can treat yourself if you sort some batteries for him",
-    weight: 45,
+    weight: 15,
     ...REVEAL.itemNotCappedYet("small_battery"),
     conditions: [
       CONDITION_CHECKS.inLocation(NA641),
@@ -160,7 +160,6 @@ export const marcosWorkshopActions: ActionRepository = {
       CONDITION_CHECKS.inLocation(NA641),
       CONDITION_CHECKS.inSubLocation(NA641_SUBLOCATIONS.marcosWorkshop),
       CONDITION_CHECKS.ifActionCompleteAny("narcadia_macros_observe_work"),
-      CONDITION_CHECKS.ifActionCompleteRun("narcadia_macros_pay_charger"),
     ],
     postComplete: [
       COMPLETION_EFFECTS.addLog(
@@ -301,7 +300,7 @@ export const marcosWorkshopActions: ActionRepository = {
     flavourText:
       "With tools now available for you, you can start to tinker. Halves energy decay rate",
     weight: 150,
-    ...REVEAL.skillCheck("engineering", 3),
+    ...REVEAL.skillCheck("engineering", 2),
     conditions: [
       CONDITION_CHECKS.inLocation(NA641),
       CONDITION_CHECKS.inSubLocation(NA641_SUBLOCATIONS.marcosWorkshop),
@@ -418,7 +417,7 @@ export const marcosWorkshopActions: ActionRepository = {
     ],
   },
   na641_marco_theorise_energy_transfer: {
-    ...NO_CROSSGEN,
+    ...CROSSGEN,
     ...NO_REPEAT,
     title: "Theorise energy transfer",
     flavourText: "Poor Marco is swamped by unfathomable events",
@@ -436,7 +435,11 @@ export const marcosWorkshopActions: ActionRepository = {
         KNOWLEDGE.PANTHEON31349.aurexite_energy,
       ),
     ],
-    postComplete: [],
+    postComplete: [
+      COMPLETION_EFFECTS.addKnowledge(
+        KNOWLEDGE.PANTHEON31349.aurexite_energy_transfer,
+      ),
+    ],
   },
   na641_marco_create_passive_energy_generator: {
     ...NO_CROSSGEN,
@@ -507,13 +510,14 @@ export const marcosWorkshopActions: ActionRepository = {
     title: "Modify Solar-powered radio speaker",
     flavourText: "Radically improve sound output power",
     skill: "engineering",
-    weight: 2500,
+    weight: 1500,
     ...REVEAL.skillCheck("engineering", 50),
     conditions: [
       CONDITION_CHECKS.inLocation(NA641),
       CONDITION_CHECKS.inSubLocation(NA641_SUBLOCATIONS.marcosWorkshop),
       CONDITION_CHECKS.hasKnowledge(KNOWLEDGE.BBASIN7281.scaring_off_lizard),
       CONDITION_CHECKS.hasItem("na641_solar_powered_radio", 1),
+      CONDITION_CHECKS.ifActionCompleteRun("na641_marcos_ask_solar_charger"),
       CONDITION_CHECKS.noFlag(TAGS.NA641.RADIO.SPEAKER_AMPLIFIED),
       HAS_MARCO_TOOLS_ACCESS,
     ],

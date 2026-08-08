@@ -39,10 +39,6 @@
   $: percent = (progress / action.weight) * 100;
   $: isRevealed =
     action.revealCondition?.every((condition) => condition($gameState)) ?? true;
-  $: isAvailable =
-    action.availabilityCondition?.every((condition) =>
-      condition($gameState),
-    ) ?? true;
   $: canStart = isRevealed && canStartAction($gameState, id);
   $: canToggle = running || canStart;
   $: isKnown = $gameState.data.global.completedActionHistory.includes(id);
@@ -244,12 +240,6 @@
     </div>
     {#if !isRevealed}
       {#each action.revealConditionExplained ?? [] as condition}
-        <div class="muted_text text-xs col-span-12 pl-2">
-          {resolveActionText(condition, $gameState)}
-        </div>
-      {/each}
-    {:else if !isAvailable}
-      {#each action.availabilityConditionExplained ?? [] as condition}
         <div class="muted_text text-xs col-span-12 pl-2">
           {resolveActionText(condition, $gameState)}
         </div>

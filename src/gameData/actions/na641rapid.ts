@@ -23,7 +23,7 @@ const rapidDeliver = () => [
 
 const turnInDelivery = () => [
   COMPLETION_EFFECTS.removeFlag("narcadia_delivery_finished"),
-  COMPLETION_EFFECTS.addItem("narcadia641_zenny", 2),
+  COMPLETION_EFFECTS.addItem("narcadia641_zenny", 3),
   COMPLETION_EFFECTS.patchFlagNumeric("narcadia_delivery_count", (v) => ++v),
 ];
 
@@ -88,7 +88,7 @@ export const rapidDeliveryActions: ActionRepository = {
     ],
     postComplete: [
       COMPLETION_EFFECTS.addLog(
-        "Payment is 2 Zeny per delivery, but you'll need to show that you have some knowledge about local area"
+        "Payment is 3 Zenny per delivery, but you'll need to show that you have some knowledge about local area"
       ),
     ],
   },
@@ -140,6 +140,8 @@ export const rapidDeliveryActions: ActionRepository = {
       CONDITION_CHECKS.ifActionCompleteRun("na641_johnny_take_setup_job"),
       CONDITION_CHECKS.ifActionCompleteRun("narcadia_delivery_take_job"),
       CONDITION_CHECKS.not(HAS_DELIVERED_FOUR_ORDERS),
+      CONDITION_CHECKS.noFlag(DELIVERY_TAGS.active_order),
+      CONDITION_CHECKS.noFlag("narcadia_delivery_finished"),
     ],
     postComplete: [],
   },
@@ -155,6 +157,8 @@ export const rapidDeliveryActions: ActionRepository = {
       CONDITION_CHECKS.inSubLocation(NA641_SUBLOCATIONS.rapidDeliveryService),
       CONDITION_CHECKS.ifActionCompleteRun("na641_johnny_take_setup_job"),
       CONDITION_CHECKS.ifActionCompleteRun("narcadia_delivery_take_job"),
+      CONDITION_CHECKS.noFlag(DELIVERY_TAGS.active_order),
+      CONDITION_CHECKS.noFlag("narcadia_delivery_finished"),
       CONDITION_CHECKS.or([
         CONDITION_CHECKS.ifActionCompleteRun(
           "na641_delivery_ask_for_johnnys_package",
@@ -167,6 +171,8 @@ export const rapidDeliveryActions: ActionRepository = {
     ],
     postComplete: [
       COMPLETION_EFFECTS.addItem("na641_to_be_compromised_package", 1),
+      COMPLETION_EFFECTS.addFlag(DELIVERY_TAGS.active_order, "1"),
+      COMPLETION_EFFECTS.addFlag(DELIVERY_TAGS.johnny_setup_delivery, "1"),
     ],
   },
   na641_delivery_slide_envelope_into_package: {
@@ -495,6 +501,7 @@ export const rapidDeliveryActions: ActionRepository = {
       CONDITION_CHECKS.noFlag("marco_charger_on_hand"),
       CONDITION_CHECKS.noFlag("na641_marco_delivery_lock"),
       CONDITION_CHECKS.noFlag(DELIVERY_TAGS.junk_delivery),
+      CONDITION_CHECKS.noFlag(DELIVERY_TAGS.johnny_setup_delivery),
     ],
     postComplete: [
       ...rapidDeliver(),

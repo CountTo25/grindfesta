@@ -8,6 +8,12 @@ import {
 
 const MURMUR_COOLDOWN_MS = 60_000;
 const MURMUR_MEAN_WAIT_MS = 30_000;
+const BBASIN_OUTDOOR_MURMURS = [
+  "*Wind blows*",
+  "You hear a faint roar far away",
+  "Rocks fell off the cliff",
+  "A suspiciously large bird flew over you",
+] as const;
 
 export type MurmurRepository = {
   [LocationKey in keyof typeof SUBLOCATIONS]?: Partial<
@@ -23,6 +29,22 @@ export const murmurs = {
       "Some guys are arguing over latest newspaper",
       "...his goons are at it again...",
       "Something fell off the top level",
+    ],
+  },
+  bbasin7281: {
+    sulfurSprings: BBASIN_OUTDOOR_MURMURS,
+    canyon: BBASIN_OUTDOOR_MURMURS,
+  },
+  eternia31349: {
+    greatLibrary: [
+      "*Cough*",
+      "*Pages turn*",
+      "Someone just dropped a book",
+    ],
+    scholarsDistrict: [
+      "...Did you hear about those grapes?..",
+      "...Recent prophecies are worrying!..",
+      "Someone just conjured some ice",
     ],
   },
 } as const satisfies MurmurRepository;

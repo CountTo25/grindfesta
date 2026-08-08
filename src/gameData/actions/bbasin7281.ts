@@ -1,5 +1,4 @@
 import {
-  AVAILABILITY,
   CONDITION_CHECKS,
   COMPLETION_EFFECTS,
   REVEAL,
@@ -96,10 +95,10 @@ export const bbasin7281Actions: ActionRepository = {
     ...NO_CROSSGEN,
     ...REPEATABLE,
     title: "Recharge in sunny spot",
-    flavourText: "Restores 1 energy",
+    flavourText: "Produces 1 Small battery",
     skill: "survival",
     weight: 10,
-    ...AVAILABILITY.energyRoom(1),
+    ...REVEAL.itemNotCappedYet("small_battery"),
     conditions: [
       CONDITION_CHECKS.inLocation(BBASIN7281),
       CONDITION_CHECKS.inSubLocation(BBASIN7281_SUBLOCATIONS.sulfurSprings),
@@ -112,7 +111,7 @@ export const bbasin7281Actions: ActionRepository = {
       ),
     ],
     postComplete: [
-      COMPLETION_EFFECTS.restoreEnergy(1),
+      COMPLETION_EFFECTS.addItem("small_battery", 1),
       COMPLETION_EFFECTS.patchFlagNumeric(
         TAGS.BBASIN7281.SULFUR_SPRINGS_SUNNY_SPOT_CHARGES,
         (v) => ++v,
@@ -191,7 +190,7 @@ export const bbasin7281Actions: ActionRepository = {
     title: "Blast some noise",
     flavourText: "That should scare it, right? Will spend 10 energy",
     skill: "engineering",
-    weight: 4000,
+    weight: 2000,
     ...REVEAL.energy(10),
     conditions: [
       CONDITION_CHECKS.inLocation(BBASIN7281),
@@ -203,6 +202,33 @@ export const bbasin7281Actions: ActionRepository = {
     postComplete: [
       COMPLETION_EFFECTS.spendEnergy(10),
       COMPLETION_EFFECTS.addFlag(TAGS.BBASIN7281.LIZARD_SCARED_OFF, "1"),
+    ],
+  },
+  bbasin7281_canyon_sunny_recharge: {
+    ...NO_CROSSGEN,
+    ...REPEATABLE,
+    title: "Recharge in sunny spot",
+    flavourText: "Produces 1 Small battery",
+    skill: "survival",
+    weight: 10,
+    ...REVEAL.itemNotCappedYet("small_battery"),
+    conditions: [
+      CONDITION_CHECKS.inLocation(BBASIN7281),
+      CONDITION_CHECKS.inSubLocation(BBASIN7281_SUBLOCATIONS.canyon),
+      CONDITION_CHECKS.flag(TAGS.BBASIN7281.LIZARD_SCARED_OFF),
+      CONDITION_CHECKS.hasItem("na641_solar_powered_radio", 1),
+      CONDITION_CHECKS.flag(TAGS.NA641.RADIO.CHARGER_MODIFIED),
+      CONDITION_CHECKS.numFlagLTE(
+        TAGS.BBASIN7281.CANYON_SUNNY_SPOT_CHARGES,
+        1,
+      ),
+    ],
+    postComplete: [
+      COMPLETION_EFFECTS.addItem("small_battery", 1),
+      COMPLETION_EFFECTS.patchFlagNumeric(
+        TAGS.BBASIN7281.CANYON_SUNNY_SPOT_CHARGES,
+        (v) => ++v,
+      ),
     ],
   },
   bbasin7281_photograph_lizard: {
@@ -535,8 +561,9 @@ export const bbasin7281Actions: ActionRepository = {
   bbasin7281_leave_canyon: {
     ...NO_CROSSGEN,
     ...REPEATABLE,
-    title: "Leave canyon",
+    title: "Return to Sulfur Springs",
     skill: "exploration",
+    idx: 10,
     weight: 120,
     stopOnRepeat: true,
     conditions: [

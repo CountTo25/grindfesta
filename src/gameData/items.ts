@@ -306,11 +306,28 @@ export const items = {
   },
   eternia31349_spare_aurexite_bead: {
     name: "Spare Aurexite bead",
-    description: "Well, thats just aurexite",
+    description: "Well, its just aurexite. But in bead form!",
     consumable: false,
     consumeRequirement: [],
     onConsume: [],
     capacity: (_) => 5,
+  },
+  pure_energy: {
+    name: "Pure energy",
+    description: "Energy is circling your device, waiting for the chance to enter",
+    consumable: true,
+    cooldownMs: 5000,
+    consumeRequirement: (s) => {
+      return s.data.run.currentEnergy <= s.data.run.maxEnergy - 1;
+    },
+    onConsume: (s: GameState) => {
+      s.data.run.currentEnergy = Math.min(
+        s.data.run.currentEnergy + 1,
+        s.data.run.maxEnergy,
+      );
+      return s;
+    },
+    capacity: null,
   },
 } as const satisfies Record<string, Item>;
 

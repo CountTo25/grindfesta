@@ -88,6 +88,7 @@ export const knowledge = {
   manipulation_basics: "magic manipulation basics",
   energy_manipulation: "energy manipulation",
   aurexite_energy: "energetic properties of Aurexite",
+  aurexite_energy_transfer: "transferring energy from Aurexite",
   magic_tech_connection_1: "connection between magic and technology",
   eternia_communicating_with_gods: "communicating with gods in Eternia",
   tomes_advanced_shaping: "tomes on advanced shaping",

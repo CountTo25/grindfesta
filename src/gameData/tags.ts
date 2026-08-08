@@ -1,6 +1,7 @@
 export const DELIVERY_TAGS = {
   junk_delivery: "narcadia_junk_delivery",
   active_order: "narcadia_delivery_active_order",
+  johnny_setup_delivery: "na641_johnny_setup_delivery",
   advanced_access: "narcadia_delivery_advanced_access",
   took_all_the_ids: "na641_took_all_the_ids",
   damaged_blank_id_case: "na641_damaged_blank_id_case",
@@ -65,6 +66,7 @@ export const TAGS = {
     CANYON_CAVE_LIGHT_ON: "canyon_cave_light_on",
     SULFUR_SPRINGS_SUNNY_SPOT_CHARGES:
       "bbasin7281_sulfur_springs_sunny_spot_charges",
+    CANYON_SUNNY_SPOT_CHARGES: "bbasin7281_canyon_sunny_spot_charges",
   },
   PANTHEON31349: {
     HSAK_FOLLOWS: "hsak_follows",
@@ -181,6 +183,7 @@ export const KNOWLEDGE = {
     manipulation_basics: "manipulation_basics",
     energy_manipulation: "energy_manipulation",
     aurexite_energy: "aurexite_energy",
+    aurexite_energy_transfer: "aurexite_energy_transfer",
     magic_tech_connection_1: "magic_tech_connection_1",
     communicating_with_gods: "eternia_communicating_with_gods",
     tomes_advanced_shaping: "tomes_advanced_shaping",

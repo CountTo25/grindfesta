@@ -311,6 +311,7 @@ export const pantheon31349ScholarsDistrictActions: ActionRepository = {
         KNOWLEDGE.PANTHEON31349.scholar_district_jobs,
       ),
       HSAK_INTRO_FINISHED,
+      CONDITION_CHECKS.flag(TAGS.PANTHEON31349.BANK_ACCOUNT_INFO),
       CONDITION_CHECKS.noFlag(
         TAGS.PANTHEON31349.GOT_JOB_OFFER_CLEANING_DIVINERS,
       ),
@@ -325,7 +326,7 @@ export const pantheon31349ScholarsDistrictActions: ActionRepository = {
   eternia31349_pick_library_sorting_offer: {
     ...NO_CROSSGEN,
     ...NO_REPEAT,
-    title: "Book sorting",
+    title: "Book sorting job offer",
     flavourText: "Library is massive — and they need some help",
     skill: "perception",
     weight: 500,
@@ -338,6 +339,7 @@ export const pantheon31349ScholarsDistrictActions: ActionRepository = {
         KNOWLEDGE.PANTHEON31349.scholar_district_jobs,
       ),
       HSAK_INTRO_FINISHED,
+      CONDITION_CHECKS.flag(TAGS.PANTHEON31349.BANK_ACCOUNT_INFO),
       CONDITION_CHECKS.noFlag(
         TAGS.PANTHEON31349.GOT_JOB_OFFER_SORTING_LIBRARY,
       ),

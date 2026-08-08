@@ -314,9 +314,7 @@ export function canStartAction(state: GameState, id: string): boolean {
   ) {
     return false;
   }
-  return (action.availabilityCondition ?? []).every((condition) =>
-    condition(state),
-  );
+  return true;
 }
 
 export function canSkipUnavailableRetraceAction(
@@ -777,14 +775,6 @@ actionsCheckSignal.subscribe((_) => {
           state.data.run.action = null;
           state.data.run.actionProgress[ACTION_ID].progress = 0;
         }
-        if (
-          actionRef.availabilityCondition !== undefined &&
-          !actionRef.availabilityCondition.every((c) => c(state))
-        ) {
-          state.data.run.action = null;
-          state.data.run.actionProgress[ACTION_ID].progress = 0;
-        }
-
         // One-shot queue entries advance after one completion.
         if (
           state.data.run.activeQueuedAction?.id === ACTION_ID &&

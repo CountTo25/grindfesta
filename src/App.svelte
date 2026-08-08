@@ -502,7 +502,7 @@
     <div class="col-span-12 px-2 mb-2">
       <div class="glass_surface bottom_bar_surface flex items-center gap-2 py-1 pl-3 pr-2">
         <div class="subtle_text build_tag min-w-0 flex-1 text-sm">
-          built @ {__BUILD_TIME__} (<a
+          [EARLY ALPHA] built @ {__BUILD_TIME__} (<a
             class="underline"
             target="_blank"
             href="https://github.com/CountTo25/grindfesta/commits/main/"

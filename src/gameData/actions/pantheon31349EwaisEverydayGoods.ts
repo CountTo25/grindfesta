@@ -1,5 +1,4 @@
 import {
-  AVAILABILITY,
   COMPLETION_EFFECTS,
   CONDITION_CHECKS,
   REVEAL,
@@ -102,7 +101,7 @@ export const pantheon31349EwaisEverydayGoodsActions: ActionRepository = {
     ...NO_CROSSGEN,
     ...REPEATABLE,
     title: "Buy a spare bead",
-    flavourText: "More aurexite!",
+    flavourText: "40 Gald. More aurexite!",
     skill: "social",
     weight: 300,
     ...REVEAL.all([
@@ -128,10 +127,9 @@ export const pantheon31349EwaisEverydayGoodsActions: ActionRepository = {
     ...NO_CROSSGEN,
     ...REPEATABLE,
     title: "Transfer energy from Aurexite",
-    flavourText: "Grants 2 energy",
+    flavourText: "Produces 2 Pure energy",
     skill: "magic",
     weight: 50,
-    ...AVAILABILITY.energyRoom(2),
     conditions: [
       HAS_AUREXITE_BEAD,
       CONDITION_CHECKS.flag(TAGS.PANTHEON31349.MAGIC_IMBUED),
@@ -144,23 +142,22 @@ export const pantheon31349EwaisEverydayGoodsActions: ActionRepository = {
       CONDITION_CHECKS.hasKnowledge(
         KNOWLEDGE.NA641.aurexite_structural_properties,
       ),
-      CONDITION_CHECKS.ifActionCompleteRun(
-        "na641_marco_theorise_energy_transfer",
+      CONDITION_CHECKS.hasKnowledge(
+        KNOWLEDGE.PANTHEON31349.aurexite_energy_transfer,
       ),
     ],
     postComplete: [
-      COMPLETION_EFFECTS.restoreEnergy(2),
       consumeAurexiteBead,
+      COMPLETION_EFFECTS.addItem("pure_energy", 2),
     ],
   },
   eternia31349_ewai_distill_low_grade_aurexite: {
     ...NO_CROSSGEN,
     ...REPEATABLE,
     title: "Distill energy from low grade Aurexite",
-    flavourText: "Not much, but still. Adds 1 energy",
+    flavourText: "Not much, but still. Produces 1 Pure energy",
     skill: "magic",
     weight: 80,
-    ...AVAILABILITY.energyRoom(1),
     conditions: [
       CONDITION_CHECKS.hasItem("bbasin7281_rough_aurexite_chunk", 1),
       CONDITION_CHECKS.flag(TAGS.PANTHEON31349.MAGIC_IMBUED),
@@ -173,13 +170,13 @@ export const pantheon31349EwaisEverydayGoodsActions: ActionRepository = {
       CONDITION_CHECKS.hasKnowledge(
         KNOWLEDGE.NA641.aurexite_structural_properties,
       ),
-      CONDITION_CHECKS.ifActionCompleteRun(
-        "na641_marco_theorise_energy_transfer",
+      CONDITION_CHECKS.hasKnowledge(
+        KNOWLEDGE.PANTHEON31349.aurexite_energy_transfer,
       ),
     ],
     postComplete: [
-      COMPLETION_EFFECTS.restoreEnergy(1),
       COMPLETION_EFFECTS.removeItem("bbasin7281_rough_aurexite_chunk", 1),
+      COMPLETION_EFFECTS.addItem("pure_energy", 1),
     ],
   },
 };
