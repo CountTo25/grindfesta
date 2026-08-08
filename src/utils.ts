@@ -1,7 +1,9 @@
-import { items, type ItemKey } from "./gameData/items";
+import { getItemCapacity, items, type ItemKey } from "./gameData/items";
 import { knowledge } from "./gameData/knowledge";
+import type { MilestoneKey } from "./gameData/milestones";
 import { LOCATIONS } from "./gameData/sublocations";
-import { KNOWLEDGE } from "./gameData/tags";
+import { KNOWLEDGE, TAGS } from "./gameData/tags";
+import { resolveUpgradeEffect, upgrades } from "./gameData/upgrades";
 import {
   sendBakeSignal,
   sendKnowledgesignal,
@@ -120,13 +122,23 @@ export const REVEAL = {
       revealConditionExplained: [`Requires knowledge about ${knowledge[t]}`],
     };
   },
+  runFlag: (key: string, explanation: string): RevealCondition => {
+    return {
+      revealCondition: [
+        (state) =>
+          Object.prototype.hasOwnProperty.call(state.data.run.flags, key),
+      ],
+      revealConditionExplained: [explanation],
+    };
+  },
   itemNotCappedYet: (id: ItemKey): RevealCondition => {
     return {
       revealCondition: [
         (state: GameState) => {
+          const capacity = getItemCapacity(id, state);
           return (
-            (state.data.run.inventory[id]?.amount ?? 0) <
-            items[id].capacity(state)
+            capacity === null ||
+            (state.data.run.inventory[id]?.amount ?? 0) < capacity
           );
         },
       ],
@@ -287,6 +299,26 @@ export const COMPLETION_EFFECTS = {
       return d;
     };
   },
+  reachMilestone: (id: MilestoneKey) => {
+    return (d: GameState) => {
+      if (!d.data.run.milestoneEntries.some((entry) => entry.id === id)) {
+        d.data.run.milestoneEntries.push({ ts: d.data.run.timeSpent, id });
+      }
+      if (!d.data.global.reached_milestones.includes(id)) {
+        d.data.global.reached_milestones.push(id);
+        if (
+          d.data.global.purchased_upgrades.includes("timeline_stabilization")
+        ) {
+          const capacityGain = resolveUpgradeEffect(
+            upgrades.timeline_stabilization.effect,
+          );
+          d.data.global.maxEnergy += capacityGain;
+          d.data.run.maxEnergy += capacityGain;
+        }
+      }
+      return d;
+    };
+  },
   cutDecay: (factor: number) => {
     return (d: GameState) => {
       d.data.run.energyDecayRate /= factor;
@@ -337,6 +369,18 @@ export const COMPLETION_EFFECTS = {
       return d;
     };
   },
+  increaseSocialStanding: (amount: number = 1) => {
+    return (d: GameState) => {
+      const standing = Number.parseInt(
+        d.data.run.flags[TAGS.NA641.CITY_HALL.SOCIAL_STANDING] ?? "0",
+      );
+      d.data.run.flags[TAGS.NA641.CITY_HALL.SOCIAL_STANDING] = (
+        standing + amount
+      ).toString();
+      d.data.run.flags[TAGS.NA641.CITY_HALL.SOCIAL_STANDING_CHANGED] = "1";
+      return d;
+    };
+  },
   decreaseFlagNumeric: (key: string, amount: number, floor: number = 0) => {
     return (d: GameState) => {
       const value = Number.parseInt(d.data.run.flags[key] ?? "0");
@@ -354,23 +398,29 @@ export const COMPLETION_EFFECTS = {
   },
   addItem(itemId: ItemKey, amount: number) {
     return (state: GameState) => {
+      const previousAmount = state.data.run.inventory[itemId]?.amount ?? 0;
       if (!state.data.run.inventory[itemId]) {
         state.data.run.inventory[itemId] = { amount: 0, cooldown: 0 };
       }
-      if (
-        state.data.run.inventory[itemId].amount < items[itemId].capacity(state)
-      ) {
+      const capacity = getItemCapacity(itemId, state);
+      if (capacity === null) {
+        state.data.run.inventory[itemId].amount += amount;
+      } else if (state.data.run.inventory[itemId].amount < capacity) {
         state.data.run.inventory[itemId].amount += Math.min(
           amount,
-          items[itemId].capacity(state) -
-            state.data.run.inventory[itemId].amount
+          capacity - state.data.run.inventory[itemId].amount,
         );
-        if (
-          state.data.run.inventory[itemId].amount >=
-          items[itemId].capacity(state)
-        ) {
+        if (state.data.run.inventory[itemId].amount >= capacity) {
           state.data.run.action = null;
         }
+      }
+      if (
+        "anchor" in items[itemId] &&
+        state.data.run.inventory[itemId].amount > previousAmount
+      ) {
+        return COMPLETION_EFFECTS.addKnowledge(
+          KNOWLEDGE.TIME_LEAP.anchoring,
+        )(state);
       }
       return state;
     };
@@ -381,7 +431,10 @@ export const COMPLETION_EFFECTS = {
       if (!state.data.run.inventory[itemId]) {
         state.data.run.inventory[itemId] = { amount: 0, cooldown: 0 };
       }
-      state.data.run.inventory[itemId].amount = items[itemId].capacity(state);
+      const capacity = getItemCapacity(itemId, state);
+      if (capacity !== null) {
+        state.data.run.inventory[itemId].amount = capacity;
+      }
       return state;
     };
   },
@@ -395,11 +448,19 @@ export const COMPLETION_EFFECTS = {
     };
   },
   moveSubLocation: (location: SubLocation) => {
-    return (d: GameState) => {
-      d.data.run.subLocation = location;
-      sendSubLocationSignal();
-      return d;
-    };
+    return Object.assign(
+      (d: GameState) => {
+        d.data.run.subLocation = location;
+        sendSubLocationSignal();
+        return d;
+      },
+      {
+        metadata: {
+          kind: "moveSubLocation" as const,
+          destination: location,
+        },
+      },
+    );
   },
   addKnowledge: (id: string) => {
     return (d: GameState) => {
@@ -469,6 +530,33 @@ export function getSubLocationDisplayName(
   return sublocation;
 }
 
+export function getAnchorDestinationDisplayName(
+  state: GameState,
+  location: Location,
+  sublocation: SubLocation,
+) {
+  const displayedSublocation = getSubLocationDisplayName(
+    state,
+    location,
+    sublocation,
+  );
+  const eraName = location.replace(/ -?\d+$/, "");
+  const displayedEraName =
+    location === ETERNIA31349 &&
+    !state.data.global.knowledge.includes(KNOWLEDGE.PANTHEON31349.whereabouts)
+      ? "???"
+      : eraName;
+  const fullEraName = displayedEraName + location.slice(eraName.length);
+
+  if (displayedSublocation.startsWith(`${fullEraName} —`)) {
+    return displayedSublocation;
+  }
+  if (displayedSublocation.startsWith(`${displayedEraName} —`)) {
+    return fullEraName + displayedSublocation.slice(displayedEraName.length);
+  }
+  return `${fullEraName} — ${displayedSublocation}`;
+}
+
 type KnowledgeResolvedName = {
   requires: string[];
   text: string;
@@ -503,25 +591,21 @@ export function formatTime(ms: number) {
 export function expToLevel(
   exp: number,
   baseExp: number,
-  levelFrequency: number = 1,
+  growthRatio: number = 1.2,
+  floorRequirements: boolean = true,
 ): { level: number; expToNext: number; expToCurrent: number } {
   let level = 1;
-  let fullRequiredExp = baseExp;
-  let requiredExp = fullRequiredExp / levelFrequency;
+  let requiredExp = baseExp;
   let expToCurrent = 0;
-  let levelsAtCurrentRequirement = 0;
 
   while (exp >= requiredExp) {
     exp -= requiredExp;
     expToCurrent += requiredExp;
     level++;
-    levelsAtCurrentRequirement++;
-    // A frequency above one splits a requirement evenly across smaller levels.
-    if (levelsAtCurrentRequirement === levelFrequency) {
-      fullRequiredExp = Math.floor(fullRequiredExp * 1.2);
-      levelsAtCurrentRequirement = 0;
-    }
-    requiredExp = fullRequiredExp / levelFrequency;
+    const nextRequiredExp = requiredExp * growthRatio;
+    requiredExp = floorRequirements
+      ? Math.floor(nextRequiredExp)
+      : nextRequiredExp;
   }
 
   return {
@@ -563,4 +647,5 @@ export const skills: Skill[] = [
   "social",
   "engineering",
   "survival",
+  "magic",
 ];

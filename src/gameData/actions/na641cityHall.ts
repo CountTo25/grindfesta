@@ -268,6 +268,74 @@ export const na641CityHallActions: ActionRepository = {
         CONDITION_CHECKS.hasItem("new_arcadia_id", 1),
       ]),
     ],
+    postComplete: [
+      COMPLETION_EFFECTS.addFlag(
+        TAGS.NA641.CITY_HALL.SOCIAL_STANDING_CHANGED,
+        "1",
+      ),
+    ],
+  },
+  na641_city_hall_check_social_standing: {
+    ...NO_CROSSGEN,
+    ...REPEATABLE,
+    title: "Check social standing",
+    flavourText: "Let's see how high you are in New Arcadia",
+    skill: "social",
+    weight: 300,
+    stopOnRepeat: true,
+    conditions: [
+      CONDITION_CHECKS.inLocation(NA641),
+      CONDITION_CHECKS.inSubLocation(NA641_SUBLOCATIONS.cityHall),
+      CONDITION_CHECKS.ifActionCompleteRun("na641_city_hall_present_id"),
+      CONDITION_CHECKS.flag(
+        TAGS.NA641.CITY_HALL.SOCIAL_STANDING_CHANGED,
+      ),
+    ],
+    postComplete: [
+      COMPLETION_EFFECTS.removeFlag(
+        TAGS.NA641.CITY_HALL.SOCIAL_STANDING_CHANGED,
+      ),
+    ],
+  },
+  na641_city_hall_apply_lower_arcadia_visit: {
+    ...CROSSGEN,
+    ...NO_REPEAT,
+    title: "Apply for a lower Arcadia visit",
+    flavourText: "Let's see what it takes to reach Lower Arcadia",
+    skill: "social",
+    weight: 800,
+    conditions: [
+      CONDITION_CHECKS.inLocation(NA641),
+      CONDITION_CHECKS.inSubLocation(NA641_SUBLOCATIONS.cityHall),
+      CONDITION_CHECKS.ifActionCompleteRun("na641_city_hall_present_id"),
+      CONDITION_CHECKS.not(
+        CONDITION_CHECKS.ifActionCompleteGlobal(
+          "na641_city_hall_apply_lower_arcadia_visit",
+        ),
+      ),
+    ],
+    postComplete: [
+      COMPLETION_EFFECTS.addLog(
+        "Your application is accepted for review. Reaching Lower Arcadia will require further clearance.",
+      ),
+    ],
+  },
+  na641_city_hall_await_lower_arcadia_clearance: {
+    ...NO_CROSSGEN,
+    ...NO_REPEAT,
+    title: "«Await further clearance»",
+    flavourText:
+      "Your application disappears into City Hall's machinery. This route continues in a future update.",
+    skill: "social",
+    weight: 1,
+    conditions: [
+      CONDITION_CHECKS.inLocation(NA641),
+      CONDITION_CHECKS.inSubLocation(NA641_SUBLOCATIONS.cityHall),
+      CONDITION_CHECKS.ifActionCompleteRun("na641_city_hall_present_id"),
+      CONDITION_CHECKS.ifActionCompleteGlobal(
+        "na641_city_hall_apply_lower_arcadia_visit",
+      ),
+    ],
     postComplete: [],
   },
   na641_city_hall_return_to_elevators: {

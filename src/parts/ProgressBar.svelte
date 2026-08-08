@@ -10,7 +10,6 @@
 <div
   class="glass_progress"
   role="progressbar"
-  aria-label="Progress"
   aria-valuemin="0"
   aria-valuemax="100"
   aria-valuenow={Math.round(clampedPercent)}

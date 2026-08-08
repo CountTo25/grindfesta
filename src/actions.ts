@@ -1,11 +1,10 @@
 import { get, type Writable } from "svelte/store";
-import { items, type ItemKey } from "./gameData/items";
+import { getItemCooldown, items, type ItemKey } from "./gameData/items";
 import type { GameState } from "./types";
 
 export function checkItems(state: GameState, tickProgress: number): GameState {
   let consumable_ids = Object.entries(state.data.run.inventory)
     .filter(([k, _]) => items[k as ItemKey]!.consumable)
-    .filter(([k, v]) => v.amount > 0)
     .map(([k, _]) => k as ItemKey);
   for (const id of consumable_ids) {
     if (state.data.run.inventory[id]!.cooldown > 0) {
@@ -14,8 +13,8 @@ export function checkItems(state: GameState, tickProgress: number): GameState {
         state.data.run.inventory[id]!.cooldown - tickProgress
       );
     }
-    if (state.data.run.inventory[id]?.amount === 0) {
-      return state;
+    if (state.data.run.inventory[id]!.amount <= 0) {
+      continue;
     }
     if (state.data.run.inventory[id]!.cooldown <= 0) {
       let requirements = items[id].consumeRequirement;
@@ -40,7 +39,7 @@ export function checkItems(state: GameState, tickProgress: number): GameState {
         }
 
         state.data.run.inventory[id]!.amount--;
-        state.data.run.inventory[id]!.cooldown = 5000;
+        state.data.run.inventory[id]!.cooldown = getItemCooldown(id);
       }
     }
   }

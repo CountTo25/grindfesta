@@ -22,10 +22,19 @@ export const items = {
       return 10 + junkWalletMod + trendyWalletMod + handcraftedWalletMod;
     },
   },
+  eternia31349_gald: {
+    name: "Gald",
+    description: "Currency of Eternia",
+    consumable: false,
+    consumeRequirement: [],
+    onConsume: [],
+    capacity: null,
+  },
   small_battery: {
     name: "Small battery",
     description: "Restores 1 energy when consumed",
     consumable: true,
+    cooldownMs: 5000,
     consumeRequirement: (s) => {
       return s.data.run.currentEnergy < s.data.run.maxEnergy - 1;
     },
@@ -42,6 +51,7 @@ export const items = {
     name: "Charged battery",
     description: "Restores 2 energy on use",
     consumable: true,
+    cooldownMs: 5000,
     consumeRequirement: (s) => {
       return s.data.run.currentEnergy < s.data.run.maxEnergy - 2;
     },
@@ -58,6 +68,7 @@ export const items = {
     name: "All-day battery",
     description: "Restores 4 energy on use",
     consumable: true,
+    cooldownMs: 5000,
     consumeRequirement: (s) => {
       return s.data.run.currentEnergy < s.data.run.maxEnergy - 4;
     },
@@ -118,6 +129,14 @@ export const items = {
     onConsume: [],
     capacity: (_) => 1,
   },
+  na641_pocket_light: {
+    name: "Pocket light",
+    description: "A compact light that works for a day",
+    consumable: false,
+    consumeRequirement: [],
+    onConsume: [],
+    capacity: (_) => 1,
+  },
   na641_solar_powered_radio: {
     name: "Solar-powered radio",
     description: "Might be of use?",
@@ -156,6 +175,32 @@ export const items = {
     consumable: false,
     consumeRequirement: [],
     onConsume: [],
+    capacity: (_) => 1,
+  },
+  bbasin7281_rough_aurexite_chunk: {
+    name: "Rough Aurexite chunk",
+    description: "A low-quality piece of surface Aurexite",
+    consumable: false,
+    consumeRequirement: [],
+    onConsume: [],
+    capacity: (_) => 3,
+  },
+  na641_passive_energy_generator: {
+    name: "Passive energy generator",
+    description: "Restores 0.5 energy every 20 seconds",
+    consumable: true,
+    cooldownMs: 20000,
+    consumeRequirement: (s) => {
+      return s.data.run.currentEnergy < s.data.run.maxEnergy;
+    },
+    onConsume: (s: GameState) => {
+      s.data.run.currentEnergy = Math.min(
+        s.data.run.currentEnergy + 0.5,
+        s.data.run.maxEnergy,
+      );
+      s.data.run.inventory.na641_passive_energy_generator!.amount += 1;
+      return s;
+    },
     capacity: (_) => 1,
   },
   na641_clanky_mini_printer: {
@@ -251,7 +296,53 @@ export const items = {
       sublocation: SUBLOCATIONS.eternia31349.greatLibrary,
     },
   },
+  eternia31349_aurexite_beads: {
+    name: "Aurexite beads",
+    description: "Well, thats just aurexite",
+    consumable: false,
+    consumeRequirement: [],
+    onConsume: [],
+    capacity: (_) => 1,
+  },
+  eternia31349_spare_aurexite_bead: {
+    name: "Spare Aurexite bead",
+    description: "Well, its just aurexite. But in bead form!",
+    consumable: false,
+    consumeRequirement: [],
+    onConsume: [],
+    capacity: (_) => 5,
+  },
+  pure_energy: {
+    name: "Pure energy",
+    description: "Energy is circling your device, waiting for the chance to enter",
+    consumable: true,
+    cooldownMs: 5000,
+    consumeRequirement: (s) => {
+      return s.data.run.currentEnergy <= s.data.run.maxEnergy - 1;
+    },
+    onConsume: (s: GameState) => {
+      s.data.run.currentEnergy = Math.min(
+        s.data.run.currentEnergy + 1,
+        s.data.run.maxEnergy,
+      );
+      return s;
+    },
+    capacity: null,
+  },
 } as const satisfies Record<string, Item>;
 
 // Step 2: Create a type that extracts the keys
 export type ItemKey = keyof typeof items;
+
+export function getItemCooldown(id: ItemKey): number {
+  const item = items[id];
+  return "cooldownMs" in item ? item.cooldownMs : 5000;
+}
+
+export function getItemCapacity(
+  id: ItemKey,
+  state: GameState,
+): number | null {
+  const capacity = items[id].capacity;
+  return capacity === null ? null : capacity(state);
+}

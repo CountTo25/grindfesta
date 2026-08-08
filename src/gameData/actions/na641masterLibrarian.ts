@@ -68,7 +68,11 @@ export const masterLibrarianActions: ActionRepository = {
         NA641_SUBLOCATIONS.southernMainStreetLibraryMasterLibrarianChambers,
       ),
     ],
-    postComplete: [],
+    postComplete: [
+      COMPLETION_EFFECTS.reachMilestone(
+        "na641_audience_with_master_librarian",
+      ),
+    ],
   },
   na641_master_librarian_discuss_learned_material: {
     ...NO_CROSSGEN,
@@ -246,6 +250,7 @@ export const masterLibrarianActions: ActionRepository = {
     ],
     postComplete: [
       COMPLETION_EFFECTS.addItem("anchor_aurexite_tome", 1),
+      COMPLETION_EFFECTS.reachMilestone("na641_acquire_aurexite_tome"),
     ],
   },
   na641_master_librarian_read_prehistoric_mutations: {

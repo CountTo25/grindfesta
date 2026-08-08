@@ -43,14 +43,26 @@ export const SUBLOCATIONS = {
   bbasin7281: {
     sulfurSprings: "Ashbone Basin -7281 — Sulfur springs",
     canyon: "Ashbone Basin -7281 — Canyon",
+    canyonCaves: "Ashbone Basin -7281 — Canyon Caves",
+    sunlessLake: "Ashbone Basin -7281 — Sunless lake",
   },
   eternia31349: {
     scholarsDistrict: "Eternia — Scholar's District",
-    greatLibrary: "Eternia — Scholar's District — Library",
+    greatLibrary: "Eternia — Scholar's District — Great Library",
+    magicArchives:
+      "Eternia — Scholar's District — Great Library — Magic Archives",
+    libraryStorage:
+      "Eternia — Scholar's District — Great Library — Storage",
+    diviningChambers: "Eternia — Scholar's District — Divining Chambers",
+    ewaisEverydayGoods:
+      "Eternia — Scholar's District — Ewai's Everyday Goods",
+    magicianLodges: "Eternia — Scholar's District — Magician Lodges",
+    bankBranch: "Eternia — Scholar's District — Bank branch",
   },
 } as const;
 
 export type KnownLocation = (typeof LOCATIONS)[keyof typeof LOCATIONS];
+export type LocationKey = keyof typeof LOCATIONS;
 type SubLocationGroups = typeof SUBLOCATIONS;
 export type KnownSubLocation = {
   [Group in keyof SubLocationGroups]: SubLocationGroups[Group][keyof SubLocationGroups[Group]];

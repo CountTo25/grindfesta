@@ -1,8 +1,13 @@
-import type { Action } from "../../types";
 import { CONDITION_CHECKS, COMPLETION_EFFECTS, REVEAL } from "../../utils";
 import { LOCATIONS, SUBLOCATIONS } from "../sublocations";
 import { KNOWLEDGE, TAGS } from "../tags";
-import { CROSSGEN, NO_CROSSGEN, NO_REPEAT, REPEATABLE } from "./utils";
+import {
+  CROSSGEN,
+  NO_CROSSGEN,
+  NO_REPEAT,
+  REPEATABLE,
+  type ActionRepository,
+} from "./utils";
 
 const NA641 = LOCATIONS.na641;
 const NA641_SUBLOCATIONS = SUBLOCATIONS.na641;
@@ -10,8 +15,19 @@ const HAS_MARCO_TOOLS_ACCESS = CONDITION_CHECKS.or([
   CONDITION_CHECKS.ifActionCompleteRun("narcadia_marco_lie_device"),
   CONDITION_CHECKS.ifActionCompleteRun("narcadia_marco_explain_device"),
 ]);
+const MARCO_KNOWS_TIME_LEAP = CONDITION_CHECKS.or([
+  CONDITION_CHECKS.ifActionCompleteRun("narcadia_marco_explain_device"),
+  CONDITION_CHECKS.ifActionCompleteRun(
+    "na641_marco_tell_time_leap_after_aurexite",
+  ),
+]);
+const HAS_AUREXITE_SAMPLE = CONDITION_CHECKS.or([
+  CONDITION_CHECKS.hasItem("bbasin7281_rough_aurexite_chunk", 1),
+  CONDITION_CHECKS.hasItem("eternia31349_aurexite_beads", 1),
+  CONDITION_CHECKS.hasItem("eternia31349_spare_aurexite_bead", 1),
+]);
 
-export const marcosWorkshopActions: { [key: string]: Action } = {
+export const marcosWorkshopActions: ActionRepository = {
   narcadia_workshop_move: {
     ...NO_CROSSGEN,
     ...REPEATABLE,
@@ -41,9 +57,6 @@ export const marcosWorkshopActions: { [key: string]: Action } = {
       CONDITION_CHECKS.ifActionCompleteRun("narcadia_macros_greet"),
     ],
     postComplete: [
-      COMPLETION_EFFECTS.addLog(
-        "Obviously, he wont rent out his instruments to anyone wandering by. He offered you to either pay for his services or scram, since he has work to do",
-      ),
       COMPLETION_EFFECTS.addKnowledge("narcadia_currency"),
     ],
   },
@@ -51,6 +64,8 @@ export const marcosWorkshopActions: { [key: string]: Action } = {
     ...NO_CROSSGEN,
     ...NO_REPEAT,
     title: "Request charger upgrade",
+    flavourText:
+      "3 Zenny. Yes, he won't give his tools to just anyone. Let's pay for it",
     skill: "social",
     weight: 10,
     ...REVEAL.item("narcadia641_zenny", 3),
@@ -59,12 +74,7 @@ export const marcosWorkshopActions: { [key: string]: Action } = {
       CONDITION_CHECKS.inSubLocation(NA641_SUBLOCATIONS.marcosWorkshop),
       CONDITION_CHECKS.ifActionCompleteRun("narcadia_macros_chat_repairs"),
     ],
-    postComplete: [
-      COMPLETION_EFFECTS.removeItem("narcadia641_zenny", 3),
-      COMPLETION_EFFECTS.addLog(
-        "A bit confused with offered device, Marco was able to figure out how to add a battery slot there. 'Batteries are 1 coin a pop, by the way', he informed you",
-      ),
-    ],
+    postComplete: [COMPLETION_EFFECTS.removeItem("narcadia641_zenny", 3)],
   },
   narcadia_macros_buy_battery: {
     ...NO_CROSSGEN,
@@ -98,10 +108,10 @@ export const marcosWorkshopActions: { [key: string]: Action } = {
       CONDITION_CHECKS.inLocation(NA641),
       CONDITION_CHECKS.inSubLocation(NA641_SUBLOCATIONS.marcosWorkshop),
     ],
-    postComplete: [],
+    postComplete: [COMPLETION_EFFECTS.reachMilestone("na641_meet_marco")],
   },
   narcadia_macros_observe_work: {
-    ...NO_CROSSGEN,
+    ...CROSSGEN,
     ...NO_REPEAT,
     title: "Observe Marco's work",
     skill: "engineering",
@@ -125,12 +135,12 @@ export const marcosWorkshopActions: { [key: string]: Action } = {
     skill: "engineering",
     flavourText:
       "Marco suggests you can treat yourself if you sort some batteries for him",
-    weight: 45,
+    weight: 15,
     ...REVEAL.itemNotCappedYet("small_battery"),
     conditions: [
       CONDITION_CHECKS.inLocation(NA641),
       CONDITION_CHECKS.inSubLocation(NA641_SUBLOCATIONS.marcosWorkshop),
-      CONDITION_CHECKS.ifActionCompleteRun("narcadia_macros_observe_work"),
+      CONDITION_CHECKS.ifActionCompleteAny("narcadia_macros_observe_work"),
       CONDITION_CHECKS.ifActionCompleteRun("narcadia_macros_pay_charger"),
     ],
     postComplete: [COMPLETION_EFFECTS.addItem("small_battery", 1)],
@@ -147,11 +157,9 @@ export const marcosWorkshopActions: { [key: string]: Action } = {
       REVEAL.skillCheck("engineering", 1.5),
     ]),
     conditions: [
-      CONDITION_CHECKS.skillModifier("perception", 1.5),
-      CONDITION_CHECKS.skillModifier("engineering", 1.2),
       CONDITION_CHECKS.inLocation(NA641),
       CONDITION_CHECKS.inSubLocation(NA641_SUBLOCATIONS.marcosWorkshop),
-      CONDITION_CHECKS.ifActionCompleteRun("narcadia_macros_observe_work"),
+      CONDITION_CHECKS.ifActionCompleteAny("narcadia_macros_observe_work"),
     ],
     postComplete: [
       COMPLETION_EFFECTS.addLog(
@@ -173,9 +181,7 @@ export const marcosWorkshopActions: { [key: string]: Action } = {
       CONDITION_CHECKS.ifActionCompleteRun("narcadia_macros_greet"),
     ],
     postComplete: [
-      COMPLETION_EFFECTS.addLog(
-        "With new battery charger set up, it seems Marco is quite happy to provide you new services",
-      ),
+      COMPLETION_EFFECTS.reachMilestone("na641_deliver_marco_charger"),
       COMPLETION_EFFECTS.addFlag("narcadia_delivery_finished", "1"),
       COMPLETION_EFFECTS.removeFlag("narcadia_delivery_active_order"),
       COMPLETION_EFFECTS.removeFlag("marco_charger_on_hand"),
@@ -256,9 +262,7 @@ export const marcosWorkshopActions: { [key: string]: Action } = {
       ),
     ],
     postComplete: [
-      COMPLETION_EFFECTS.addLog(
-        "Despite questioning your sanity, Marco agreed to let you use his in-store tools if you let him watch",
-      ),
+      COMPLETION_EFFECTS.reachMilestone("na641_marco_knows_time_leap"),
     ],
   },
   narcadia_marco_lie_device: {
@@ -296,17 +300,167 @@ export const marcosWorkshopActions: { [key: string]: Action } = {
     flavourText:
       "With tools now available for you, you can start to tinker. Halves energy decay rate",
     weight: 150,
-    ...REVEAL.skillCheck("engineering", 5),
+    ...REVEAL.skillCheck("engineering", 2),
     conditions: [
       CONDITION_CHECKS.inLocation(NA641),
       CONDITION_CHECKS.inSubLocation(NA641_SUBLOCATIONS.marcosWorkshop),
       HAS_MARCO_TOOLS_ACCESS,
     ],
     postComplete: [
-      COMPLETION_EFFECTS.addLog(
-        "Energy decay seems to have stabilized for now",
-      ),
+      COMPLETION_EFFECTS.reachMilestone("na641_stabilize_time_leap_energy"),
       COMPLETION_EFFECTS.cutDecay(2),
+    ],
+  },
+  na641_marco_present_aurexite: {
+    ...NO_CROSSGEN,
+    ...NO_REPEAT,
+    title: "Present Aurexite to Marco",
+    flavourText: "Lets see if he can cook up stuff with it",
+    skill: "social",
+    weight: 500,
+    conditions: [
+      CONDITION_CHECKS.inLocation(NA641),
+      CONDITION_CHECKS.inSubLocation(NA641_SUBLOCATIONS.marcosWorkshop),
+      HAS_AUREXITE_SAMPLE,
+      CONDITION_CHECKS.ifActionCompleteRun(
+        "narcadia_stabilize_timeleap_energy",
+      ),
+    ],
+    postComplete: [
+      COMPLETION_EFFECTS.if(
+        MARCO_KNOWS_TIME_LEAP,
+        COMPLETION_EFFECTS.addFlag(
+          TAGS.NA641.MARCO.READY_TO_USE_AUREXITE,
+          "1",
+        ),
+      ),
+    ],
+  },
+  na641_marco_lie_aurexite_source: {
+    ...NO_CROSSGEN,
+    ...NO_REPEAT,
+    title: "Lie about Aurexite source",
+    flavourText: "Hiding time leap is really hard",
+    skill: "social",
+    weight: 2500,
+    ...REVEAL.skillCheck("social", 100),
+    conditions: [
+      CONDITION_CHECKS.inLocation(NA641),
+      CONDITION_CHECKS.inSubLocation(NA641_SUBLOCATIONS.marcosWorkshop),
+      CONDITION_CHECKS.skillModifier("social", 50),
+      CONDITION_CHECKS.ifActionCompleteRun(
+        "na641_marco_present_aurexite",
+      ),
+      CONDITION_CHECKS.ifActionCompleteRun("narcadia_marco_lie_device"),
+      CONDITION_CHECKS.not(MARCO_KNOWS_TIME_LEAP),
+    ],
+    postComplete: [
+      COMPLETION_EFFECTS.addFlag(
+        TAGS.NA641.MARCO.READY_TO_USE_AUREXITE,
+        "1",
+      ),
+    ],
+  },
+  na641_marco_tell_time_leap_after_aurexite: {
+    ...NO_CROSSGEN,
+    ...NO_REPEAT,
+    title: "Tell Marco about time leap",
+    skill: "social",
+    weight: 500,
+    conditions: [
+      CONDITION_CHECKS.inLocation(NA641),
+      CONDITION_CHECKS.inSubLocation(NA641_SUBLOCATIONS.marcosWorkshop),
+      CONDITION_CHECKS.ifActionCompleteRun(
+        "na641_marco_present_aurexite",
+      ),
+      CONDITION_CHECKS.ifActionCompleteRun("narcadia_marco_lie_device"),
+      CONDITION_CHECKS.not(MARCO_KNOWS_TIME_LEAP),
+      CONDITION_CHECKS.not(
+        CONDITION_CHECKS.ifActionCompleteRun(
+          "na641_marco_lie_aurexite_source",
+        ),
+      ),
+    ],
+    postComplete: [
+      COMPLETION_EFFECTS.reachMilestone("na641_marco_knows_time_leap"),
+      COMPLETION_EFFECTS.addFlag(
+        TAGS.NA641.MARCO.READY_TO_USE_AUREXITE,
+        "1",
+      ),
+    ],
+  },
+  na641_marco_ask_aurexite_energy: {
+    ...CROSSGEN,
+    ...NO_REPEAT,
+    title: "Ask about energetic properties of Aurexite",
+    flavourText: "You desperately need energy in Eternia",
+    skill: "social",
+    weight: 1800,
+    conditions: [
+      CONDITION_CHECKS.inLocation(NA641),
+      CONDITION_CHECKS.inSubLocation(NA641_SUBLOCATIONS.marcosWorkshop),
+      CONDITION_CHECKS.ifActionCompleteRun(
+        "na641_marco_present_aurexite",
+      ),
+      MARCO_KNOWS_TIME_LEAP,
+      CONDITION_CHECKS.hasKnowledge(
+        KNOWLEDGE.PANTHEON31349.energy_manipulation,
+      ),
+      CONDITION_CHECKS.hasKnowledge(
+        KNOWLEDGE.NA641.aurexite_structural_properties,
+      ),
+    ],
+    postComplete: [
+      COMPLETION_EFFECTS.addKnowledge(
+        KNOWLEDGE.PANTHEON31349.aurexite_energy,
+      ),
+    ],
+  },
+  na641_marco_theorise_energy_transfer: {
+    ...CROSSGEN,
+    ...NO_REPEAT,
+    title: "Theorise energy transfer",
+    flavourText: "Poor Marco is swamped by unfathomable events",
+    skill: "magic",
+    weight: 70,
+    conditions: [
+      CONDITION_CHECKS.inLocation(NA641),
+      CONDITION_CHECKS.inSubLocation(NA641_SUBLOCATIONS.marcosWorkshop),
+      MARCO_KNOWS_TIME_LEAP,
+      CONDITION_CHECKS.flag(TAGS.PANTHEON31349.MAGIC_IMBUED),
+      CONDITION_CHECKS.hasKnowledge(
+        KNOWLEDGE.PANTHEON31349.energy_manipulation,
+      ),
+      CONDITION_CHECKS.hasKnowledge(
+        KNOWLEDGE.PANTHEON31349.aurexite_energy,
+      ),
+    ],
+    postComplete: [
+      COMPLETION_EFFECTS.addKnowledge(
+        KNOWLEDGE.PANTHEON31349.aurexite_energy_transfer,
+      ),
+    ],
+  },
+  na641_marco_create_passive_energy_generator: {
+    ...NO_CROSSGEN,
+    ...NO_REPEAT,
+    title: "Create passive energy generator",
+    skill: "engineering",
+    weight: 1800,
+    ...REVEAL.all([
+      REVEAL.item("bbasin7281_rough_aurexite_chunk", 3),
+      REVEAL.itemNotCappedYet("na641_passive_energy_generator"),
+    ]),
+    conditions: [
+      CONDITION_CHECKS.inLocation(NA641),
+      CONDITION_CHECKS.inSubLocation(NA641_SUBLOCATIONS.marcosWorkshop),
+      CONDITION_CHECKS.flag(
+        TAGS.NA641.MARCO.READY_TO_USE_AUREXITE,
+      ),
+    ],
+    postComplete: [
+      COMPLETION_EFFECTS.removeItem("bbasin7281_rough_aurexite_chunk", 3),
+      COMPLETION_EFFECTS.addItem("na641_passive_energy_generator", 1),
     ],
   },
   na641_marcos_ask_solar_charger: {
@@ -324,11 +478,7 @@ export const marcosWorkshopActions: { [key: string]: Action } = {
       CONDITION_CHECKS.skillModifier("engineering", 20),
       CONDITION_CHECKS.ifActionCompleteRun("narcadia_macros_greet"),
     ],
-    postComplete: [
-      COMPLETION_EFFECTS.addLog(
-        "TODO: Marco talks through making the radio into a portable battery charger",
-      ),
-    ],
+    postComplete: [],
   },
   na641_marcos_modify_solar_radio: {
     ...NO_CROSSGEN,
@@ -336,7 +486,7 @@ export const marcosWorkshopActions: { [key: string]: Action } = {
     title: "Modify solar-powered radio",
     skill: "engineering",
     weight: 500,
-    flavourText: "TODO: make the solar-powered radio charge the device",
+    flavourText: "That'll come in handy",
     ...REVEAL.skillCheck("engineering", 30),
     conditions: [
       CONDITION_CHECKS.inLocation(NA641),
@@ -352,9 +502,6 @@ export const marcosWorkshopActions: { [key: string]: Action } = {
         TAGS.NA641.RADIO.CHARGER_MODIFIED,
         "1",
       ),
-      COMPLETION_EFFECTS.addLog(
-        "TODO: modified the radio into a portable battery charger",
-      ),
     ],
   },
   na641_marcos_amplify_solar_radio: {
@@ -363,13 +510,14 @@ export const marcosWorkshopActions: { [key: string]: Action } = {
     title: "Modify Solar-powered radio speaker",
     flavourText: "Radically improve sound output power",
     skill: "engineering",
-    weight: 2500,
+    weight: 1500,
     ...REVEAL.skillCheck("engineering", 50),
     conditions: [
       CONDITION_CHECKS.inLocation(NA641),
       CONDITION_CHECKS.inSubLocation(NA641_SUBLOCATIONS.marcosWorkshop),
       CONDITION_CHECKS.hasKnowledge(KNOWLEDGE.BBASIN7281.scaring_off_lizard),
       CONDITION_CHECKS.hasItem("na641_solar_powered_radio", 1),
+      CONDITION_CHECKS.ifActionCompleteRun("na641_marcos_ask_solar_charger"),
       CONDITION_CHECKS.noFlag(TAGS.NA641.RADIO.SPEAKER_AMPLIFIED),
       HAS_MARCO_TOOLS_ACCESS,
     ],
@@ -445,7 +593,7 @@ export const marcosWorkshopActions: { [key: string]: Action } = {
     ],
     postComplete: [
       COMPLETION_EFFECTS.addLog(
-        "Either you can use his spare tools or pay 5 Zenny for a fix",
+        "Either you can use his spare tools or pay 1 Zenny for a fix",
       ),
     ],
     weight: 20,
@@ -521,8 +669,10 @@ export const marcosWorkshopActions: { [key: string]: Action } = {
     ...NO_CROSSGEN,
     ...NO_REPEAT,
     title: "Pay for camera repairs",
+    flavourText:
+      "Usually he'd charge 5 zenny, but for you its 1. Thanks, Marco!",
     skill: "social",
-    ...REVEAL.item("narcadia641_zenny", 5),
+    ...REVEAL.item("narcadia641_zenny", 1),
     conditions: [
       CONDITION_CHECKS.inLocation(NA641),
       CONDITION_CHECKS.inSubLocation(NA641_SUBLOCATIONS.marcosWorkshop),

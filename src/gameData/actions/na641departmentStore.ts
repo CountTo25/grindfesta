@@ -44,7 +44,7 @@ function suggestPointCardIfEligible() {
     (d) =>
       CONDITION_CHECKS.numFlagGTE(
         TAGS.NA641.DEPARTMENT_STORE.SPENT,
-        100,
+        30,
       )(d) &&
       CONDITION_CHECKS.noFlag(
         TAGS.NA641.DEPARTMENT_STORE.POINT_CARD_SUGGESTED,
@@ -190,6 +190,8 @@ export const departmentStoreActions: ActionRepository = {
     ...NO_CROSSGEN,
     ...NO_REPEAT,
     title: "Apply for point card",
+    flavourText:
+      "Deals on tech store goods! Limited to customers who spent more than 30Z today!",
     skill: "social",
     weight: 300,
     conditions: [
@@ -514,15 +516,39 @@ export const departmentStoreActions: ActionRepository = {
       ...trackStorePurchase(20),
     ],
   },
+  na641_camping_goods_buy_pocket_light: {
+    ...NO_CROSSGEN,
+    ...REPEATABLE,
+    title: "Buy pocket light",
+    flavourText: "20 Zenny. Works for a day!",
+    skill: "social",
+    weight: 700,
+    ...REVEAL.all([
+      REVEAL.item("narcadia641_zenny", 20),
+      REVEAL.itemNotCappedYet("na641_pocket_light"),
+    ]),
+    conditions: [
+      ...IN_CAMPING_GOODS_STORE,
+      CONDITION_CHECKS.hasKnowledge(
+        KNOWLEDGE.BBASIN7281.light_source_may_be_needed,
+      ),
+      CONDITION_CHECKS.ifActionCompleteRun("na641_camping_goods_consult_staff"),
+    ],
+    postComplete: [
+      COMPLETION_EFFECTS.removeItem("narcadia641_zenny", 20),
+      COMPLETION_EFFECTS.addItem("na641_pocket_light", 1),
+      ...trackStorePurchase(20),
+    ],
+  },
   na641_camping_goods_buy_solar_powered_radio: {
     ...NO_CROSSGEN,
     ...NO_REPEAT,
     title: "Buy solar-powered radio",
-    flavourText: "40 Zenny",
+    flavourText: "35 Zenny",
     skill: "social",
     weight: 600,
     ...REVEAL.all([
-      REVEAL.item("narcadia641_zenny", 40),
+      REVEAL.item("narcadia641_zenny", 35),
       REVEAL.itemNotCappedYet("na641_solar_powered_radio"),
     ]),
     conditions: [
@@ -530,9 +556,9 @@ export const departmentStoreActions: ActionRepository = {
       CONDITION_CHECKS.ifActionCompleteRun("na641_camping_goods_consult_staff"),
     ],
     postComplete: [
-      COMPLETION_EFFECTS.removeItem("narcadia641_zenny", 40),
+      COMPLETION_EFFECTS.removeItem("narcadia641_zenny", 35),
       COMPLETION_EFFECTS.addItem("na641_solar_powered_radio", 1),
-      ...trackStorePurchase(40),
+      ...trackStorePurchase(35),
     ],
   },
 };

@@ -1,6 +1,10 @@
 <script lang="ts">
   import { createEventDispatcher } from "svelte";
   import { fly } from "svelte/transition";
+  import {
+    simulationTimeScale,
+    type SimulationTimeScale,
+  } from "../state";
   import GenericIcon from "./GenericIcon.svelte";
 
   type SettingsAction = "export" | "import";
@@ -13,6 +17,7 @@
     navigate: DeveloperRoute;
   }>();
   const isLocalhost = window.location.hostname === "localhost";
+  const simulationTimeScales: SimulationTimeScale[] = [1, 10, 100];
   let open = false;
 
   function select(action: SettingsAction) {
@@ -43,7 +48,6 @@
       id="settings-menu"
       class="settings_menu glass_menu"
       role="menu"
-      aria-label="Settings"
       transition:fly={{ y: 6, duration: 120 }}
     >
       <button type="button" role="menuitem" on:click={() => select("export")}>
@@ -53,6 +57,26 @@
         Import save
       </button>
       {#if isLocalhost}
+        <div class="dev_setting">
+          <span class="dev_setting_label">Time scale</span>
+          <div
+            class="time_scale_options"
+            role="group"
+            aria-label="Simulation time scale"
+          >
+            {#each simulationTimeScales as scale}
+              <button
+                type="button"
+                class="time_scale_option"
+                role="menuitemradio"
+                aria-checked={$simulationTimeScale === scale}
+                on:click={() => simulationTimeScale.set(scale)}
+              >
+                {scale}&times;
+              </button>
+            {/each}
+          </div>
+        </div>
         <button type="button" role="menuitem" on:click={sudoku}>
           Sudoku
         </button>
@@ -70,7 +94,6 @@
   <button
     type="button"
     class="glass_icon_button settings_trigger"
-    aria-label={open ? "Close settings" : "Open settings"}
     aria-controls="settings-menu"
     aria-expanded={open}
     data-active={open || undefined}
@@ -133,6 +156,46 @@
 
   .settings_menu button:focus-visible {
     box-shadow: inset 0 0 0 1px rgb(var(--ui_accent) / 42%);
+  }
+
+  .dev_setting {
+    margin-top: 5px;
+    padding: 9px 4px 7px;
+    border-top: 1px solid rgb(255 255 255 / 9%);
+  }
+
+  .dev_setting_label {
+    display: block;
+    padding: 0 6px 7px;
+    color: var(--ui_text_subtle);
+    font-size: 0.7rem;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .time_scale_options {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 4px;
+  }
+
+  .settings_menu .time_scale_option {
+    min-height: 32px;
+    padding: 5px 4px;
+    border: 1px solid rgb(255 255 255 / 8%);
+    background: rgb(255 255 255 / 3%);
+    font-size: 0.78rem;
+    text-align: center;
+  }
+
+  .settings_menu .time_scale_option[aria-checked="true"] {
+    border-color: rgb(var(--ui_accent) / 48%);
+    background: rgb(var(--ui_accent) / 22%);
+    color: var(--ui_text);
+    box-shadow:
+      inset 0 1px 0 rgb(255 255 255 / 13%),
+      0 0 12px rgb(var(--ui_accent) / 10%);
   }
 
   @media (prefers-reduced-motion: reduce) {

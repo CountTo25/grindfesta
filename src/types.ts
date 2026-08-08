@@ -1,6 +1,8 @@
 import { bakery, type BakedSkills } from "./state";
 import { deepClone, mergeDeep } from "./utils";
 import { items, type ItemKey } from "./gameData/items";
+import type { MilestoneEntry, MilestoneKey } from "./gameData/milestones";
+import type { UpgradeKey } from "./gameData/upgrades";
 import {
   LOCATIONS,
   SUBLOCATIONS,
@@ -8,6 +10,8 @@ import {
   type KnownSubLocation,
 } from "./gameData/sublocations";
 import { applySaveMigrations } from "./migrations/migrations";
+
+export const DEFAULT_RETRACE_CONFIG_ID = "default-retrace-config";
 
 export const EMPTY_RUN: RunState = {
   retraceIdx: null,
@@ -29,6 +33,7 @@ export const EMPTY_RUN: RunState = {
     social: 0,
     engineering: 0,
     survival: 0,
+    magic: 0,
   },
   // Deprecated
   inventoryCapacity: 10,
@@ -39,17 +44,11 @@ export const EMPTY_RUN: RunState = {
     social: 0,
     engineering: 0,
     survival: 0,
+    magic: 0,
   },
-  logEntries: [
-    {
-      ts: 0,
-      text: "After series of weird zaps, your time leap machine seemingly started to work. Then the second series of zaps came in",
-    },
-    {
-      ts: 0,
-      text: "You find yourself transported to some backalley",
-    },
-  ],
+  milestoneEntries: [{ ts: 0, id: "na641_time_leap" }],
+  murmurCooldowns: {},
+  logEntries: [],
 };
 
 export class GameState {
@@ -62,14 +61,26 @@ export class GameState {
         social: 0,
         engineering: 0,
         survival: 0,
+        magic: 0,
       },
       energyDecayRate: 0.1,
       maxEnergy: 10,
       presistentActionProgress: [],
       loop: 0,
       knowledge: [],
+      reached_milestones: ["na641_time_leap"],
+      purchased_upgrades: [],
+      last_run_milestone_entries: [],
+      previous_run_milestone_entries: [],
       completedActionHistory: [],
-      retraceConfig: [],
+      retraceConfigs: [
+        {
+          id: DEFAULT_RETRACE_CONFIG_ID,
+          name: "Default",
+          actions: [],
+        },
+      ],
+      activeRetraceConfigId: DEFAULT_RETRACE_CONFIG_ID,
     },
     run: { ...deepClone(EMPTY_RUN) },
   };
@@ -103,7 +114,8 @@ export type Skill =
   | "perception"
   | "social"
   | "engineering"
-  | "survival";
+  | "survival"
+  | "magic";
 export type Location = KnownLocation;
 export type SubLocation = KnownSubLocation;
 export type NewArcadiaSubLocation = KnownSubLocation;
@@ -122,14 +134,27 @@ type EnergyData = {
   energyDecayRate: number;
 };
 
+export type RetraceAction = { id: string };
+
+export type RetraceConfig = {
+  id: string;
+  name: string;
+  actions: RetraceAction[];
+};
+
 type GlobalState =
   | {
       stats: SkillLevels;
       presistentActionProgress: string[];
       loop: number;
       knowledge: string[];
+      reached_milestones: MilestoneKey[];
+      purchased_upgrades: UpgradeKey[];
+      last_run_milestone_entries: MilestoneEntry[];
+      previous_run_milestone_entries: MilestoneEntry[];
       completedActionHistory: string[];
-      retraceConfig: { id: string }[];
+      retraceConfigs: RetraceConfig[];
+      activeRetraceConfigId: string | null;
     } & EnergyData;
 
 export type MainViewRoute = "actions" | "endRun" | "retracing";
@@ -142,6 +167,8 @@ export type RunState =
       mainViewRoute: MainViewRoute;
       action: CurrentAction | null;
       logEntries: LogEntry[];
+      milestoneEntries: MilestoneEntry[];
+      murmurCooldowns: { [location: string]: number };
       actionProgress: { [id: string]: { progress: number; complete: boolean } };
       timeSpent: number;
       stats: SkillLevels;
@@ -159,7 +186,14 @@ export type RunState =
 
 export type LogEntry = { ts: number; text: string };
 
-type StatePatcher = (f: GameState) => GameState;
+export type StatePatcherMetadata = {
+  kind: "moveSubLocation";
+  destination: SubLocation;
+};
+
+export type StatePatcher = ((state: GameState) => GameState) & {
+  metadata?: StatePatcherMetadata;
+};
 type StateChecker = (state: GameState) => boolean;
 export type ActionText = string | ((state: GameState) => string);
 export type Action = {
@@ -182,9 +216,10 @@ export type Item = {
   name: String;
   description: String;
   consumable: boolean;
+  cooldownMs?: number;
   onConsume: StatePatcher[] | StatePatcher;
   consumeRequirement: StateChecker | StateChecker[];
-  capacity: (d: GameState) => number;
+  capacity: ((d: GameState) => number) | null;
   anchor?: {
     location: Location;
     sublocation: SubLocation;

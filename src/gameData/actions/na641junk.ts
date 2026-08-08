@@ -118,9 +118,7 @@ export const na641junkActions: ActionRepository = {
       CONDITION_CHECKS.ifActionCompleteAny("na641_junk_figure_radio_out"),
     ],
     postComplete: [
-      COMPLETION_EFFECTS.addLog(
-        "Surprised by your craftiness, Anna offers you to tinker with broken stuff from time to time for a few coins",
-      ),
+      COMPLETION_EFFECTS.reachMilestone("na641_annas_repair_job"),
     ],
   },
   na641_junk_fix_pile: {
