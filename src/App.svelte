@@ -3,6 +3,9 @@
   import Actions from "./routes/Actions.svelte";
   import {
     anchorItems,
+    checkActions,
+    clearRunActionQueue,
+    ENERGY_DECAY_DOUBLING_SECONDS,
     gameState,
     endRun,
     knowledgeSignal,
@@ -12,14 +15,15 @@
     RUN_LOOP_REVEAL_MS,
     runDeathTransition,
     runLoopTransition,
+    sendSubLocationSignal,
     subLocationSignal,
   } from "./state";
   import {
     COMPLETION_EFFECTS,
     CONDITION_CHECKS,
     formatTime,
+    getAnchorDestinationDisplayName,
     getEndRunLocationName,
-    getSubLocationDisplayName,
     LOCATION_CHECKS,
     skills,
   } from "./utils";
@@ -29,12 +33,13 @@
   //
   import ProgressBar from "./parts/ProgressBar.svelte";
   import GenericIcon from "./parts/GenericIcon.svelte";
-  import type { GameState, Location, Skill } from "./types";
-  import { LOCATIONS } from "./gameData/sublocations";
+  import type { GameState, Skill } from "./types";
+  import { getLocationAccent } from "./gameData/locationAccents";
   import SkillBar from "./parts/SkillBar.svelte";
   import Button from "./components/Button.svelte";
+  import { onDestroy } from "svelte";
   import { fade } from "svelte/transition";
-  import { derived, get } from "svelte/store";
+  import { get } from "svelte/store";
   import EndRun from "./routes/EndRun.svelte";
   import Retracing from "./routes/Retracing.svelte";
   import IconGen from "./routes/IconGen.svelte";
@@ -42,6 +47,7 @@
   import {
     applyAnchorLeap,
     getPostLeapEnergyDecayRate,
+    isCurrentEraAnchor,
     type AnchorInventoryItem,
   } from "./system/leap";
   import { distinctArrayProjection } from "./system/store";
@@ -51,12 +57,14 @@
 
   type SettingsDialog = "export" | "import" | null;
   type AppRoute = "game" | "iconGen";
-
-  const LOCATION_ACCENTS: Record<Location, string> = {
-    [LOCATIONS.na641]: "var(--ui_accent_new_arcadia)",
-    [LOCATIONS.bbasin7281]: "var(--ui_accent_ashbone_basin)",
-    [LOCATIONS.eternia31349]: "var(--ui_accent_pantheon_age)",
+  type SkillLayoutEntry = {
+    skill: Skill;
+    rowSize: number;
+    animateIn: boolean;
   };
+
+  const SKILL_LAYOUT_DURATION_MS = 220;
+  const SKILL_REVEAL_DURATION_MS = 180;
 
   function checkSkillVisibility(skill: Skill, s: GameState) {
     return s.data.global.stats[skill] > 0 || s.data.run.stats[skill] > 0;
@@ -81,6 +89,28 @@
     return rows;
   }
 
+  function getSkillWidth(rowSize: number) {
+    return `calc((100% - ${(rowSize - 1) * 0.25}rem) / ${rowSize})`;
+  }
+
+  function buildSkillLayout(
+    rendered: readonly Skill[],
+    target: readonly Skill[],
+    entering: ReadonlySet<Skill>,
+  ): SkillLayoutEntry[] {
+    const rowSizes = new Map<Skill, number>();
+
+    for (const row of arrangeSkillRows(target)) {
+      row.forEach((skill) => rowSizes.set(skill, row.length));
+    }
+
+    return rendered.map((skill) => ({
+      skill,
+      rowSize: rowSizes.get(skill) ?? 1,
+      animateIn: entering.has(skill),
+    }));
+  }
+
   let bakedLocation: { text: string | null; show: boolean } = {
     text: null,
     show: false,
@@ -97,7 +127,51 @@
     gameState,
     (state) => skills.filter((skill) => checkSkillVisibility(skill, state)),
   );
-  const visibleSkillRows = derived(visibleSkills, arrangeSkillRows);
+  const initialVisibleSkills = [...get(visibleSkills)];
+  const knownSkills = new Set(initialVisibleSkills);
+  let renderedSkills = initialVisibleSkills;
+  let enteringSkills = new Set<Skill>();
+  let skillRevealTimer: ReturnType<typeof setTimeout> | null = null;
+
+  function stageVisibleSkills(visible: readonly Skill[]) {
+    const next = [...visible];
+    const nextSet = new Set(next);
+    renderedSkills = renderedSkills.filter((skill) => nextSet.has(skill));
+
+    if (skillRevealTimer !== null) {
+      clearTimeout(skillRevealTimer);
+      skillRevealTimer = null;
+    }
+
+    const incoming = next.filter((skill) => !renderedSkills.includes(skill));
+    enteringSkills = new Set();
+
+    if (incoming.length === 0) {
+      incoming.forEach((skill) => knownSkills.add(skill));
+      renderedSkills = next;
+      return;
+    }
+
+    skillRevealTimer = setTimeout(() => {
+      enteringSkills = new Set(
+        incoming.filter((skill) => !knownSkills.has(skill)),
+      );
+      incoming.forEach((skill) => knownSkills.add(skill));
+      renderedSkills = next;
+      skillRevealTimer = null;
+    }, SKILL_LAYOUT_DURATION_MS);
+  }
+
+  onDestroy(() => {
+    if (skillRevealTimer !== null) clearTimeout(skillRevealTimer);
+  });
+
+  $: stageVisibleSkills($visibleSkills);
+  $: visibleSkillLayout = buildSkillLayout(
+    renderedSkills,
+    $visibleSkills,
+    enteringSkills,
+  );
 
   $: if ($anchorItems.length === 0 && showLeapModal) {
     showLeapModal = false;
@@ -105,17 +179,21 @@
   $: endRunLocationName = getEndRunLocationName($gameState);
   $: activeAccent = $endRun
     ? "var(--ui_progress_time_compression)"
-    : LOCATION_ACCENTS[$gameState.data.run.location];
+    : getLocationAccent($gameState.data.run.location);
   $: leapAccentColors = [
     ...new Set(
       $anchorItems.map(
-        (anchorItem) => LOCATION_ACCENTS[anchorItem.anchor.location],
+        (anchorItem) => getLocationAccent(anchorItem.anchor.location),
       ),
     ),
   ];
   $: if ($knowledgeSignal !== null || $subLocationSignal !== null) {
     tryBakeLocation(get(gameState));
   }
+  $: energyRemainingMs = estimateEnergyRemainingMs(
+    $gameState.data.run.currentEnergy,
+    $gameState.data.run.energyDecayRate,
+  );
   function tryBakeLocation(state: GameState) {
     bakedLocation = LOCATION_CHECKS[state.data.run.location](state);
   }
@@ -123,8 +201,21 @@
     return rate.toFixed(2).replace(/\.?0+$/, "");
   }
 
+  function estimateEnergyRemainingMs(energy: number, decayRate: number) {
+    if (energy <= 0) return 0;
+    if (decayRate <= 0) return Number.POSITIVE_INFINITY;
+
+    const growthRate = Math.LN2 / ENERGY_DECAY_DOUBLING_SECONDS;
+    const remainingSeconds =
+      Math.log1p((energy * growthRate) / decayRate) / growthRate;
+    return remainingSeconds * 1000;
+  }
+
   function selectLeapDestination(anchorItem: AnchorInventoryItem) {
+    clearRunActionQueue($gameState);
     applyAnchorLeap($gameState, anchorItem);
+    sendSubLocationSignal();
+    checkActions();
     showLeapModal = false;
   }
 
@@ -218,7 +309,6 @@
             bind:this={exportTextArea}
             value={exportSaveCode}
             readonly
-            aria-label="Exported save code"
             on:focus={(event) => event.currentTarget.select()}
           ></textarea>
           <div class="settings_dialog_actions">
@@ -230,7 +320,6 @@
             class="settings_save_code glass_stat glass_scroll"
             bind:value={importSaveCode}
             placeholder="Paste save code"
-            aria-label="Save code to import"
             aria-invalid={importSaveError ? "true" : undefined}
             autofocus
           ></textarea>
@@ -279,17 +368,21 @@
             >
           </div>
           {#each $anchorItems as anchorItem (anchorItem.itemId)}
+            {@const isCurrentEra = isCurrentEraAnchor($gameState, anchorItem)}
             <Button
               className="col-span-12 text-left"
-              active
-              accent={LOCATION_ACCENTS[anchorItem.anchor.location]}
+              active={!isCurrentEra}
+              accent={isCurrentEra
+                ? null
+                : getLocationAccent(anchorItem.anchor.location)}
+              disabled={isCurrentEra}
               on:click={() => selectLeapDestination(anchorItem)}
             >
-              {getSubLocationDisplayName(
+              {getAnchorDestinationDisplayName(
                 $gameState,
                 anchorItem.anchor.location,
                 anchorItem.anchor.sublocation,
-              )}
+              )}{isCurrentEra ? " (current)" : ""}
             </Button>
           {/each}
         </div>
@@ -312,16 +405,20 @@
             </div>
           {:else}
             <div class="px-3 py-2">
-              <div>{formatTime($gameState.data.run.timeSpent)}</div>
+              <div class="run_numeric">
+                {formatTime($gameState.data.run.timeSpent)}
+              </div>
               <div>
                 <GenericIcon icon={"bolt"} />
-                <span
+                <span class="run_numeric"
                   >{$gameState.data.run.currentEnergy.toFixed(2)} / {$gameState.data.run.maxEnergy.toFixed(
                     2,
                   )}</span
                 >
-                <span class="muted_text text-sm"
-                  >(-{$gameState.data.run.energyDecayRate.toFixed(2)}/s)</span
+                <span class="run_numeric muted_text text-sm"
+                  >(-{$gameState.data.run.energyDecayRate.toFixed(
+                    2,
+                  )}/s, {formatTime(energyRemainingMs)} remaining)</span
                 >
               </div>
             </div>
@@ -339,49 +436,50 @@
           {#if $endRun}
             <EndRunStats />
           {:else}
-            {#each $visibleSkillRows as skillRow}
-              <div
-                class="grid gap-x-1"
-                class:grid-cols-1={skillRow.length === 1}
-                class:grid-cols-2={skillRow.length === 2}
-                class:grid-cols-3={skillRow.length === 3}
-                class:grid-cols-4={skillRow.length === 4}
-                class:grid-cols-5={skillRow.length === 5}
-              >
-                {#each skillRow as skill}
-                  <SkillBar {skill} />
-                {/each}
+            <div class="flex flex-wrap gap-1">
+              {#each visibleSkillLayout as entry (entry.skill)}
+                <div
+                  class="skill_layout_item"
+                  data-skill={entry.skill}
+                  style:width={getSkillWidth(entry.rowSize)}
+                  style:transition-duration={`${SKILL_LAYOUT_DURATION_MS}ms`}
+                  in:fade={{
+                    duration: entry.animateIn ? SKILL_REVEAL_DURATION_MS : 0,
+                  }}
+                >
+                  <SkillBar skill={entry.skill} />
+                </div>
+              {/each}
+            </div>
+          {/if}
+        </div>
+        {#if bakedLocation.show || $endRun}
+          <div
+            class="col-span-12 grid grid-cols-12 gap-x-1 mt-2 text-center"
+          >
+            {#if $endRun}
+              <div class="glass_card col-span-12 flex items-center justify-center py-1">
+                <span>{endRunLocationName}</span>
               </div>
-            {/each}
-          {/if}
-        </div>
-        <div
-          class="col-span-12 grid grid-cols-12 gap-x-1 mt-2 text-center transition-all"
-          class:invisible={!bakedLocation.show && !$endRun}
-          class:opacity-0={!bakedLocation.show && !$endRun}
-        >
-          {#if $endRun}
-            <div class="glass_card col-span-12 flex items-center justify-center py-1">
-              <span>{endRunLocationName}</span>
-            </div>
-          {:else}
-            {#if $anchorItems.length > 0}
-              <LeapButton
-                accentColors={leapAccentColors}
-                className="col-span-3 px-3 py-1"
-                on:click={() => (showLeapModal = true)}
-              />
+            {:else}
+              {#if $anchorItems.length > 0}
+                <LeapButton
+                  accentColors={leapAccentColors}
+                  className="col-span-3 px-3 py-1"
+                  on:click={() => (showLeapModal = true)}
+                />
+              {/if}
+              <div
+                class={$anchorItems.length > 0
+                  ? "glass_card col-span-9 flex items-center justify-center py-1"
+                  : "glass_card col-span-12 flex items-center justify-center py-1"}
+              >
+                <span>{bakedLocation.text}</span>
+                <span></span>
+              </div>
             {/if}
-            <div
-              class={$anchorItems.length > 0
-                ? "glass_card col-span-9 flex items-center justify-center py-1"
-                : "glass_card col-span-12 flex items-center justify-center py-1"}
-            >
-              <span>{bakedLocation.text ?? "NO LOCATION DATA"}</span>
-              <span></span>
-            </div>
-          {/if}
-        </div>
+          </div>
+        {/if}
       </div>
     {/if}
 
@@ -450,6 +548,17 @@
 
   .run_status_bar {
     font-size: var(--ui_font_size_status);
+  }
+
+  .run_numeric {
+    font-family: var(--ui_font_numeric);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .skill_layout_item {
+    min-width: 0;
+    transition-property: width;
+    transition-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
   }
 
   .bottom_bar_surface {

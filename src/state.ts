@@ -9,8 +9,8 @@ import {
   EMPTY_RUN,
   GameState,
   type Action,
-  type Item,
   type QueuedAction,
+  type RetraceConfig,
   type RunState,
   type Skill,
   type SkillLevels,
@@ -24,21 +24,35 @@ import {
   syncToDebug,
 } from "./utils";
 import { checkItems, save } from "./actions";
-import { items, type ItemKey } from "./gameData/items";
+import type { ItemKey } from "./gameData/items";
+import { applyMurmurTick } from "./gameData/murmur";
+import {
+  resolveUpgradeEffect,
+  upgrades,
+  type UpgradeKey,
+} from "./gameData/upgrades";
 import { distinctArrayProjection } from "./system/store";
+import {
+  applyAnchorLeap,
+  getAnchorInventoryItems,
+  getRetraceLeapItemId,
+  isCurrentEraAnchor,
+  type AnchorInventoryItem,
+} from "./system/leap";
 
 ///Globals for quick tinkering here
-// Split each old time-compression tier into smaller levels while preserving
-// the old modifier at the end of every tier.
-const TIME_COMPRESSION_LEVEL_FREQUENCY = 2;
-export const GLOBAL_LEVEL_MOD_RATIO = Math.pow(
-  1.05,
-  1 / TIME_COMPRESSION_LEVEL_FREQUENCY,
-);
-export const RUN_LEVEL_MOD_RATIO = 1.08;
-export const RUN_EXP_TO_LEVEL_RATIO = 5;
-export const RUN_SKILL_GAIN_MOD = 1.35;
-export const GLOBAL_SKILL_GAIN_MOD = 1.35;
+const INITIAL_RUN_SKILL_LEVEL_EXP = 9;
+const INITIAL_COMPRESSED_SKILL_LEVEL_EXP = 19;
+export const GLOBAL_LEVEL_MOD_RATIO = 1.01;
+export const RUN_LEVEL_MOD_RATIO = 1.07;
+export const RUN_EXP_TO_LEVEL_BASE = INITIAL_RUN_SKILL_LEVEL_EXP;
+// Replaces the old flat 1.35x XP gain with a gentler requirement curve.
+export const RUN_EXP_GROWTH_RATIO = 1.1;
+export const GLOBAL_EXP_GROWTH_RATIO = 1.02;
+export const GLOBAL_EXP_TO_LEVEL_BASE = INITIAL_COMPRESSED_SKILL_LEVEL_EXP;
+export const ENERGY_DECAY_DOUBLING_SECONDS = 180;
+export const ENERGY_DECAY_GROWTH_RATE_PER_SECOND =
+  Math.pow(2, 1 / ENERGY_DECAY_DOUBLING_SECONDS) - 1;
 //
 const DECAY_TEST_MOD = 1;
 //const DECAY_TEST_MOD = 200;
@@ -70,6 +84,7 @@ const BAKED_SKILL: { [k in Skill]: number } = {
   perception: 1,
   engineering: 1,
   survival: 1,
+  magic: 1,
 };
 export const bakery: {
   skills: { run: SkillLevels; global: SkillLevels };
@@ -108,12 +123,19 @@ export function getBakedSkillsForState(snap: GameState): BakedSkills {
     "social",
     "engineering",
     "survival",
+    "magic",
   ] as Skill[]) {
-    const run = expToLevel(snap.data.run.stats[skill], RUN_EXP_TO_LEVEL_RATIO);
+    const run = expToLevel(
+      snap.data.run.stats[skill],
+      RUN_EXP_TO_LEVEL_BASE,
+      RUN_EXP_GROWTH_RATIO,
+      false,
+    );
     const global = expToLevel(
       snap.data.global.stats[skill],
-      15,
-      TIME_COMPRESSION_LEVEL_FREQUENCY,
+      GLOBAL_EXP_TO_LEVEL_BASE,
+      GLOBAL_EXP_GROWTH_RATIO,
+      false,
     );
 
     baked.skills.run[skill] = run.level;
@@ -140,6 +162,8 @@ export function bakeStateSnapshot(snap: GameState): GameState {
 }
 /////
 export const ticksPerSecond: Writable<number> = writable(BASE_TPS);
+export type SimulationTimeScale = 1 | 10 | 100;
+export const simulationTimeScale: Writable<SimulationTimeScale> = writable(1);
 export const gameState: Writable<GameState> = writable(GameState.new());
 export const actionsCheckSignal: Writable<boolean> = writable(false);
 export const tickSignal: Writable<boolean> = writable(false);
@@ -162,29 +186,10 @@ export const runLoopTransition: Writable<RunLoopTransitionPhase> =
 export const RUN_LOOP_COVER_MS = 180;
 export const RUN_LOOP_REVEAL_MS = 320;
 let runLoopTransitionPending = false;
-export type AnchorInventoryItem = {
-  itemId: ItemKey;
-  item: Item;
-  amount: number;
-  anchor: NonNullable<Item["anchor"]>;
-};
+export type { AnchorInventoryItem };
 export const anchorItems: Readable<AnchorInventoryItem[]> = derived(
   gameState,
-  ($gameState) =>
-    Object.entries($gameState.data.run.inventory).flatMap(([rawId, slot]) => {
-      if ((slot?.amount ?? 0) <= 0) return [];
-      const itemId = rawId as ItemKey;
-      const item = items[itemId] as Item | undefined;
-      if (!item?.anchor) return [];
-      return [
-        {
-          itemId,
-          item,
-          amount: slot.amount,
-          anchor: item.anchor,
-        },
-      ];
-    }),
+  getAnchorInventoryItems,
   [],
 );
 export const liveActionQueue = distinctArrayProjection(
@@ -240,6 +245,32 @@ export const sendActionCompleteSignal = () => actionEndSignal.update(flick);
 export const sendKnowledgesignal = () => knowledgeSignal.update(flick);
 export const sendSubLocationSignal = () => subLocationSignal.update(flick);
 setInterval(() => everyTenSeconds.update(flick), 10 * 1000);
+
+export function purchaseTimeLeapUpgrade(id: UpgradeKey): void {
+  gameState.update((state) => {
+    const upgrade = upgrades[id];
+    if (
+      state.data.global.purchased_upgrades.includes(id) ||
+      upgrade.cost !== 0
+    ) {
+      return state;
+    }
+
+    state.data.global.purchased_upgrades.push(id);
+
+    if (id === "timeline_stabilization") {
+      const capacityGain =
+        resolveUpgradeEffect(upgrade.effect) *
+        state.data.global.reached_milestones.length;
+      state.data.global.maxEnergy += capacityGain;
+      state.data.run.maxEnergy += capacityGain;
+      state.data.run.currentEnergy += capacityGain;
+    }
+
+    return state;
+  });
+}
+
 export function beginNextLoopTransition(): void {
   if (runLoopTransitionPending || get(endRun) === null) return;
 
@@ -264,10 +295,13 @@ export function beginNextLoopTransition(): void {
 }
 export function applyRunTickCosts(state: GameState, tickMs: number): GameState {
   state = checkItems(state, tickMs);
-  state.data.run.energyDecayRate +=
-    (state.data.run.energyDecayRate * 0.03) / tickMs;
+  const elapsedSeconds = tickMs / 1000;
+  state.data.run.energyDecayRate *= Math.pow(
+    1 + ENERGY_DECAY_GROWTH_RATE_PER_SECOND,
+    elapsedSeconds,
+  );
   state.data.run.currentEnergy -=
-    (state.data.run.energyDecayRate / tickMs) * DECAY_TEST_MOD;
+    state.data.run.energyDecayRate * elapsedSeconds * DECAY_TEST_MOD;
   return state;
 }
 
@@ -275,11 +309,26 @@ export function canStartAction(state: GameState, id: string): boolean {
   const action = actions[id];
   if (!action || !canDisplay(state)([id, action])) return false;
   if (!action.conditions.every((condition) => condition(state))) return false;
-  return (action.revealCondition ?? []).every((condition) => condition(state));
+  if (
+    !(action.revealCondition ?? []).every((condition) => condition(state))
+  ) {
+    return false;
+  }
+  return (action.availabilityCondition ?? []).every((condition) =>
+    condition(state),
+  );
 }
 
-export function canSkipUnavailableRetraceAction(id: string): boolean {
-  return actions[id]?.repeatable ?? false;
+export function canSkipUnavailableRetraceAction(
+  state: GameState,
+  id: string,
+): boolean {
+  const action = actions[id];
+  return Boolean(
+    action?.repeatable ||
+      (action?.crossGeneration &&
+        state.data.global.presistentActionProgress.includes(id)),
+  );
 }
 
 export function completeSimulatedAction(
@@ -347,9 +396,8 @@ export function simulateActionProgress(
       progress.progress,
       action.weight,
     );
-    state.data.run.stats[action.skill] += skillGain * RUN_SKILL_GAIN_MOD;
-    state.data.global.stats[action.skill] +=
-      skillGain * GLOBAL_SKILL_GAIN_MOD;
+    state.data.run.stats[action.skill] += skillGain;
+    state.data.global.stats[action.skill] += skillGain;
 
     if (
       state.data.run.stats[action.skill] >=
@@ -386,6 +434,15 @@ function forecastActionQueue(
 
   while (pending.length > 0 && tickBudget.remaining > 0) {
     const queuedAction = pending.shift()!;
+    const leapItemId = getRetraceLeapItemId(queuedAction.id);
+    if (leapItemId) {
+      state.data.run.action = null;
+      if (!applyRetraceLeap(state, leapItemId)) {
+        removeRemainingRetraceSteps(pending);
+      }
+      continue;
+    }
+
     const isRunning =
       queuedAction === queue[0] &&
       active !== null &&
@@ -394,7 +451,7 @@ function forecastActionQueue(
     if (!isRunning && !canStartAction(state, queuedAction.id)) {
       if (
         queuedAction.source === "retrace" &&
-        !canSkipUnavailableRetraceAction(queuedAction.id)
+        !canSkipUnavailableRetraceAction(state, queuedAction.id)
       ) {
         for (let index = pending.length - 1; index >= 0; index--) {
           if (pending[index].source === "retrace") pending.splice(index, 1);
@@ -434,6 +491,62 @@ function forecastActionQueue(
   return { estimatedSeconds: elapsedMs / 1000, runTimeAtForecast };
 }
 
+function applyRetraceLeap(
+  state: GameState,
+  itemId: ItemKey,
+  notify = false,
+): boolean {
+  const anchorItem = getAnchorInventoryItems(state).find(
+    (candidate) => candidate.itemId === itemId,
+  );
+  if (!anchorItem || isCurrentEraAnchor(state, anchorItem)) return false;
+
+  applyAnchorLeap(state, anchorItem);
+  if (notify) {
+    sendSubLocationSignal();
+    checkActions();
+  }
+  return true;
+}
+
+function removeRemainingRetraceSteps(queue: QueuedAction[]): void {
+  for (let index = queue.length - 1; index >= 0; index--) {
+    if (queue[index].source === "retrace") queue.splice(index, 1);
+  }
+}
+
+export function estimateRetracingPlan(source: GameState): {
+  configName: string | null;
+  actionCount: number;
+  estimatedSeconds: number;
+} {
+  const config = getActiveRetraceConfig(source);
+  const configName = config?.name ?? null;
+  const actionCount = config?.actions.length ?? 0;
+  if (actionCount === 0) {
+    return { configName, actionCount, estimatedSeconds: 0 };
+  }
+
+  const nextRun = deepClone(source);
+  nextRun.data.run = deepClone(EMPTY_RUN);
+  const { estimatedSeconds } = forecastActionQueue(
+    nextRun,
+    buildRetraceQueue(nextRun),
+    1000 / BASE_TPS,
+  );
+
+  return { configName, actionCount, estimatedSeconds };
+}
+
+export function getActiveRetraceConfig(source: GameState): RetraceConfig | null {
+  const { activeRetraceConfigId, retraceConfigs } = source.data.global;
+  return (
+    retraceConfigs.find(({ id }) => id === activeRetraceConfigId) ??
+    retraceConfigs[0] ??
+    null
+  );
+}
+
 export function clearRunActionQueue(state: GameState): void {
   state.data.run.retraceIdx = null;
   state.data.run.action = null;
@@ -449,11 +562,13 @@ export function stopRunAction(): void {
 }
 
 function buildRetraceQueue(state: GameState, startIndex = 0): QueuedAction[] {
-  return state.data.global.retraceConfig.slice(startIndex).map(({ id }) => ({
-    id,
-    mode: "once",
-    source: "retrace",
-  }));
+  return (getActiveRetraceConfig(state)?.actions ?? [])
+    .slice(startIndex)
+    .map(({ id }) => ({
+      id,
+      mode: "once",
+      source: "retrace",
+    }));
 }
 
 function absorbLegacyRetracing(state: GameState): void {
@@ -480,10 +595,21 @@ function startNextQueuedAction(state: GameState): GameState {
 
   while (state.data.run.actionQueue.length > 0) {
     const queuedAction = state.data.run.actionQueue.shift()!;
+    const leapItemId = getRetraceLeapItemId(queuedAction.id);
+    if (leapItemId) {
+      state.data.run.action = null;
+      if (!applyRetraceLeap(state, leapItemId, true)) {
+        state.data.run.actionQueue = state.data.run.actionQueue.filter(
+          (entry) => entry.source !== "retrace",
+        );
+      }
+      continue;
+    }
+
     if (!canStartAction(state, queuedAction.id)) {
       if (
         queuedAction.source === "retrace" &&
-        !canSkipUnavailableRetraceAction(queuedAction.id)
+        !canSkipUnavailableRetraceAction(state, queuedAction.id)
       ) {
         state.data.run.actionQueue = state.data.run.actionQueue.filter(
           (entry) => entry.source !== "retrace",
@@ -578,7 +704,15 @@ function beginRunDeathTransition(): void {
     gameState.update((state) => {
       state.data.run.mainViewRoute = "endRun";
       endRun.set(state.data.run);
+      state.data.global.previous_run_milestone_entries = deepClone(
+        state.data.global.last_run_milestone_entries,
+      );
+      state.data.global.last_run_milestone_entries = deepClone(
+        state.data.run.milestoneEntries,
+      );
       state.data.run = processCleanGameState(EMPTY_RUN);
+      state.data.run.maxEnergy = state.data.global.maxEnergy;
+      state.data.run.currentEnergy = state.data.global.maxEnergy;
       bakeSkillLevels();
       state.data.run.initialStats = deepClone(bakery.skills.global);
       state.data.global.loop = state.data.global.loop + 1;
@@ -639,6 +773,13 @@ actionsCheckSignal.subscribe((_) => {
         if (
           actionRef.conditions !== undefined &&
           !actionRef.conditions.every((c) => c(state))
+        ) {
+          state.data.run.action = null;
+          state.data.run.actionProgress[ACTION_ID].progress = 0;
+        }
+        if (
+          actionRef.availabilityCondition !== undefined &&
+          !actionRef.availabilityCondition.every((c) => c(state))
         ) {
           state.data.run.action = null;
           state.data.run.actionProgress[ACTION_ID].progress = 0;
@@ -704,11 +845,15 @@ export const ghostDisplayableActions: (r: GameState) => string[] = (r) => {
 /// etc system
 let _ticker: number;
 const ticker = derived(
-  [ticksPerSecond],
-  ([ticksPerSecond]) => {
+  [ticksPerSecond, simulationTimeScale],
+  ([ticksPerSecond, timeScale]) => {
     _ticker && clearInterval(_ticker);
     bakedTimePerTick = 1000 / ticksPerSecond;
-    _ticker = setInterval(() => tickSignal.update(flick), bakedTimePerTick);
+    _ticker = setInterval(() => {
+      for (let tick = 0; tick < timeScale; tick++) {
+        tickSignal.update(flick);
+      }
+    }, bakedTimePerTick);
     return _ticker;
   },
   null
@@ -731,6 +876,7 @@ tickSignal.subscribe((_) => {
         beginRunDeathTransition();
         return val;
       }
+      val = applyMurmurTick(val, bakedTimePerTick);
       const skill = actions[ACTION_ID]!.skill;
       let skillModifier = bakery.modifiers.total[skill];
       const actionProgressGain = bakedGainPerTick * skillModifier;
@@ -751,8 +897,8 @@ tickSignal.subscribe((_) => {
         val.data.run.actionProgress[ACTION_ID]?.progress ?? 0,
         actions[ACTION_ID].weight
       );
-      val.data.run.stats[skill] += skillGain * RUN_SKILL_GAIN_MOD;
-      val.data.global.stats[skill] += skillGain * GLOBAL_SKILL_GAIN_MOD;
+      val.data.run.stats[skill] += skillGain;
+      val.data.global.stats[skill] += skillGain;
 
       if (
         val.data.run.stats[skill] >=

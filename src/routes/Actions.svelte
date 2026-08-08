@@ -1,7 +1,11 @@
 <script lang="ts">
   import ScrollFade from "../components/ScrollFade.svelte";
-  import type { ItemKey } from "../gameData/items";
-  import { items } from "../gameData/items";
+  import {
+    getItemCapacity,
+    getItemCooldown,
+    items,
+    type ItemKey,
+  } from "../gameData/items";
   import ProgressBar from "../parts/ProgressBar.svelte";
   import SingleAction from "../parts/SingleAction.svelte";
   import {
@@ -34,7 +38,7 @@
         : `${queuedAction.count}×`;
     }
 
-    return queuedAction.mode === "max" ? "MAX" : "1×";
+    return queuedAction.mode === "max" ? "MAX" : null;
   }
 
   function getDisplayableActions(ids: string[]) {
@@ -46,6 +50,12 @@
       .sort((left, right) =>
         (right.action.idx ?? 0) - (left.action.idx ?? 0),
       );
+  }
+
+  function getItemCountLabel(state: GameState, key: ItemKey) {
+    const amount = state.data.run.inventory[key]?.amount ?? 0;
+    const capacity = getItemCapacity(key, state);
+    return capacity === null ? `${amount}` : `${amount}/${capacity}`;
   }
 
   $: allActions = getDisplayableActions($displayableActions);
@@ -81,7 +91,7 @@
         <div class="glass_surface flex h-full min-h-0 flex-col p-2">
           <h2 class="section_header">
             <span>Queue</span>
-            <span class="section_header_meta">
+            <span class="section_header_meta queue_header_meta">
               {$liveActionQueue.length}
               {$liveActionQueue.length === 1 ? "item" : "items"} · ~{$queuedActionEstimateSeconds.toFixed(
                 2,
@@ -93,10 +103,10 @@
             scrollerClass="glass_scroll h-full min-h-0 overflow-y-auto"
           >
             {#each bundledLiveQueue as queuedAction (`${queuedAction.id}-${queuedAction.mode}-${queuedAction.source ?? "legacy"}-${queuedAction.startIndex}`)}
+              {@const countLabel = getQueueCountLabel(queuedAction)}
               <button
                 type="button"
                 class="queue_card glass_card mb-1 grid w-full grid-cols-[1fr_auto] items-center gap-2 px-3 py-2 text-left text-xs"
-                aria-label={`Remove ${queuedAction.count > 1 ? `all ${queuedAction.count} queued ` : ""}${getActionTitle($gameState, queuedAction.id)}${queuedAction.count > 1 ? " actions" : " from action queue"}`}
                 title={queuedAction.count > 1
                   ? "Remove grouped actions from queue"
                   : "Remove from queue"}
@@ -109,14 +119,16 @@
                 <div class="min-w-0 truncate">
                   {getActionTitle($gameState, queuedAction.id)}
                 </div>
-                <div
-                  class="muted_text text-xs"
-                  title={queuedAction.mode === "max"
-                    ? "Repeat until the action can no longer run"
-                    : "Run once"}
-                >
-                  {getQueueCountLabel(queuedAction)}
-                </div>
+                {#if countLabel}
+                  <div
+                    class="muted_text text-xs"
+                    title={queuedAction.mode === "max"
+                      ? "Repeat until the action can no longer run"
+                      : "Queued multiple times"}
+                  >
+                    {countLabel}
+                  </div>
+                {/if}
               </button>
             {/each}
           </ScrollFade>
@@ -126,7 +138,6 @@
         <div class="glass_surface flex h-full min-h-0 flex-col p-2">
           <h2 class="section_header">
             <span>Inventory</span>
-            <span class="section_header_meta" aria-hidden="true"></span>
           </h2>
           <ScrollFade
             frameClass="min-h-0 flex-1"
@@ -135,9 +146,7 @@
             {#each allItems as [key, value] (key)}
               <div>
                 {items[key].name}
-                {$gameState.data.run.inventory[key]?.amount ?? 0}/{items[
-                  key
-                ].capacity($gameState)}
+                {getItemCountLabel($gameState, key)}
               </div>
               <div class="grid grid-cols-4">
                 <div class="muted_text text-xs col-span-3">
@@ -150,7 +159,9 @@
                 {/if}
                 <div class="col-span-2">
                   <ProgressBar
-                    percent={Math.floor((value.cooldown / 5000) * 100)}
+                    percent={Math.floor(
+                      (value.cooldown / getItemCooldown(key)) * 100,
+                    )}
                   />
                 </div>
               </div>
@@ -165,23 +176,9 @@
 </div>
 
 <style>
-  .section_header {
-    display: grid;
-    gap: 1px;
-    margin: 0 -0.5rem 8px;
-    padding: 0 0.75rem 7px;
-    border-bottom: 1px solid var(--ui_stroke);
-    font-weight: 600;
-    letter-spacing: 0.01em;
-  }
-
-  .section_header_meta {
-    min-height: 1rem;
-    color: var(--ui_text_subtle);
-    font-size: var(--ui_font_size_detail);
-    font-weight: 400;
-    line-height: 1rem;
-    letter-spacing: 0;
+  .queue_header_meta {
+    font-family: var(--ui_font_numeric);
+    font-variant-numeric: tabular-nums;
   }
 
   .queue_card {

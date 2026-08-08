@@ -83,6 +83,9 @@ export const na641southActions: ActionRepository = {
     ],
     postComplete: [
       COMPLETION_EFFECTS.moveSubLocation(NA641_SUBLOCATIONS.annasRecycledGoods),
+      COMPLETION_EFFECTS.reachMilestone(
+        "na641_visit_annas_recycled_goods",
+      ),
     ],
   },
   na641_johnny_meet: {
@@ -99,10 +102,9 @@ export const na641southActions: ActionRepository = {
         NA641_SUBLOCATIONS.southernMainStreetOutskirts,
       ),
       CONDITION_CHECKS.hasKnowledge(KNOWLEDGE.NA641.johnny_contact),
+      CONDITION_CHECKS.ifActionCompleteRun("na641_homeless_wistom"),
     ],
-    postComplete: COMPLETION_EFFECTS.addLog(
-      "The fabled mr. Questionable Jobs himself!",
-    ),
+    postComplete: COMPLETION_EFFECTS.reachMilestone("na641_meet_johnny"),
   },
   na641_johnny_talk: {
     ...NO_CROSSGEN,
@@ -310,7 +312,9 @@ export const na641southActions: ActionRepository = {
       ),
       CONDITION_CHECKS.numFlagGTE(TAGS.NA641.REPUTATION.UNDERWORLD, 10),
     ],
-    postComplete: [],
+    postComplete: [
+      COMPLETION_EFFECTS.reachMilestone("na641_join_johnnys_gang"),
+    ],
   },
   na641_johnny_enter_gang_hideout: {
     ...NO_CROSSGEN,
@@ -540,6 +544,7 @@ export const na641southActions: ActionRepository = {
     ],
     postComplete: [
       COMPLETION_EFFECTS.addItem("new_arcadia_fake_id", 1),
+      COMPLETION_EFFECTS.reachMilestone("na641_produce_fake_id"),
     ],
   },
   na641_johnny_leave_gang_hideout: {

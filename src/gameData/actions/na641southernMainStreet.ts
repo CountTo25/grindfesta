@@ -34,6 +34,9 @@ export const na641southernMainStreetActions: ActionRepository = {
     ],
     postComplete: [
       COMPLETION_EFFECTS.moveSubLocation(NA641_SUBLOCATIONS.southernMainStreet),
+      COMPLETION_EFFECTS.reachMilestone(
+        "na641_enter_southern_main_street",
+      ),
     ],
   },
   na641_southern_main_street_return_to_outskirts: {
@@ -315,7 +318,7 @@ export const na641southernMainStreetActions: ActionRepository = {
     ...NO_REPEAT,
     title: "Look around the reading room",
     skill: "exploration",
-    weight: 400,
+    weight: 140,
     conditions: [
       CONDITION_CHECKS.inLocation(NA641),
       CONDITION_CHECKS.inSubLocation(
@@ -335,7 +338,7 @@ export const na641southernMainStreetActions: ActionRepository = {
     title: "Read Society of New Arcadia",
     flavourText: "Learn all about the glorious state of New Arcadia!",
     skill: "social",
-    weight: 2000,
+    weight: 700,
     conditions: [
       CONDITION_CHECKS.inLocation(NA641),
       CONDITION_CHECKS.inSubLocation(
@@ -355,7 +358,7 @@ export const na641southernMainStreetActions: ActionRepository = {
     ...NO_REPEAT,
     title: "Go through the shelves",
     skill: "perception",
-    weight: 600,
+    weight: 210,
     conditions: [
       CONDITION_CHECKS.inLocation(NA641),
       CONDITION_CHECKS.inSubLocation(
@@ -377,7 +380,7 @@ export const na641southernMainStreetActions: ActionRepository = {
     ...NO_REPEAT,
     title: 'Read "Structural Properties of Aurexite"',
     skill: "engineering",
-    weight: 2500,
+    weight: 870,
     conditions: [
       CONDITION_CHECKS.inLocation(NA641),
       CONDITION_CHECKS.inSubLocation(
@@ -399,7 +402,7 @@ export const na641southernMainStreetActions: ActionRepository = {
     ...NO_REPEAT,
     title: "Check the topmost shelf",
     skill: "exploration",
-    weight: 800,
+    weight: 280,
     conditions: [
       CONDITION_CHECKS.inLocation(NA641),
       CONDITION_CHECKS.inSubLocation(
@@ -420,7 +423,7 @@ export const na641southernMainStreetActions: ActionRepository = {
     title: "Read Charting Arcadia",
     flavourText: "Everything about how New Arcadia changed",
     skill: "exploration",
-    weight: 3000,
+    weight: 1050,
     conditions: [
       CONDITION_CHECKS.inLocation(NA641),
       CONDITION_CHECKS.inSubLocation(
@@ -438,7 +441,7 @@ export const na641southernMainStreetActions: ActionRepository = {
     ...NO_REPEAT,
     title: "Find books about ancient monsters",
     skill: "perception",
-    weight: 300,
+    weight: 100,
     conditions: [
       CONDITION_CHECKS.inLocation(NA641),
       CONDITION_CHECKS.inSubLocation(
@@ -461,7 +464,7 @@ export const na641southernMainStreetActions: ActionRepository = {
     title: "Read about ancient monsters",
     flavourText: "pen is mightier than humongous lizard",
     skill: "survival",
-    weight: 300,
+    weight: 100,
     conditions: [
       CONDITION_CHECKS.inLocation(NA641),
       CONDITION_CHECKS.inSubLocation(
@@ -519,8 +522,6 @@ export const na641southernMainStreetActions: ActionRepository = {
         "na641_library_read_society_of_new_arcadia",
         "na641_library_read_aurexite_structural_properties",
         "na641_library_read_charting_arcadia",
-        "na641_library_read_about_ancient_monsters",
-        "na641_library_check_monster_authors_note",
       ]),
     ],
     postComplete: [

@@ -154,7 +154,8 @@ export const na641WesternMainStreetActions: ActionRepository = {
   narcadia_moneymaking_seek: {
     ...CROSSGEN,
     ...NO_REPEAT,
-    title: "Look for a ways to earn money",
+    title: "Look for ways to earn money",
+    flavourText: "Some income source is needed",
     skill: "exploration",
     weight: 10,
     conditions: [
@@ -208,12 +209,7 @@ export const na641WesternMainStreetActions: ActionRepository = {
         TAGS.NA641.REPUTATION.HOMELESS,
         (v) => ++v,
       ),
-      COMPLETION_EFFECTS.addLog(
-        "Apparently theres a lot of goods to scavenge under vendomats on Southern Main street",
-      ),
-      COMPLETION_EFFECTS.addLog(
-        "Also you might meet Johnny in the outskirts, he'll know about you coming. He has few questionable but paying job offers",
-      ),
+      COMPLETION_EFFECTS.reachMilestone("na641_homeless_wisdom"),
     ],
   },
 };
@@ -306,9 +302,7 @@ export const na641BackalleyActions: ActionRepository = {
     ],
     postComplete: [
       COMPLETION_EFFECTS.addItem("anchor_broken_temporal_calibrator", 1),
-      COMPLETION_EFFECTS.addLog(
-        "Quite weird, but it anchors to New Arcadia in 641!",
-      ),
+      COMPLETION_EFFECTS.reachMilestone("na641_recover_temporal_calibrator"),
     ],
   },
 };

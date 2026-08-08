@@ -1,0 +1,221 @@
+import type { LocationKey } from "./sublocations";
+
+export type Milestone = {
+  id: string;
+  location: LocationKey;
+  title: string;
+  text: string;
+  cost: number | null;
+  important?: boolean;
+};
+
+export const milestones = {
+  na641_time_leap: {
+    id: "na641_time_leap",
+    location: "na641",
+    title: "Time leap",
+    text: "You've leapt trough time — and found yourself in some backalley",
+    cost: null,
+  },
+  na641_meet_marco: {
+    id: "na641_meet_marco",
+    location: "na641",
+    title: "Town's handyman",
+    text: "You've met Marco — an owner of local fixer who can repair everything. There's a new challenge awaiting him — something that he never had to fix before",
+    cost: null,
+  },
+  na641_deliver_marco_charger: {
+    id: "na641_deliver_marco_charger",
+    location: "na641",
+    title: "Recharged",
+    text: "Marco has his new fancy charger thanks to you doing some delivery work. You have better batteries available, thanks to Marco ordering new charger and your willingness to find it",
+    cost: null,
+  },
+  na641_visit_annas_recycled_goods: {
+    id: "na641_visit_annas_recycled_goods",
+    location: "na641",
+    title: "Used goods",
+    text: "Used — yes, slightly cheaper — yes. But most important thing is wide variety of obscure treasures",
+    cost: null,
+  },
+  na641_annas_repair_job: {
+    id: "na641_annas_repair_job",
+    location: "na641",
+    title: "Repairman",
+    text: "From now on, you can tinker with broken stuff — and probably make it less broken along the way",
+    cost: null,
+  },
+  na641_stabilize_time_leap_energy: {
+    id: "na641_stabilize_time_leap_energy",
+    location: "na641",
+    title: "An improvised fix",
+    text: "Cooperating with Marco, you've managed to somehow stabilize battery drain a little. Hopefully, this will allow you to get deeper into this timeline",
+    cost: null,
+  },
+  na641_marco_knows_time_leap: {
+    id: "na641_marco_knows_time_leap",
+    location: "na641",
+    title: "Marco knows",
+    text: "Marco knows about you being from the future, the device and what it actually does.",
+    cost: null,
+    important: true,
+  },
+  na641_homeless_wisdom: {
+    id: "na641_homeless_wisdom",
+    location: "na641",
+    title: "Street smart",
+    text: "Thanks to your efforts while digging under vending machines, you now know about underbelly of New Arcadia. Mysterious Johnny is waiting for you, leading to new career prospects",
+    cost: null,
+  },
+  na641_meet_johnny: {
+    id: "na641_meet_johnny",
+    location: "na641",
+    title: "Shady jobs",
+    text: "This is also a path that can be taken, if you're so desperate for money",
+    cost: null,
+  },
+  na641_rapid_delivery_job: {
+    id: "na641_rapid_delivery_job",
+    location: "na641",
+    title: "A special delivery",
+    text: "You can now work for Rapid, earning money in a honest way. Expect some strain on your lefts",
+    cost: null,
+  },
+  na641_rapid_delivery_promotion: {
+    id: "na641_rapid_delivery_promotion",
+    location: "na641",
+    title: "Senior deliveryman",
+    text: "Thanks to your hard work, you're now climbing up corporate ranks  in Rapid. More opportunities await — just work harder!",
+    cost: null,
+  },
+  na641_rapid_delivery_forged_promotion: {
+    id: "na641_rapid_delivery_forged_promotion",
+    location: "na641",
+    title: "Senior deliveryman?",
+    text: "Work smart, not hard. Also break few laws along the way. You're now higher up the corporate chain in Rapid. At least until someone notices that something is off",
+    cost: null,
+  },
+  na641_join_johnnys_gang: {
+    id: "na641_join_johnnys_gang",
+    location: "na641",
+    title: "Career criminal",
+    text: "Being the member of underworld has it is upsides. Aside of picking morally incorrect choice on every possible step, having underworld connections is a reward on its own",
+    cost: null,
+  },
+  na641_partner_with_professor_naoto: {
+    id: "na641_partner_with_professor_naoto",
+    location: "na641",
+    title: "Institutional relationships",
+    text: "One or professors from most prestigious scholary institution now cooperates with you on research",
+    cost: null,
+  },
+  na641_naoto_lets_you_in: {
+    id: "na641_naoto_lets_you_in",
+    location: "na641",
+    title: "Paleontologist otaku",
+    text: "Professor Naoto hates being bothered, but loves his ancient creatures. Together you are determined to study magnificent (and dangerous) animals of the past",
+    cost: null,
+  },
+  na641_naoto_knows_time_leap: {
+    id: "na641_naoto_knows_time_leap",
+    location: "na641",
+    title: "Naoto knows",
+    text: "Your science-changing findings are not just mere luck. Naoto knows where and how you got it",
+    cost: null,
+    important: true,
+  },
+  na641_steal_ancient_bone: {
+    id: "na641_steal_ancient_bone",
+    location: "na641",
+    title: "Grand theft",
+    text: "An anchor — something that resonates with your Time Leap device — was stolen from a museum. Should you keep it or give it away to the client is yet unknown — but possibilities of what you can achieve with it are endless",
+    cost: null,
+  },
+  na641_recover_temporal_calibrator: {
+    id: "na641_recover_temporal_calibrator",
+    location: "na641",
+    title: "Homebound",
+    text: "Hardly your original home, Arcadia is most precious place for you. Now you can always find a way back",
+    cost: null,
+  },
+  eternia31349_greet_author: {
+    id: "eternia31349_greet_author",
+    location: "eternia31349",
+    title: "Era of Magic",
+    text: "You've crossed time again. In those sacred halls you can sense immense power, which is yet to be tamed by you",
+    cost: null,
+  },
+  eternia31349_meet_ewai: {
+    id: "eternia31349_meet_ewai",
+    location: "eternia31349",
+    title: "Trade in era of gods",
+    text: "Magic is everywhere — and it does not negate everyday needs. And Ewai is happy to fulfill those",
+    cost: null,
+  },
+  eternia31349_currency: {
+    id: "eternia31349_currency",
+    location: "eternia31349",
+    title: "Currency of Eternia",
+    text: "Despite its mythical nature, Eternia apparently has a fully fledged banking system that uses magic. How curious",
+    cost: null,
+  },
+  eternia31349_magical_being: {
+    id: "eternia31349_magical_being",
+    location: "eternia31349",
+    title: "A magical being",
+    text: "People think that H'sak either summoned a human from somewhere or made a new existence using magic. Tremendous progress! They are wrong. Still, you've met eager magicians who are super intrigued by your presence in the Lodges",
+    cost: null,
+  },
+  eternia31349_hear_casm_out: {
+    id: "eternia31349_hear_casm_out",
+    location: "eternia31349",
+    title: "Fear of god",
+    text: "In Eternia, gods are all-seeing, almighty. Casm's life's work is serving the god of knowledge",
+    cost: null,
+  },
+  eternia31349_total_magic_show_off: {
+    id: "eternia31349_total_magic_show_off",
+    location: "eternia31349",
+    title: "Total show-off",
+    text: "You've decided that mages from Eternia really need to see what the peak of magic is. And it is still far away from the actual peak of magic",
+    cost: null,
+  },
+  na641_acquire_aurexite_tome: {
+    id: "na641_acquire_aurexite_tome",
+    location: "na641",
+    title: "Ancient wisdom",
+    text: "It was surprisingly easy to get your hands on, but you've got yourself an access to most peculiar relic from ancient times. Reading does pay off",
+    cost: null,
+  },
+  na641_audience_with_master_librarian: {
+    id: "na641_audience_with_master_librarian",
+    location: "na641",
+    title: "Audience with library's head",
+    text: "Reading too much led you to audience with library's master himself",
+    cost: null,
+  },
+  na641_enter_southern_main_street: {
+    id: "na641_enter_southern_main_street",
+    location: "na641",
+    title: "Heart of economics",
+    text: "Southern street of Arcadia is the place to be. Rich, vibrant. Endless stores, institutional places and looming sense of success being in your reach",
+    cost: null,
+  },
+  na641_produce_fake_id: {
+    id: "na641_produce_fake_id",
+    location: "na641",
+    title: "New identity",
+    text: "With some scheming, you managed to procure all you needed to became a lawful — or not so lawful — citizen of New Arcadia",
+    cost: null,
+  },
+  bbasin7281_canyon_caves_lights_on: {
+    id: "bbasin7281_canyon_caves_lights_on",
+    location: "bbasin7281",
+    title: "Lights on",
+    text: "With lights on and bats defeated, you can now explore every nook and cranny of canyon's cave system",
+    cost: null,
+  },
+} as const satisfies Record<string, Milestone>;
+
+export type MilestoneKey = keyof typeof milestones;
+export type MilestoneEntry = { ts: number; id: MilestoneKey };

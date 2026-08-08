@@ -8,6 +8,8 @@
   --ui_text: #eef7f1;
   --ui_text_muted: #aebeb4;
   --ui_text_subtle: #718078;
+  --ui_font_numeric: "Roboto Mono", ui-monospace, SFMono-Regular, Menlo,
+    Monaco, Consolas, monospace;
   --ui_font_size_body: 0.8125rem;
   --ui_font_size_detail: 0.6875rem;
   --ui_font_size_status: 1rem;

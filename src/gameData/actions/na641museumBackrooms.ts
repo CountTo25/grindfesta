@@ -176,11 +176,7 @@ export const museumBackroomsActions: ActionRepository = {
     ],
     postComplete: [
       COMPLETION_EFFECTS.addItem("anchor_ancient_bone", 1),
-      COMPLETION_EFFECTS.addKnowledge(KNOWLEDGE.TIME_LEAP.anchoring),
-      COMPLETION_EFFECTS.addLog("Time leap device reacts to the fossil"),
-      COMPLETION_EFFECTS.addLog(
-        "You took the fossil. Apparently it can serve as anchor for your time leap device",
-      ),
+      COMPLETION_EFFECTS.reachMilestone("na641_steal_ancient_bone"),
     ],
   },
   na641_museum_leave_backrooms: {

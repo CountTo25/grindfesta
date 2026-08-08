@@ -100,7 +100,7 @@
         <GenericIcon icon={skill} />
       </div>
       <div class="col-span-4 text-left capitalize">{skill}</div>
-      <div class="col-span-3 text-right">
+      <div class="skill_modifier col-span-3 text-right">
         x{modifier}
       </div>
     </div>
@@ -141,6 +141,11 @@
 </div>
 
 <style>
+  .skill_modifier {
+    font-family: var(--ui_font_numeric);
+    font-variant-numeric: tabular-nums;
+  }
+
   .run_level_pulse {
     --skill-level-pulse-color: var(--ui_accent);
   }

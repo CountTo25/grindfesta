@@ -132,6 +132,7 @@ export const professorNaotoActions: ActionRepository = {
         TAGS.NA641.PROFESSOR_NAOTO.READY_TO_LISTEN,
         "1",
       ),
+      COMPLETION_EFFECTS.reachMilestone("na641_naoto_lets_you_in"),
     ],
   },
   na641_naoto_show_lizard_photo: {
@@ -142,7 +143,6 @@ export const professorNaotoActions: ActionRepository = {
     weight: 100,
     conditions: [
       ...IN_NAOTO_HOUSE,
-      CONDITION_CHECKS.noFlag(TAGS.NA641.PROFESSOR_NAOTO.READY_TO_LISTEN),
       CONDITION_CHECKS.hasItem("bbasin7281_lizard_photo", 1),
     ],
     postComplete: [
@@ -150,6 +150,7 @@ export const professorNaotoActions: ActionRepository = {
         TAGS.NA641.PROFESSOR_NAOTO.READY_TO_LISTEN,
         "1",
       ),
+      COMPLETION_EFFECTS.reachMilestone("na641_naoto_lets_you_in"),
     ],
   },
   na641_naoto_get_snacks: {
@@ -211,7 +212,9 @@ export const professorNaotoActions: ActionRepository = {
         CONDITION_CHECKS.ifActionCompleteRun("na641_naoto_lie_about_photo"),
       ),
     ],
-    postComplete: [],
+    postComplete: [
+      COMPLETION_EFFECTS.reachMilestone("na641_naoto_knows_time_leap"),
+    ],
   },
   na641_naoto_lie_about_photo: {
     ...NO_CROSSGEN,
@@ -240,7 +243,7 @@ export const professorNaotoActions: ActionRepository = {
     flavourText:
       "With the whole photo in your hands, you can understand even more about this guy",
     skill: "survival",
-    weight: 400,
+    weight: 120,
     conditions: [
       ...IN_NAOTO_HOUSE,
       CONDITION_CHECKS.or([
@@ -271,13 +274,16 @@ export const professorNaotoActions: ActionRepository = {
         "na641_naoto_explain_time_leap",
       ),
     ],
-    postComplete: [],
+    postComplete: [
+      COMPLETION_EFFECTS.reachMilestone("na641_partner_with_professor_naoto"),
+    ],
   },
   na641_naoto_no_new_past_items: {
     ...NO_CROSSGEN,
     ...NO_REPEAT,
     title: "«Bring more items from past»",
-    flavourText: "Yeah, you know his next request. Nothing to show yet",
+    flavourText:
+      "Naoto is waiting for another specimen. This route continues in a future update.",
     skill: "social",
     weight: 1,
     conditions: [

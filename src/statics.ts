@@ -1,5 +1,12 @@
 import { bbasin7281Actions } from "./gameData/actions/bbasin7281";
+import { pantheon31349BankActions } from "./gameData/actions/pantheon31349Bank";
+import { pantheon31349DiviningChambersActions } from "./gameData/actions/pantheon31349DiviningChambers";
+import { pantheon31349EwaisEverydayGoodsActions } from "./gameData/actions/pantheon31349EwaisEverydayGoods";
+import { pantheon31349GodOfKnowledgeActions } from "./gameData/actions/pantheon31349GodOfKnowledge";
 import { pantheon31349LibraryActions } from "./gameData/actions/pantheon31349Library";
+import { pantheon31349LibraryJobActions } from "./gameData/actions/pantheon31349LibraryJobs";
+import { pantheon31349MagicianLodgesActions } from "./gameData/actions/pantheon31349MagicianLodges";
+import { pantheon31349MagicArchivesActions } from "./gameData/actions/pantheon31349MagicArchives";
 import { pantheon31349ScholarsDistrictActions } from "./gameData/actions/pantheon31349ScholarsDistrict";
 import {
   na641BackalleyActions,
@@ -33,6 +40,13 @@ export const actions: ActionRepository = {
   ...na641southActions,
   ...na641junkActions,
   ...bbasin7281Actions,
+  ...pantheon31349BankActions,
+  ...pantheon31349GodOfKnowledgeActions,
+  ...pantheon31349DiviningChambersActions,
+  ...pantheon31349EwaisEverydayGoodsActions,
   ...pantheon31349LibraryActions,
+  ...pantheon31349LibraryJobActions,
+  ...pantheon31349MagicianLodgesActions,
+  ...pantheon31349MagicArchivesActions,
   ...pantheon31349ScholarsDistrictActions,
 };

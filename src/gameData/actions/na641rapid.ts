@@ -106,7 +106,7 @@ export const rapidDeliveryActions: ActionRepository = {
       CONDITION_CHECKS.ifActionCompleteRun("narcadia_delivery_job"),
     ],
     postComplete: [
-      COMPLETION_EFFECTS.addLog("You can take on delivery jobs from now on"),
+      COMPLETION_EFFECTS.reachMilestone("na641_rapid_delivery_job"),
     ],
   },
   na641_delivery_talk_to_manager: {
@@ -125,9 +125,7 @@ export const rapidDeliveryActions: ActionRepository = {
     ],
     postComplete: [
       COMPLETION_EFFECTS.addFlag(DELIVERY_TAGS.advanced_access, "1"),
-      COMPLETION_EFFECTS.addLog(
-        "Now you have access to advanced deliveries",
-      ),
+      COMPLETION_EFFECTS.reachMilestone("na641_rapid_delivery_promotion"),
     ],
   },
   na641_delivery_ask_for_johnnys_package: {
@@ -224,8 +222,8 @@ export const rapidDeliveryActions: ActionRepository = {
     ],
     postComplete: [
       COMPLETION_EFFECTS.addFlag(DELIVERY_TAGS.advanced_access, "1"),
-      COMPLETION_EFFECTS.addLog(
-        "Now you have access to advanced deliveries",
+      COMPLETION_EFFECTS.reachMilestone(
+        "na641_rapid_delivery_forged_promotion",
       ),
     ],
   },

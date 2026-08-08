@@ -4,7 +4,6 @@ import { KNOWLEDGE, TAGS } from "../tags";
 import {
   CROSSGEN,
   NO_CROSSGEN,
-  NO_POSTCOMPLETE,
   NO_REPEAT,
   type ActionRepository,
 } from "./utils";
@@ -16,16 +15,17 @@ export const pantheon31349LibraryActions: ActionRepository = {
   pantheon31349_greet_author: {
     ...NO_CROSSGEN,
     ...NO_REPEAT,
-    ...NO_POSTCOMPLETE,
     title: "Greet the author",
-    flavourText: "It is quite obvious that this is the moment he finished the book",
+    flavourText:
+      "It is quite obvious that this is the moment he finished the book",
     skill: "social",
     weight: 1400,
     conditions: [
       CONDITION_CHECKS.inLocation(ETERNIA31349),
-      CONDITION_CHECKS.inSubLocation(
-        ETERNIA31349_SUBLOCATIONS.greatLibrary,
-      ),
+      CONDITION_CHECKS.inSubLocation(ETERNIA31349_SUBLOCATIONS.greatLibrary),
+    ],
+    postComplete: [
+      COMPLETION_EFFECTS.reachMilestone("eternia31349_greet_author"),
     ],
   },
   pantheon31349_decipher_authors_answer: {
@@ -37,15 +37,11 @@ export const pantheon31349LibraryActions: ActionRepository = {
     weight: 1800,
     conditions: [
       CONDITION_CHECKS.inLocation(ETERNIA31349),
-      CONDITION_CHECKS.inSubLocation(
-        ETERNIA31349_SUBLOCATIONS.greatLibrary,
-      ),
+      CONDITION_CHECKS.inSubLocation(ETERNIA31349_SUBLOCATIONS.greatLibrary),
       CONDITION_CHECKS.ifActionCompleteRun("pantheon31349_greet_author"),
     ],
     postComplete: [
-      COMPLETION_EFFECTS.addKnowledge(
-        KNOWLEDGE.PANTHEON31349.language_basics,
-      ),
+      COMPLETION_EFFECTS.addKnowledge(KNOWLEDGE.PANTHEON31349.language_basics),
     ],
   },
   pantheon31349_clarify_whereabouts: {
@@ -57,15 +53,14 @@ export const pantheon31349LibraryActions: ActionRepository = {
     weight: 1600,
     conditions: [
       CONDITION_CHECKS.inLocation(ETERNIA31349),
-      CONDITION_CHECKS.inSubLocation(
-        ETERNIA31349_SUBLOCATIONS.greatLibrary,
-      ),
+      CONDITION_CHECKS.inSubLocation(ETERNIA31349_SUBLOCATIONS.greatLibrary),
       CONDITION_CHECKS.ifActionCompleteRun("pantheon31349_greet_author"),
+      CONDITION_CHECKS.ifActionCompleteAny(
+        "pantheon31349_decipher_authors_answer",
+      ),
     ],
     postComplete: [
-      COMPLETION_EFFECTS.addKnowledge(
-        KNOWLEDGE.PANTHEON31349.whereabouts,
-      ),
+      COMPLETION_EFFECTS.addKnowledge(KNOWLEDGE.PANTHEON31349.whereabouts),
     ],
   },
   pantheon31349_follow_author: {
@@ -74,15 +69,12 @@ export const pantheon31349LibraryActions: ActionRepository = {
     title: "Follow the Author",
     flavourText: "He is not that surprised about you appearing outta nowhere",
     skill: "exploration",
-    weight: 1600,
+    weight: 1300,
     conditions: [
       CONDITION_CHECKS.inLocation(ETERNIA31349),
-      CONDITION_CHECKS.inSubLocation(
-        ETERNIA31349_SUBLOCATIONS.greatLibrary,
-      ),
-      CONDITION_CHECKS.ifActionCompleteAny(
-        "pantheon31349_clarify_whereabouts",
-      ),
+      CONDITION_CHECKS.inSubLocation(ETERNIA31349_SUBLOCATIONS.greatLibrary),
+      CONDITION_CHECKS.ifActionCompleteRun("pantheon31349_greet_author"),
+      CONDITION_CHECKS.ifActionCompleteAny("pantheon31349_clarify_whereabouts"),
     ],
     postComplete: [
       COMPLETION_EFFECTS.addFlag(TAGS.PANTHEON31349.HSAK_FOLLOWS, "1"),
@@ -97,38 +89,110 @@ export const pantheon31349LibraryActions: ActionRepository = {
     weight: 2000,
     conditions: [
       CONDITION_CHECKS.inLocation(ETERNIA31349),
-      CONDITION_CHECKS.inSubLocation(
-        ETERNIA31349_SUBLOCATIONS.greatLibrary,
-      ),
+      CONDITION_CHECKS.inSubLocation(ETERNIA31349_SUBLOCATIONS.greatLibrary),
       CONDITION_CHECKS.ifActionCompleteRun("pantheon31349_follow_author"),
     ],
     postComplete: [
-      COMPLETION_EFFECTS.addKnowledge(
-        KNOWLEDGE.PANTHEON31349.basic_symbolics,
-      ),
-      COMPLETION_EFFECTS.addKnowledge(
-        KNOWLEDGE.PANTHEON31349.book_assortment,
-      ),
+      COMPLETION_EFFECTS.addKnowledge(KNOWLEDGE.PANTHEON31349.basic_symbolics),
+      COMPLETION_EFFECTS.addKnowledge(KNOWLEDGE.PANTHEON31349.book_assortment),
     ],
   },
   pantheon31349_leave_with_hsak: {
     ...NO_CROSSGEN,
     ...NO_REPEAT,
     title: "Leave with H'sak",
-    flavourText:
-      "Now you know his name. But how is he opening doors remotely?",
+    flavourText: "Now you know his name. But how is he opening doors remotely?",
     skill: "exploration",
     weight: 1200,
     conditions: [
       CONDITION_CHECKS.inLocation(ETERNIA31349),
-      CONDITION_CHECKS.inSubLocation(
-        ETERNIA31349_SUBLOCATIONS.greatLibrary,
-      ),
+      CONDITION_CHECKS.inSubLocation(ETERNIA31349_SUBLOCATIONS.greatLibrary),
       CONDITION_CHECKS.ifActionCompleteRun("pantheon31349_follow_author"),
     ],
     postComplete: [
       COMPLETION_EFFECTS.moveSubLocation(
         ETERNIA31349_SUBLOCATIONS.scholarsDistrict,
+      ),
+    ],
+  },
+  eternia31349_library_clarify_currency: {
+    ...CROSSGEN,
+    ...NO_REPEAT,
+    title: "Clarify how currency works",
+    flavourText: "H'sak is a scholar — but he promised any help. Let's ask him",
+    skill: "social",
+    weight: 1300,
+    conditions: [
+      CONDITION_CHECKS.inLocation(ETERNIA31349),
+      CONDITION_CHECKS.inSubLocation(ETERNIA31349_SUBLOCATIONS.greatLibrary),
+      CONDITION_CHECKS.flag(TAGS.PANTHEON31349.HSAK_IN_LIBRARY),
+    ],
+    postComplete: [
+      COMPLETION_EFFECTS.addKnowledge(KNOWLEDGE.PANTHEON31349.currency),
+      COMPLETION_EFFECTS.reachMilestone("eternia31349_currency"),
+    ],
+  },
+  eternia31349_library_prepare_for_studying: {
+    ...CROSSGEN,
+    ...NO_REPEAT,
+    title: "Get ready for studying",
+    flavourText: "To read books you need to know how to read",
+    skill: "social",
+    weight: 1500,
+    conditions: [
+      CONDITION_CHECKS.inLocation(ETERNIA31349),
+      CONDITION_CHECKS.inSubLocation(ETERNIA31349_SUBLOCATIONS.greatLibrary),
+      CONDITION_CHECKS.flag(TAGS.PANTHEON31349.HSAK_IN_LIBRARY),
+      CONDITION_CHECKS.hasKnowledge(
+        KNOWLEDGE.PANTHEON31349.magic_usage_basics,
+      ),
+      CONDITION_CHECKS.hasKnowledge(
+        KNOWLEDGE.PANTHEON31349.studying_magic_library,
+      ),
+      CONDITION_CHECKS.not(
+        CONDITION_CHECKS.hasKnowledge(
+          KNOWLEDGE.PANTHEON31349.language_medium,
+        ),
+      ),
+    ],
+    postComplete: [
+      COMPLETION_EFFECTS.addKnowledge(
+        KNOWLEDGE.PANTHEON31349.language_medium,
+      ),
+      COMPLETION_EFFECTS.addKnowledge(
+        KNOWLEDGE.PANTHEON31349.starter_symbolics,
+      ),
+    ],
+  },
+  eternia31349_library_ask_hsak_for_guidance: {
+    ...CROSSGEN,
+    ...NO_REPEAT,
+    title: "Ask H'sak for guidance",
+    flavourText: "Let's see where to start with studying",
+    skill: "social",
+    weight: 1600,
+    conditions: [
+      CONDITION_CHECKS.inLocation(ETERNIA31349),
+      CONDITION_CHECKS.inSubLocation(ETERNIA31349_SUBLOCATIONS.greatLibrary),
+      CONDITION_CHECKS.flag(TAGS.PANTHEON31349.HSAK_IN_LIBRARY),
+      CONDITION_CHECKS.hasKnowledge(
+        KNOWLEDGE.PANTHEON31349.magic_usage_basics,
+      ),
+      CONDITION_CHECKS.hasKnowledge(
+        KNOWLEDGE.PANTHEON31349.language_medium,
+      ),
+      CONDITION_CHECKS.not(
+        CONDITION_CHECKS.hasKnowledge(
+          KNOWLEDGE.PANTHEON31349.basic_magic_literature,
+        ),
+      ),
+    ],
+    postComplete: [
+      COMPLETION_EFFECTS.addKnowledge(
+        KNOWLEDGE.PANTHEON31349.magic_archives_location,
+      ),
+      COMPLETION_EFFECTS.addKnowledge(
+        KNOWLEDGE.PANTHEON31349.basic_magic_literature,
       ),
     ],
   },

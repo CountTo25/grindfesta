@@ -26,6 +26,8 @@ export const TAGS = {
     CITY_HALL: {
       TOP_LEVEL_QUEUE_FINISHED: "na641_city_hall_top_level_queue_finished",
       CITY_HALL_QUEUE_FINISHED: "na641_city_hall_queue_finished",
+      SOCIAL_STANDING: "social_standing",
+      SOCIAL_STANDING_CHANGED: "social_standing_changed",
     },
     DEPARTMENT_STORE: {
       SPENT: "na641_department_store_spent",
@@ -40,6 +42,9 @@ export const TAGS = {
     },
     PROFESSOR_NAOTO: {
       READY_TO_LISTEN: "na641_prof_is_ready_to_listen",
+    },
+    MARCO: {
+      READY_TO_USE_AUREXITE: "ready_to_use_aurexite_marco",
     },
     RADIO: {
       CHARGER_MODIFIED: "na641_solar_radio_charger_modified",
@@ -56,12 +61,37 @@ export const TAGS = {
     HAS_HANDCRAFTED_WALLET: "has_handcrafted_wallet",
   },
   BBASIN7281: {
+    LIZARD_SCARED_OFF: "lizard_scared_off",
+    CANYON_CAVE_LIGHT_ON: "canyon_cave_light_on",
     SULFUR_SPRINGS_SUNNY_SPOT_CHARGES:
       "bbasin7281_sulfur_springs_sunny_spot_charges",
   },
   PANTHEON31349: {
     HSAK_FOLLOWS: "hsak_follows",
     HSAK_IN_LIBRARY: "hsak_in_library",
+    MAGIC_IMBUED: "magic_imbued",
+    MAGIC_SHAPER: "magic_shaper",
+    GOT_JOB_OFFER_CLEANING_DIVINERS:
+      "got_job_offer_cleaning_diviners",
+    GOT_JOB_OFFER_SORTING_LIBRARY:
+      "got_job_offer_sorting_library",
+    LIBRARY_SORTING_BOOK_FOUND: "eternia_library_sorting_book_found",
+    LIBRARY_SORTING_SHELF_FOUND: "eternia_library_sorting_shelf_found",
+    LIBRARY_BOOKS_SORTED: "eternia_library_books_sorted",
+    LIBRARY_SORTING_CYCLES: "eternia_library_sorting_cycles",
+    LIBRARY_ENERGY_AND_MAGIC_FOUND:
+      "eternia_library_energy_and_magic_found",
+    READY_TO_WORK_CLEANING_DIVINERS:
+      "ready_to_work_cleaning_diviners",
+    DIVINERS_CLEANUP_PROGRESS: "eternia_diviners_cleanup_progress",
+    DIVINERS_CLEAN_DID_MANUAL_WORK:
+      "eternia_diviners_clean_did_manual_work",
+    DIVINERS_CLEANING_FINISHED: "diviners_cleaning_finished",
+    CASM_BEADS_BASIC: "casm_beads_basic",
+    CASM_BEADS_IMPRESSED: "casm_beads_impressed",
+    CASM_BEADS_OVERACHIEVED: "casm_beads_overachieved",
+    CASM_BEADS_SHOCKED: "casm_beads_shocked",
+    BANK_ACCOUNT_INFO: "eternia_bank_account_info",
   },
 };
 
@@ -124,12 +154,45 @@ export const KNOWLEDGE = {
     prehistoric_mutations: "bbasin7281_prehistoric_mutations",
     ancient_monster_books: "bbasin7281_ancient_monster_books",
     ancient_lizard_research: "bbasin7281_ancient_lizard_research",
+    aurexite_deposits: "basin_aurexite_deposits",
+    canyon_routing: "canyon_routing",
+    light_source_may_be_needed: "light_source_may_be_needed",
+    canyon_cave_war_district_warehouse:
+      "canyon_cave_war_district_warehouse",
+    cave_man_made: "bbasin7281_cave_man_made",
+    bats_eyes_glow: "bbasin7281_bats_eyes_glow",
   },
   PANTHEON31349: {
     language_basics: "eternian_language_basics",
+    language_medium: "eternian_language_medium",
+    language_advanced: "knowledge_eternian_language_advanced",
     basic_symbolics: "eternian_basic_symbolics",
+    starter_symbolics: "eternian_starter_symbolics",
     magic: "eternian_magic",
+    magic_usage_basics: "magic_usage_basics",
+    studying_magic_library: "studying_magic_library",
+    magic_archives_location: "magic_archives_location",
+    basic_magic_literature: "basic_magic_literature",
+    introduction_to_control_location: "introduction_to_control_location",
+    basic_manipulation_location: "basic_manipulation_location",
+    light_magic_works_location: "light_magic_works_location",
+    light_magic_beginner: "light_magic_beginner",
+    control_basics: "control_basics",
+    manipulation_basics: "manipulation_basics",
+    energy_manipulation: "energy_manipulation",
+    aurexite_energy: "aurexite_energy",
+    magic_tech_connection_1: "magic_tech_connection_1",
+    communicating_with_gods: "eternia_communicating_with_gods",
+    tomes_advanced_shaping: "tomes_advanced_shaping",
+    currency: "eternian_currency",
+    currency_operation: "eternia_currency_operation",
     whereabouts: "pantheon31349_eternia_whereabouts",
     book_assortment: "pantheon31349_great_library_book_assortment",
+    divining_chambers: "eternia31349_divining_chambers",
+    ewais_everyday_goods: "eternia31349_ewais_everyday_goods",
+    magician_lodges: "eternia31349_magician_lodges",
+    bank_branch: "eternia31349_bank_branch",
+    scholar_district_jobs: "scholar_district_jobs",
+    library_sorting_job: "eternia_library_sorting_job",
   },
 };

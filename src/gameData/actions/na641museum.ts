@@ -169,7 +169,6 @@ export const museumActions: ActionRepository = {
       CONDITION_CHECKS.not(ORIGINAL_BACKROOM_ENTRY_COMPLETE),
     ],
     postComplete: [
-      COMPLETION_EFFECTS.addLog("TODO: talked into backrooms."),
       COMPLETION_EFFECTS.addFlag(TAGS.NA641.MUSEUM.STAFF_FOLLOWS, "1"),
       COMPLETION_EFFECTS.moveSubLocation(NA641_SUBLOCATIONS.nawsHistoryMuseumBackrooms),
     ],
