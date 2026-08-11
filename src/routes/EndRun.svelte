@@ -315,8 +315,6 @@
   .upgrade_card_available:focus-visible {
     --ui_accent: var(--ui_progress_time_compression);
     --glass-edge-color: rgb(var(--ui_accent) / 68%);
-    --glass-glow-alpha: 72%;
-    --glass-glow-interior-alpha: 22%;
     --glass-highlight-alpha: 8%;
     --glass-surface-tint: linear-gradient(
       180deg,

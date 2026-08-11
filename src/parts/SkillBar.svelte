@@ -185,7 +185,7 @@
       inset 0 0 30px rgb(var(--skill-level-pulse-color) / 12%);
   }
 
-  .skill_level_pulse::after {
+  .skill_level_pulse::before {
     background:
       linear-gradient(
         120deg,
@@ -249,7 +249,7 @@
     }
 
     .skill_card > .skill_level_pulse_interior,
-    .skill_level_pulse::after {
+    .skill_level_pulse::before {
       animation: none;
     }
   }

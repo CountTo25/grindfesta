@@ -5,6 +5,10 @@
     simulationTimeScale,
     type SimulationTimeScale,
   } from "../state";
+  import {
+    glassReflectionsEnabled,
+    setGlassReflectionsEnabled,
+  } from "../system/glassGlow";
   import GenericIcon from "./GenericIcon.svelte";
 
   type SettingsAction = "export" | "import";
@@ -56,6 +60,33 @@
       <button type="button" role="menuitem" on:click={() => select("import")}>
         Import save
       </button>
+      <div class="dev_setting">
+        <span class="dev_setting_label">Glass reflections</span>
+        <div
+          class="time_scale_options reflection_options"
+          role="group"
+          aria-label="Glass reflections"
+        >
+          <button
+            type="button"
+            class="time_scale_option"
+            role="menuitemradio"
+            aria-checked={$glassReflectionsEnabled}
+            on:click|stopPropagation={() => setGlassReflectionsEnabled(true)}
+          >
+            ON
+          </button>
+          <button
+            type="button"
+            class="time_scale_option"
+            role="menuitemradio"
+            aria-checked={!$glassReflectionsEnabled}
+            on:click|stopPropagation={() => setGlassReflectionsEnabled(false)}
+          >
+            OFF
+          </button>
+        </div>
+      </div>
       {#if isLocalhost}
         <div class="dev_setting">
           <span class="dev_setting_label">Time scale</span>
@@ -178,6 +209,10 @@
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     gap: 4px;
+  }
+
+  .reflection_options {
+    grid-template-columns: repeat(2, 1fr);
   }
 
   .settings_menu .time_scale_option {
