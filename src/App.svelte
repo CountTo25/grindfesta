@@ -562,6 +562,7 @@
   }
 
   .bottom_bar_surface {
+    z-index: 20;
     overflow: visible;
   }
 
