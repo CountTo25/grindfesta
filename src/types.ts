@@ -2,7 +2,11 @@ import { bakery, type BakedSkills } from "./state";
 import { deepClone, mergeDeep } from "./utils";
 import { items, type ItemKey } from "./gameData/items";
 import type { MilestoneEntry, MilestoneKey } from "./gameData/milestones";
-import type { UpgradeKey } from "./gameData/upgrades";
+import {
+  BASE_ACHIEVEMENT_MODIFIERS,
+  type AchievementKey,
+  type AchievementModifiers,
+} from "./gameData/achievements";
 import {
   LOCATIONS,
   SUBLOCATIONS,
@@ -21,6 +25,7 @@ export const EMPTY_RUN: RunState = {
   energyDecayRate: 0.05,
   action: null,
   actionProgress: {},
+  achievementModifiers: { ...BASE_ACHIEVEMENT_MODIFIERS },
   flags: {},
   mainViewRoute: "actions",
   timeSpent: 0.0,
@@ -47,6 +52,7 @@ export const EMPTY_RUN: RunState = {
     magic: 0,
   },
   milestoneEntries: [{ ts: 0, id: "na641_time_leap" }],
+  newlyUnlockedAchievements: [],
   murmurCooldowns: {},
   logEntries: [],
 };
@@ -69,7 +75,7 @@ export class GameState {
       loop: 0,
       knowledge: [],
       reached_milestones: ["na641_time_leap"],
-      purchased_upgrades: [],
+      unlocked_achievements: [],
       last_run_milestone_entries: [],
       previous_run_milestone_entries: [],
       completedActionHistory: [],
@@ -97,14 +103,15 @@ export class GameState {
   }
 }
 
-export type CurrentAction = {
+export type ActionReference = {
   id: string;
 };
 
+export type CurrentAction = ActionReference;
+
 export type QueuedActionMode = "once" | "max";
 
-export type QueuedAction = {
-  id: string;
+export type QueuedAction = ActionReference & {
   mode: QueuedActionMode;
   source?: "manual" | "retrace";
 };
@@ -134,7 +141,7 @@ type EnergyData = {
   energyDecayRate: number;
 };
 
-export type RetraceAction = { id: string };
+export type RetraceAction = ActionReference;
 
 export type RetraceConfig = {
   id: string;
@@ -149,7 +156,7 @@ type GlobalState =
       loop: number;
       knowledge: string[];
       reached_milestones: MilestoneKey[];
-      purchased_upgrades: UpgradeKey[];
+      unlocked_achievements: AchievementKey[];
       last_run_milestone_entries: MilestoneEntry[];
       previous_run_milestone_entries: MilestoneEntry[];
       completedActionHistory: string[];
@@ -168,8 +175,10 @@ export type RunState =
       action: CurrentAction | null;
       logEntries: LogEntry[];
       milestoneEntries: MilestoneEntry[];
+      newlyUnlockedAchievements: AchievementKey[];
       murmurCooldowns: { [location: string]: number };
       actionProgress: { [id: string]: { progress: number; complete: boolean } };
+      achievementModifiers: AchievementModifiers;
       timeSpent: number;
       stats: SkillLevels;
       initialStats: SkillLevels;
@@ -194,14 +203,20 @@ export type StatePatcherMetadata = {
 export type StatePatcher = ((state: GameState) => GameState) & {
   metadata?: StatePatcherMetadata;
 };
-type StateChecker = (state: GameState) => boolean;
+export type StateCheckerMetadata = {
+  kind: "inLocation";
+  locations: Location[];
+};
+export type StateChecker = ((state: GameState) => boolean) & {
+  metadata?: StateCheckerMetadata;
+};
 export type ActionText = string | ((state: GameState) => string);
 export type Action = {
   title: ActionText;
   skill: Skill;
   weight: number;
   idx?: number;
-  conditions: ((state: GameState) => boolean)[];
+  conditions: StateChecker[];
   repeatable: boolean;
   crossGeneration: boolean;
   revealCondition?: ((state: GameState) => boolean)[];

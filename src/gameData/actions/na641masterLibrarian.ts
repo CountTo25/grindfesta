@@ -4,6 +4,7 @@ import { KNOWLEDGE, TAGS } from "../tags";
 import {
   CROSSGEN,
   NO_CROSSGEN,
+  NO_POSTCOMPLETE,
   NO_REPEAT,
   REPEATABLE,
   type ActionRepository,
@@ -71,6 +72,51 @@ export const masterLibrarianActions: ActionRepository = {
     postComplete: [
       COMPLETION_EFFECTS.reachMilestone(
         "na641_audience_with_master_librarian",
+      ),
+    ],
+  },
+  na641_master_librarian_ask_about_ancient_books: {
+    ...CROSSGEN,
+    ...NO_REPEAT,
+    ...NO_POSTCOMPLETE,
+    title: "Ask about ancient books",
+    flavourText: "You already have one on hand, but now there is one more",
+    skill: "social",
+    weight: 1600,
+    conditions: [
+      CONDITION_CHECKS.inLocation(NA641),
+      CONDITION_CHECKS.inSubLocation(
+        NA641_SUBLOCATIONS.southernMainStreetLibraryMasterLibrarianChambers,
+      ),
+      CONDITION_CHECKS.ifActionCompleteRun("na641_master_librarian_greet"),
+      CONDITION_CHECKS.ifActionCompleteAny(
+        "na641_library_consult_staff_about_eternia",
+      ),
+      CONDITION_CHECKS.flag(
+        TAGS.PANTHEON31349.GOD_TRIES_TO_PRESERVE_HISTORY,
+      ),
+    ],
+  },
+  na641_master_librarian_apologise_for_forgetfulness: {
+    ...CROSSGEN,
+    ...NO_REPEAT,
+    ...NO_POSTCOMPLETE,
+    title: "Apologise for forgetfulness",
+    flavourText:
+      "«I already told you — the hint to deciphering this book lies in another one from the same era. Get to work! Museum's boss is waiting for you!»",
+    skill: "social",
+    weight: 1700,
+    conditions: [
+      CONDITION_CHECKS.inLocation(NA641),
+      CONDITION_CHECKS.inSubLocation(
+        NA641_SUBLOCATIONS.southernMainStreetLibraryMasterLibrarianChambers,
+      ),
+      CONDITION_CHECKS.ifActionCompleteRun("na641_master_librarian_greet"),
+      CONDITION_CHECKS.ifActionCompleteAny(
+        "na641_master_librarian_ask_about_ancient_books",
+      ),
+      CONDITION_CHECKS.flag(
+        TAGS.PANTHEON31349.GOD_TRIES_TO_PRESERVE_HISTORY,
       ),
     ],
   },

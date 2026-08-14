@@ -27,10 +27,10 @@ import { checkItems, save } from "./actions";
 import type { ItemKey } from "./gameData/items";
 import { applyMurmurTick } from "./gameData/murmur";
 import {
-  resolveUpgradeEffect,
-  upgrades,
-  type UpgradeKey,
-} from "./gameData/upgrades";
+  applyActiveAchievementEffects,
+  applyPreRunAchievementEffects,
+  evaluateRunAchievements,
+} from "./system/achievements";
 import { distinctArrayProjection } from "./system/store";
 import {
   applyAnchorLeap,
@@ -42,9 +42,9 @@ import {
 
 ///Globals for quick tinkering here
 const INITIAL_RUN_SKILL_LEVEL_EXP = 9;
-const INITIAL_COMPRESSED_SKILL_LEVEL_EXP = 19;
-export const GLOBAL_LEVEL_MOD_RATIO = 1.01;
-export const RUN_LEVEL_MOD_RATIO = 1.07;
+const INITIAL_COMPRESSED_SKILL_LEVEL_EXP = 18;
+export const GLOBAL_LEVEL_MOD_RATIO = 1.012;
+export const RUN_LEVEL_MOD_RATIO = 1.055;
 export const RUN_EXP_TO_LEVEL_BASE = INITIAL_RUN_SKILL_LEVEL_EXP;
 // Replaces the old flat 1.35x XP gain with a gentler requirement curve.
 export const RUN_EXP_GROWTH_RATIO = 1.1;
@@ -160,6 +160,18 @@ export function bakeStateSnapshot(snap: GameState): GameState {
   snap.data.run.bakery = getBakedSkillsForState(snap);
   return snap;
 }
+
+export function buildFreshRun(maxEnergy: number): RunState {
+  const run = processCleanGameState(EMPTY_RUN);
+  run.maxEnergy = maxEnergy;
+  run.currentEnergy = maxEnergy;
+  return run;
+}
+
+export function prepareFreshRun(state: GameState): GameState {
+  state.data.run = buildFreshRun(state.data.global.maxEnergy);
+  return applyPreRunAchievementEffects(state);
+}
 /////
 export const ticksPerSecond: Writable<number> = writable(BASE_TPS);
 export type SimulationTimeScale = 1 | 10 | 100;
@@ -245,31 +257,6 @@ export const sendActionCompleteSignal = () => actionEndSignal.update(flick);
 export const sendKnowledgesignal = () => knowledgeSignal.update(flick);
 export const sendSubLocationSignal = () => subLocationSignal.update(flick);
 setInterval(() => everyTenSeconds.update(flick), 10 * 1000);
-
-export function purchaseTimeLeapUpgrade(id: UpgradeKey): void {
-  gameState.update((state) => {
-    const upgrade = upgrades[id];
-    if (
-      state.data.global.purchased_upgrades.includes(id) ||
-      upgrade.cost !== 0
-    ) {
-      return state;
-    }
-
-    state.data.global.purchased_upgrades.push(id);
-
-    if (id === "timeline_stabilization") {
-      const capacityGain =
-        resolveUpgradeEffect(upgrade.effect) *
-        state.data.global.reached_milestones.length;
-      state.data.global.maxEnergy += capacityGain;
-      state.data.run.maxEnergy += capacityGain;
-      state.data.run.currentEnergy += capacityGain;
-    }
-
-    return state;
-  });
-}
 
 export function beginNextLoopTransition(): void {
   if (runLoopTransitionPending || get(endRun) === null) return;
@@ -365,15 +352,21 @@ export function simulateActionProgress(
   id: string,
   tickMs: number,
   tickBudget: { remaining: number },
+  isRetracing = false,
 ): { state: GameState; completed: boolean; elapsedMs: number } {
   const action = actions[id];
-  const progress = (state.data.run.actionProgress[id] ??= {
+  let progress = (state.data.run.actionProgress[id] ??= {
     progress: 0,
     complete: false,
   });
   let elapsedMs = 0;
 
   while (progress.progress < action.weight && tickBudget.remaining-- > 0) {
+    state = applyActiveAchievementEffects(state);
+    progress = (state.data.run.actionProgress[id] ??= {
+      progress: 0,
+      complete: false,
+    });
     state.data.run.timeSpent += tickMs;
     state = applyRunTickCosts(state, tickMs);
     elapsedMs += tickMs;
@@ -386,7 +379,10 @@ export function simulateActionProgress(
       state.data.run.bakery ?? getBakedSkillsForState(state);
     const actionProgressGain =
       (BASE_GAIN_RATE / (1000 / tickMs)) *
-      baked.modifiers.total[action.skill];
+      baked.modifiers.total[action.skill] *
+      (isRetracing
+        ? state.data.run.achievementModifiers.retracingSpeed
+        : 1);
     progress.progress += actionProgressGain;
 
     const skillGain = Math.min(
@@ -465,6 +461,7 @@ function forecastActionQueue(
         queuedAction.id,
         tickMs,
         tickBudget,
+        queuedAction.source === "retrace",
       );
       state = result.state;
       elapsedMs += result.elapsedMs;
@@ -526,7 +523,7 @@ export function estimateRetracingPlan(source: GameState): {
   }
 
   const nextRun = deepClone(source);
-  nextRun.data.run = deepClone(EMPTY_RUN);
+  prepareFreshRun(nextRun);
   const { estimatedSeconds } = forecastActionQueue(
     nextRun,
     buildRetraceQueue(nextRun),
@@ -700,20 +697,20 @@ function beginRunDeathTransition(): void {
 
   globalThis.setTimeout(() => {
     gameState.update((state) => {
-      state.data.run.mainViewRoute = "endRun";
-      endRun.set(state.data.run);
+      const completedRun = state.data.run;
+      completedRun.mainViewRoute = "endRun";
       state.data.global.previous_run_milestone_entries = deepClone(
         state.data.global.last_run_milestone_entries,
       );
       state.data.global.last_run_milestone_entries = deepClone(
-        state.data.run.milestoneEntries,
+        completedRun.milestoneEntries,
       );
-      state.data.run = processCleanGameState(EMPTY_RUN);
-      state.data.run.maxEnergy = state.data.global.maxEnergy;
-      state.data.run.currentEnergy = state.data.global.maxEnergy;
+      state.data.global.loop = state.data.global.loop + 1;
+      evaluateRunAchievements(state, completedRun, actions);
+      endRun.set(completedRun);
+      state = prepareFreshRun(state);
       bakeSkillLevels();
       state.data.run.initialStats = deepClone(bakery.skills.global);
-      state.data.global.loop = state.data.global.loop + 1;
       checkActions();
       bakeSkillLevels();
       return state;
@@ -834,6 +831,19 @@ export const ghostDisplayableActions: (r: GameState) => string[] = (r) => {
 
 /// etc system
 let _ticker: number;
+
+function hasSimulationWork(): boolean {
+  if (runDeathTransitionPending || runLoopTransitionPending) return false;
+
+  const run = get(gameState).data.run;
+  return (
+    run.action !== null ||
+    run.activeQueuedAction !== null ||
+    run.actionQueue.length > 0 ||
+    run.retraceIdx !== null
+  );
+}
+
 const ticker = derived(
   [ticksPerSecond, simulationTimeScale],
   ([ticksPerSecond, timeScale]) => {
@@ -841,6 +851,7 @@ const ticker = derived(
     bakedTimePerTick = 1000 / ticksPerSecond;
     _ticker = setInterval(() => {
       for (let tick = 0; tick < timeScale; tick++) {
+        if (!hasSimulationWork()) break;
         tickSignal.update(flick);
       }
     }, bakedTimePerTick);
@@ -855,6 +866,7 @@ tickSignal.subscribe((_) => {
 
   gameState.update((val) => {
     absorbLegacyRetracing(val);
+    val = applyActiveAchievementEffects(val);
 
     //lets treat it as separate module for ease of understanding
     if (val.data.run.action) {
@@ -869,7 +881,12 @@ tickSignal.subscribe((_) => {
       val = applyMurmurTick(val, bakedTimePerTick);
       const skill = actions[ACTION_ID]!.skill;
       let skillModifier = bakery.modifiers.total[skill];
-      const actionProgressGain = bakedGainPerTick * skillModifier;
+      const retracingSpeed =
+        val.data.run.activeQueuedAction?.source === "retrace"
+          ? val.data.run.achievementModifiers.retracingSpeed
+          : 1;
+      const actionProgressGain =
+        bakedGainPerTick * skillModifier * retracingSpeed;
       if (val.data.run.actionProgress[ACTION_ID]) {
         val.data.run.actionProgress[ACTION_ID].progress += actionProgressGain;
       } else {

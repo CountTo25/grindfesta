@@ -14,6 +14,33 @@ const ETERNIA31349_SUBLOCATIONS = SUBLOCATIONS.eternia31349;
 const HSAK_INTRO_FINISHED = CONDITION_CHECKS.ifActionCompleteRun(
   "pantheon31349_part_ways_with_hsak",
 );
+const TAIGA_IN_SCHOLARS_DISTRICT = CONDITION_CHECKS.flag(
+  TAGS.PANTHEON31349.TAIGA_LOCATION,
+  (location) => location === ETERNIA31349_SUBLOCATIONS.scholarsDistrict,
+);
+const FOLLOW_TAIGA_TO_MAINTENANCE_AVAILABLE = CONDITION_CHECKS.or([
+  (state) =>
+    CONDITION_CHECKS.inSubLocation(
+      ETERNIA31349_SUBLOCATIONS.scholarsDistrict,
+    )(state) &&
+    CONDITION_CHECKS.ifActionCompleteRun(
+      "eternia31349_magician_lodges_find_somewhere_to_observe",
+    )(state) &&
+    CONDITION_CHECKS.flag(
+      TAGS.PANTHEON31349.THEORYCRAFT_IN_PROGRESS,
+    )(state) &&
+    TAIGA_IN_SCHOLARS_DISTRICT(state),
+]);
+
+function placeInMagicianLodgesIfUntracked(flag: string) {
+  return COMPLETION_EFFECTS.if(
+    CONDITION_CHECKS.noFlag(flag),
+    COMPLETION_EFFECTS.addFlag(
+      flag,
+      ETERNIA31349_SUBLOCATIONS.magicianLodges,
+    ),
+  );
+}
 
 export const pantheon31349ScholarsDistrictActions: ActionRepository = {
   pantheon31349_listen_closely: {
@@ -188,6 +215,12 @@ export const pantheon31349ScholarsDistrictActions: ActionRepository = {
       COMPLETION_EFFECTS.moveSubLocation(
         ETERNIA31349_SUBLOCATIONS.magicianLodges,
       ),
+      placeInMagicianLodgesIfUntracked(
+        TAGS.PANTHEON31349.TAIGA_LOCATION,
+      ),
+      placeInMagicianLodgesIfUntracked(
+        TAGS.PANTHEON31349.SAOP_LOCATION,
+      ),
     ],
   },
   pantheon31349_leave_magician_lodges: {
@@ -201,6 +234,74 @@ export const pantheon31349ScholarsDistrictActions: ActionRepository = {
       CONDITION_CHECKS.inLocation(ETERNIA31349),
       CONDITION_CHECKS.inSubLocation(
         ETERNIA31349_SUBLOCATIONS.magicianLodges,
+      ),
+    ],
+    postComplete: [
+      COMPLETION_EFFECTS.moveSubLocation(
+        ETERNIA31349_SUBLOCATIONS.scholarsDistrict,
+      ),
+    ],
+  },
+  eternia31349_follow_taiga_to_maintenance_sector: {
+    ...NO_CROSSGEN,
+    ...NO_REPEAT,
+    title: "Follow Taiga to service area",
+    flavourText:
+      "Whole city runs on magic — let's see how heating is done",
+    skill: "exploration",
+    weight: 800,
+    conditions: [
+      CONDITION_CHECKS.inLocation(ETERNIA31349),
+      FOLLOW_TAIGA_TO_MAINTENANCE_AVAILABLE,
+    ],
+    postComplete: [
+      COMPLETION_EFFECTS.addKnowledge(
+        KNOWLEDGE.PANTHEON31349.maintenance_sector,
+      ),
+      COMPLETION_EFFECTS.moveSubLocation(
+        ETERNIA31349_SUBLOCATIONS.maintenanceSector,
+      ),
+      COMPLETION_EFFECTS.addFlag(
+        TAGS.PANTHEON31349.TAIGA_LOCATION,
+        ETERNIA31349_SUBLOCATIONS.maintenanceSector,
+      ),
+    ],
+  },
+  pantheon31349_visit_maintenance_sector: {
+    ...NO_CROSSGEN,
+    ...REPEATABLE,
+    title: "Visit Maintenance Sector",
+    skill: "exploration",
+    weight: 300,
+    stopOnRepeat: true,
+    conditions: [
+      CONDITION_CHECKS.inLocation(ETERNIA31349),
+      CONDITION_CHECKS.inSubLocation(
+        ETERNIA31349_SUBLOCATIONS.scholarsDistrict,
+      ),
+      CONDITION_CHECKS.hasKnowledge(
+        KNOWLEDGE.PANTHEON31349.maintenance_sector,
+      ),
+      CONDITION_CHECKS.not(FOLLOW_TAIGA_TO_MAINTENANCE_AVAILABLE),
+      HSAK_INTRO_FINISHED,
+    ],
+    postComplete: [
+      COMPLETION_EFFECTS.moveSubLocation(
+        ETERNIA31349_SUBLOCATIONS.maintenanceSector,
+      ),
+    ],
+  },
+  pantheon31349_leave_maintenance_sector: {
+    ...NO_CROSSGEN,
+    ...REPEATABLE,
+    title: "Return to Scholar's District",
+    skill: "exploration",
+    weight: 300,
+    stopOnRepeat: true,
+    conditions: [
+      CONDITION_CHECKS.inLocation(ETERNIA31349),
+      CONDITION_CHECKS.inSubLocation(
+        ETERNIA31349_SUBLOCATIONS.maintenanceSector,
       ),
     ],
     postComplete: [

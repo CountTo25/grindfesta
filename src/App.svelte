@@ -51,6 +51,7 @@
     type AnchorInventoryItem,
   } from "./system/leap";
   import { distinctArrayProjection } from "./system/store";
+  import { glassReflectionsEnabled } from "./system/glassGlow";
   import SettingsMenu from "./parts/SettingsMenu.svelte";
   import { decodeSave, encodeSave } from "./system/saveSharing";
   import LeapButton from "./parts/LeapButton.svelte";
@@ -275,6 +276,7 @@
 
 <main
   class="app_shell h-screen"
+  class:no-glass={!$glassReflectionsEnabled}
   class:death_transition_collapse={$runDeathTransition === "collapse"}
   class:death_transition_reveal={$runDeathTransition === "reveal"}
   class:loop_transition_cover={$runLoopTransition === "cover"}
@@ -562,6 +564,7 @@
   }
 
   .bottom_bar_surface {
+    z-index: 20;
     overflow: visible;
   }
 
@@ -698,16 +701,16 @@
       both;
   }
 
-  :global(.death_transition_collapse :is(.glass_surface, .glass_menu, .glass_card, .glass_control)::after) {
+  :global(.death_transition_collapse :is(.glass_surface, .glass_menu, .glass_card, .glass_control)::before) {
     animation: time_edge_heartbeat var(--death-collapse-duration) ease-in both;
   }
 
-  :global(.death_transition_reveal :is(.glass_surface, .glass_menu, .glass_card, .glass_control)::after) {
+  :global(.death_transition_reveal :is(.glass_surface, .glass_menu, .glass_card, .glass_control)::before) {
     animation: time_panel_purple_bloom var(--death-reveal-duration) ease-in-out
       both;
   }
 
-  :global(.loop_transition_reveal :is(.glass_surface, .glass_menu, .glass_card, .glass_control)::after) {
+  :global(.loop_transition_reveal :is(.glass_surface, .glass_menu, .glass_card, .glass_control)::before) {
     animation: loop_edge_pop var(--loop-reveal-duration) ease-out both;
   }
 
@@ -896,7 +899,7 @@
     }
 
     .death_transition_fx > div,
-    :global(:is(.death_transition_collapse, .death_transition_reveal, .loop_transition_reveal) :is(.glass_surface, .glass_menu, .glass_card, .glass_control)::after) {
+    :global(:is(.death_transition_collapse, .death_transition_reveal, .loop_transition_reveal) :is(.glass_surface, .glass_menu, .glass_card, .glass_control)::before) {
       animation: none;
     }
   }

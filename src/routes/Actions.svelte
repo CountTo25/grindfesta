@@ -19,6 +19,7 @@
   import type { GameState, QueuedAction } from "../types";
   import {
     bundleAdjacentBy,
+    getActionMovementDestination,
     resolveActionText,
     type AdjacentBundle,
   } from "../utils";
@@ -59,6 +60,12 @@
   }
 
   $: allActions = getDisplayableActions($displayableActions);
+  $: movementActions = allActions.filter(
+    ({ action }) => getActionMovementDestination(action) !== null,
+  );
+  $: otherActions = allActions.filter(
+    ({ action }) => getActionMovementDestination(action) === null,
+  );
   $: bundledLiveQueue = bundleAdjacentBy(
     $liveActionQueue,
     ({ id, mode, source }) => `${id}:${mode}:${source ?? "legacy"}`,
@@ -78,14 +85,57 @@
         frameClass="col-span-6 h-full min-w-0"
         scrollerClass="glass_scroll h-full min-w-0 overflow-y-auto"
       >
-        {#each allActions as { action, id } (id)}
-          <SingleAction
-            {action}
-            {id}
-            running={$gameState.data.run.action?.id == id}
-            className="col-span-12 mb-1"
-          />
-        {/each}
+        {#if otherActions.length > 0}
+          <section
+            class="action_section"
+            aria-labelledby={movementActions.length > 0
+              ? "other-actions-heading"
+              : undefined}
+          >
+            {#if movementActions.length > 0}
+              <h2
+                id="other-actions-heading"
+                class="glass_menu action_section_header"
+              >
+                Actions
+              </h2>
+            {/if}
+            {#each otherActions as { action, id } (id)}
+              <SingleAction
+                {action}
+                {id}
+                running={$gameState.data.run.action?.id == id}
+                className="col-span-12 mb-1"
+              />
+            {/each}
+          </section>
+        {/if}
+
+        {#if movementActions.length > 0}
+          <section
+            class="action_section"
+            aria-labelledby={otherActions.length > 0
+              ? "movement-actions-heading"
+              : undefined}
+          >
+            {#if otherActions.length > 0}
+              <h2
+                id="movement-actions-heading"
+                class="glass_menu action_section_header"
+              >
+                Movement
+              </h2>
+            {/if}
+            {#each movementActions as { action, id } (id)}
+              <SingleAction
+                {action}
+                {id}
+                running={$gameState.data.run.action?.id == id}
+                className="col-span-12 mb-1"
+              />
+            {/each}
+          </section>
+        {/if}
       </ScrollFade>
       <div class="col-span-3 h-full min-h-0 min-w-0">
         <div class="glass_surface flex h-full min-h-0 flex-col p-2">
@@ -176,6 +226,23 @@
 </div>
 
 <style>
+  .action_section + .action_section {
+    margin-top: 0.75rem;
+  }
+
+  .action_section_header {
+    display: flex;
+    width: calc(100% / 3);
+    min-height: 2rem;
+    align-items: center;
+    margin: 0 0 0.35rem;
+    padding: 0.4rem 0.75rem;
+    color: var(--ui_text_muted);
+    font-size: var(--ui_font_size_detail);
+    font-weight: 400;
+    letter-spacing: 0.01em;
+  }
+
   .queue_header_meta {
     font-family: var(--ui_font_numeric);
     font-variant-numeric: tabular-nums;

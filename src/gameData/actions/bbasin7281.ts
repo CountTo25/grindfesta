@@ -299,6 +299,23 @@ export const bbasin7281Actions: ActionRepository = {
       COMPLETION_EFFECTS.moveSubLocation(BBASIN7281_SUBLOCATIONS.canyon),
     ],
   },
+  bbasin7281_enter_sunless_lake: {
+    ...NO_CROSSGEN,
+    ...REPEATABLE,
+    title: "Enter Sunless Lake",
+    skill: "exploration",
+    weight: 300,
+    stopOnRepeat: true,
+    conditions: [
+      CONDITION_CHECKS.inLocation(BBASIN7281),
+      CONDITION_CHECKS.inSubLocation(BBASIN7281_SUBLOCATIONS.canyon),
+      CONDITION_CHECKS.flag(TAGS.BBASIN7281.LIZARD_SCARED_OFF),
+      CONDITION_CHECKS.hasKnowledge(KNOWLEDGE.BBASIN7281.canyon_routing),
+    ],
+    postComplete: [
+      COMPLETION_EFFECTS.moveSubLocation(BBASIN7281_SUBLOCATIONS.sunlessLake),
+    ],
+  },
   bbasin7281_canyon_caves_look_around: {
     ...CROSSGEN,
     ...NO_REPEAT,
@@ -455,7 +472,7 @@ export const bbasin7281Actions: ActionRepository = {
     ...CROSSGEN,
     ...NO_REPEAT,
     title: "Read message in Eternian",
-    flavourText: "«War District Warehouse», maybe?",
+    flavourText: "«Defense District Warehouse», maybe?",
     skill: "perception",
     weight: 1800,
     conditions: [
@@ -470,7 +487,10 @@ export const bbasin7281Actions: ActionRepository = {
     ],
     postComplete: [
       COMPLETION_EFFECTS.addKnowledge(
-        KNOWLEDGE.BBASIN7281.canyon_cave_war_district_warehouse,
+        KNOWLEDGE.BBASIN7281.canyon_cave_defense_district_warehouse,
+      ),
+      COMPLETION_EFFECTS.reachMilestone(
+        "bbasin7281_remains_of_greatness",
       ),
     ],
   },
@@ -495,8 +515,80 @@ export const bbasin7281Actions: ActionRepository = {
       ),
       CONDITION_CHECKS.not(
         CONDITION_CHECKS.hasKnowledge(
-          KNOWLEDGE.BBASIN7281.canyon_cave_war_district_warehouse,
+          KNOWLEDGE.BBASIN7281.canyon_cave_defense_district_warehouse,
         ),
+      ),
+    ],
+  },
+  bbasin7281_sunless_lake_look_around: {
+    ...CROSSGEN,
+    ...NO_REPEAT,
+    ...NO_POSTCOMPLETE,
+    title: "Look around",
+    flavourText:
+      "A lake on the bottom of the canyon. Whatever the time or season, the sun never touches it",
+    skill: "perception",
+    weight: 800,
+    conditions: [
+      CONDITION_CHECKS.inLocation(BBASIN7281),
+      CONDITION_CHECKS.inSubLocation(BBASIN7281_SUBLOCATIONS.sunlessLake),
+    ],
+  },
+  bbasin7281_sunless_lake_examine_footprints: {
+    ...CROSSGEN,
+    ...NO_REPEAT,
+    ...REVEAL.skillCheck("perception", 100),
+    title: "Examine footprints",
+    flavourText: "There are some — certainly human — footprints!",
+    skill: "perception",
+    weight: 1600,
+    conditions: [
+      CONDITION_CHECKS.inLocation(BBASIN7281),
+      CONDITION_CHECKS.inSubLocation(BBASIN7281_SUBLOCATIONS.sunlessLake),
+      CONDITION_CHECKS.ifActionCompleteAny(
+        "bbasin7281_sunless_lake_look_around",
+      ),
+      CONDITION_CHECKS.skillModifier("perception", 35),
+    ],
+    postComplete: [
+      COMPLETION_EFFECTS.addKnowledge(
+        KNOWLEDGE.BBASIN7281.sunless_lake_human_footprints,
+      ),
+    ],
+  },
+  bbasin7281_sunless_lake_follow_footprints: {
+    ...CROSSGEN,
+    ...NO_REPEAT,
+    ...NO_POSTCOMPLETE,
+    title: "Follow footprints",
+    flavourText: "Bare feet. They seem to lead to the other side of the lake",
+    skill: "exploration",
+    weight: 2000,
+    conditions: [
+      CONDITION_CHECKS.inLocation(BBASIN7281),
+      CONDITION_CHECKS.inSubLocation(BBASIN7281_SUBLOCATIONS.sunlessLake),
+      CONDITION_CHECKS.hasKnowledge(
+        KNOWLEDGE.BBASIN7281.sunless_lake_human_footprints,
+      ),
+    ],
+  },
+  bbasin7281_sunless_lake_try_to_spot_someone: {
+    ...CROSSGEN,
+    ...NO_REPEAT,
+    title: "Try to spot someone",
+    flavourText: "Someone obviously left those",
+    skill: "perception",
+    weight: 2400,
+    conditions: [
+      CONDITION_CHECKS.inLocation(BBASIN7281),
+      CONDITION_CHECKS.inSubLocation(BBASIN7281_SUBLOCATIONS.sunlessLake),
+      CONDITION_CHECKS.ifActionCompleteAny(
+        "bbasin7281_sunless_lake_follow_footprints",
+      ),
+    ],
+    postComplete: [
+      COMPLETION_EFFECTS.addKnowledge(
+        KNOWLEDGE.BBASIN7281.primal_village_entrance,
       ),
     ],
   },

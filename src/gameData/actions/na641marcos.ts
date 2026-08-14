@@ -299,7 +299,7 @@ export const marcosWorkshopActions: ActionRepository = {
     skill: "engineering",
     flavourText:
       "With tools now available for you, you can start to tinker. Halves energy decay rate",
-    weight: 150,
+    weight: 60,
     ...REVEAL.skillCheck("engineering", 2),
     conditions: [
       CONDITION_CHECKS.inLocation(NA641),
@@ -461,6 +461,7 @@ export const marcosWorkshopActions: ActionRepository = {
     postComplete: [
       COMPLETION_EFFECTS.removeItem("bbasin7281_rough_aurexite_chunk", 3),
       COMPLETION_EFFECTS.addItem("na641_passive_energy_generator", 1),
+      COMPLETION_EFFECTS.reachMilestone("na641_aurexite_mastery"),
     ],
   },
   na641_marcos_ask_solar_charger: {

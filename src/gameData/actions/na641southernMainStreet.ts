@@ -4,6 +4,7 @@ import { DELIVERY_TAGS, KNOWLEDGE, TAGS } from "../tags";
 import {
   CROSSGEN,
   NO_CROSSGEN,
+  NO_POSTCOMPLETE,
   NO_REPEAT,
   REPEATABLE,
   type ActionRepository,
@@ -438,6 +439,48 @@ export const na641southernMainStreetActions: ActionRepository = {
     ],
     postComplete: [
       COMPLETION_EFFECTS.addKnowledge(KNOWLEDGE.NA641.charting_arcadia),
+    ],
+  },
+  na641_library_conduct_search_for_eternia: {
+    ...CROSSGEN,
+    ...NO_REPEAT,
+    ...NO_POSTCOMPLETE,
+    title: "Conduct search in library",
+    flavourText: "Chances are slim, but let's see",
+    skill: "perception",
+    weight: 3000,
+    conditions: [
+      CONDITION_CHECKS.inLocation(NA641),
+      CONDITION_CHECKS.inSubLocation(
+        NA641_SUBLOCATIONS.southernMainStreetLibrary,
+      ),
+      CONDITION_CHECKS.flag(TAGS.NA641.LIBRARY.CARD),
+      CONDITION_CHECKS.flag(
+        TAGS.PANTHEON31349.GOD_TRIES_TO_PRESERVE_HISTORY,
+      ),
+    ],
+  },
+  na641_library_consult_staff_about_eternia: {
+    ...CROSSGEN,
+    ...NO_REPEAT,
+    ...NO_POSTCOMPLETE,
+    title: "Consult with staff",
+    flavourText:
+      "Apparently, if you want to talk about ancient books, you'll need to talk to the Library Master",
+    skill: "social",
+    weight: 1500,
+    conditions: [
+      CONDITION_CHECKS.inLocation(NA641),
+      CONDITION_CHECKS.inSubLocation(
+        NA641_SUBLOCATIONS.southernMainStreetLibrary,
+      ),
+      CONDITION_CHECKS.flag(TAGS.NA641.LIBRARY.CARD),
+      CONDITION_CHECKS.flag(
+        TAGS.PANTHEON31349.GOD_TRIES_TO_PRESERVE_HISTORY,
+      ),
+      CONDITION_CHECKS.ifActionCompleteAny(
+        "na641_library_conduct_search_for_eternia",
+      ),
     ],
   },
   na641_library_find_books_about_ancient_monsters: {

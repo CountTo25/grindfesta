@@ -183,6 +183,7 @@ button,
   min-width: 0;
   min-height: 0;
   overflow: hidden;
+  contain: paint;
 }
 
 .glass_scroll_fade {
@@ -214,7 +215,7 @@ button,
    scroller. Paint the fade above the scroll viewport there instead. */
 @supports (-moz-appearance: none) {
   .glass_scroll_fade {
-    --scroll-fade-overlay: rgb(0 8 7 / 98%);
+    --scroll-fade-overlay: rgb(0 8 7);
     mask-image: none;
     -webkit-mask-image: none;
   }

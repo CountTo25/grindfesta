@@ -185,15 +185,11 @@
       inset 0 0 30px rgb(var(--skill-level-pulse-color) / 12%);
   }
 
-  .skill_level_pulse::after {
-    background:
-      linear-gradient(
-        120deg,
-        rgb(255 255 255 / 58%),
-        rgb(var(--skill-level-pulse-color) / 92%) 28%,
-        rgb(var(--skill-level-pulse-color) / 58%) 72%,
-        rgb(255 255 255 / 32%)
-      );
+  .skill_level_pulse::before {
+    box-shadow:
+      inset 0 0 0 1px rgb(var(--skill-level-pulse-color) / 82%),
+      inset 0 0 8px rgb(var(--skill-level-pulse-color) / 34%),
+      inset 0 1px 0 rgb(255 255 255 / 28%);
     animation: skill_level_glass_pulse 750ms both;
   }
 
@@ -249,7 +245,7 @@
     }
 
     .skill_card > .skill_level_pulse_interior,
-    .skill_level_pulse::after {
+    .skill_level_pulse::before {
       animation: none;
     }
   }

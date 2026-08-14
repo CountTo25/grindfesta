@@ -3,25 +3,27 @@ import { knowledge } from "./gameData/knowledge";
 import type { MilestoneKey } from "./gameData/milestones";
 import { LOCATIONS } from "./gameData/sublocations";
 import { KNOWLEDGE, TAGS } from "./gameData/tags";
-import { resolveUpgradeEffect, upgrades } from "./gameData/upgrades";
 import {
   sendBakeSignal,
   sendKnowledgesignal,
   sendSubLocationSignal,
 } from "./state";
 import type {
+  Action,
   ActionText,
   GameState,
   Location,
   LogEntry,
   RunState,
   Skill,
+  StateChecker,
   SubLocation,
 } from "./types";
 
 const NA641 = LOCATIONS.na641;
 const BBASIN7281 = LOCATIONS.bbasin7281;
 const ETERNIA31349 = LOCATIONS.eternia31349;
+const ETERNIA_SILENT29624 = LOCATIONS.eterniaSilent29624;
 
 export type AdjacentBundle<T> = T & { count: number; startIndex: number };
 
@@ -39,6 +41,21 @@ export function bundleAdjacentBy<T extends object, Key>(
 
 export const resolveActionText = (text: ActionText | undefined, state: GameState) =>
   typeof text === "function" ? text(state) : (text ?? "");
+
+export function getActionMovementDestination(
+  action: Action,
+): SubLocation | null {
+  const completionEffects = Array.isArray(action.postComplete)
+    ? action.postComplete
+    : [action.postComplete];
+  const movement = completionEffects.find(
+    (effect) => effect.metadata?.kind === "moveSubLocation",
+  );
+
+  return movement?.metadata?.kind === "moveSubLocation"
+    ? movement.metadata.destination
+    : null;
+}
 
 export const syncToDebug = (tag: string) => {
   //@ts-ignore
@@ -174,7 +191,7 @@ export const REVEAL = {
   },
 };
 
-type GenericConditionCheck = (d: GameState) => boolean;
+type GenericConditionCheck = StateChecker;
 export const CONDITION_CHECKS = {
   or: (conditions: GenericConditionCheck[]): GenericConditionCheck => {
     return (d: GameState): boolean => {
@@ -229,7 +246,15 @@ export const CONDITION_CHECKS = {
 
   inLocation: (locations: Location | Location[]): GenericConditionCheck => {
     let all = Array.isArray(locations) ? locations : [locations];
-    return (d: GameState): boolean => all.includes(d.data.run.location);
+    return Object.assign(
+      (d: GameState): boolean => all.includes(d.data.run.location),
+      {
+        metadata: {
+          kind: "inLocation" as const,
+          locations: [...all],
+        },
+      },
+    );
   },
   inSubLocation: (location: SubLocation): GenericConditionCheck => {
     return (d: GameState): boolean => d.data.run.subLocation === location;
@@ -306,15 +331,6 @@ export const COMPLETION_EFFECTS = {
       }
       if (!d.data.global.reached_milestones.includes(id)) {
         d.data.global.reached_milestones.push(id);
-        if (
-          d.data.global.purchased_upgrades.includes("timeline_stabilization")
-        ) {
-          const capacityGain = resolveUpgradeEffect(
-            upgrades.timeline_stabilization.effect,
-          );
-          d.data.global.maxEnergy += capacityGain;
-          d.data.run.maxEnergy += capacityGain;
-        }
       }
       return d;
     };
@@ -509,6 +525,12 @@ export const LOCATION_CHECKS: {
         ETERNIA31349,
         d.data.run.subLocation,
       ),
+      show: true,
+    };
+  },
+  [ETERNIA_SILENT29624]: (d: GameState) => {
+    return {
+      text: d.data.run.subLocation,
       show: true,
     };
   },

@@ -42,7 +42,9 @@ export type SaveMigrationData = {
     activeRetraceConfigId: string | null;
     knowledge: string[];
     reached_milestones: string[];
-    purchased_upgrades: string[];
+    maxEnergy: number;
+    purchased_upgrades?: string[];
+    unlocked_achievements?: string[];
     last_run_milestone_entries: { ts: number; id: string }[];
     previous_run_milestone_entries: { ts: number; id: string }[];
   };

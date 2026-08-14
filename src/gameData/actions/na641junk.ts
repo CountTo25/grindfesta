@@ -124,6 +124,7 @@ export const na641junkActions: ActionRepository = {
   na641_junk_fix_pile: {
     ...NO_CROSSGEN,
     ...REPEATABLE,
+    ...REVEAL.itemNotCappedYet("narcadia641_zenny"),
     title: "Try to fix some of the junk",
     skill: "engineering",
     flavourText: "3 Zenny per fixed good",

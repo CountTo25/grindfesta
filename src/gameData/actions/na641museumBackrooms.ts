@@ -102,6 +102,7 @@ export const museumBackroomsActions: ActionRepository = {
       CONDITION_CHECKS.inSubLocation(
         NA641_SUBLOCATIONS.nawsHistoryMuseumBackrooms,
       ),
+      CONDITION_CHECKS.hasKnowledge(KNOWLEDGE.NA641.johnny_jobs),
       CONDITION_CHECKS.noFlag(TAGS.NA641.MUSEUM.STAFF_FOLLOWS),
       CONDITION_CHECKS.not(
         CONDITION_CHECKS.hasKnowledge(
@@ -158,6 +159,26 @@ export const museumBackroomsActions: ActionRepository = {
     postComplete: [
       COMPLETION_EFFECTS.moveSubLocation(
         NA641_SUBLOCATIONS.nawsHistoryMuseumMaintenanceRoom,
+      ),
+    ],
+  },
+  na641_museum_backrooms_visit_curators_office: {
+    ...NO_CROSSGEN,
+    ...REPEATABLE,
+    title: "Visit curator's office",
+    skill: "exploration",
+    weight: 400,
+    stopOnRepeat: true,
+    conditions: [
+      CONDITION_CHECKS.inLocation(NA641),
+      CONDITION_CHECKS.inSubLocation(
+        NA641_SUBLOCATIONS.nawsHistoryMuseumBackrooms,
+      ),
+      CONDITION_CHECKS.hasKnowledge(KNOWLEDGE.NA641.museum_curators_office),
+    ],
+    postComplete: [
+      COMPLETION_EFFECTS.moveSubLocation(
+        NA641_SUBLOCATIONS.nawsHistoryMuseumCuratorsOffice,
       ),
     ],
   },
@@ -227,6 +248,25 @@ export const museumBackroomsActions: ActionRepository = {
       CONDITION_CHECKS.inLocation(NA641),
       CONDITION_CHECKS.inSubLocation(
         NA641_SUBLOCATIONS.nawsHistoryMuseumMaintenanceRoom,
+      ),
+    ],
+    postComplete: [
+      COMPLETION_EFFECTS.moveSubLocation(
+        NA641_SUBLOCATIONS.nawsHistoryMuseumBackrooms,
+      ),
+    ],
+  },
+  na641_museum_curators_office_return_backrooms: {
+    ...NO_CROSSGEN,
+    ...REPEATABLE,
+    title: "Return to backrooms",
+    skill: "exploration",
+    weight: 400,
+    stopOnRepeat: true,
+    conditions: [
+      CONDITION_CHECKS.inLocation(NA641),
+      CONDITION_CHECKS.inSubLocation(
+        NA641_SUBLOCATIONS.nawsHistoryMuseumCuratorsOffice,
       ),
     ],
     postComplete: [

@@ -18,7 +18,7 @@
     class="glass_progress_fill"
     class:time_compression={tone === "time_compression"}
     class:simulated_energy={tone === "simulated_energy"}
-    style={`width: ${clampedPercent}%`}
+    style={`transform: scaleX(${clampedPercent / 100})`}
   ></div>
 </div>
 
@@ -34,14 +34,16 @@
 
   .glass_progress_fill {
     --progress-rgb: var(--ui_accent);
+    width: 100%;
     height: 100%;
+    transform-origin: left center;
     background:
       linear-gradient(90deg, rgb(255 255 255 / 4%), rgb(255 255 255 / 18%)),
       rgb(var(--progress-rgb) / 76%);
     box-shadow:
       0 0 12px rgb(var(--progress-rgb) / 45%),
       inset 0 1px 0 rgb(255 255 255 / 34%);
-    transition: width 180ms ease-out;
+    transition: transform 180ms ease-out;
   }
 
   .glass_progress_fill.time_compression {

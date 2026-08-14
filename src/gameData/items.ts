@@ -14,10 +14,10 @@ export const items = {
       let junkWalletMod =
         (c.data.run.flags[TAGS.MODIFIERS.HAS_JUNK_WALLET] ?? null) ? 10 : 0;
       let trendyWalletMod =
-        (c.data.run.flags[TAGS.MODIFIERS.HAS_TRENDY_WALLET] ?? null) ? 10 : 0;
+        (c.data.run.flags[TAGS.MODIFIERS.HAS_TRENDY_WALLET] ?? null) ? 15 : 0;
       let handcraftedWalletMod =
         (c.data.run.flags[TAGS.MODIFIERS.HAS_HANDCRAFTED_WALLET] ?? null)
-          ? 5
+          ? 10
           : 0;
       return 10 + junkWalletMod + trendyWalletMod + handcraftedWalletMod;
     },
@@ -294,6 +294,18 @@ export const items = {
     anchor: {
       location: LOCATIONS.eternia31349,
       sublocation: SUBLOCATIONS.eternia31349.greatLibrary,
+    },
+  },
+  anchor_god_of_knowledge_book: {
+    name: "God of Knowledge's book",
+    description: "A children's book preserved through time",
+    consumable: false,
+    consumeRequirement: [],
+    onConsume: [],
+    capacity: (_) => 1,
+    anchor: {
+      location: LOCATIONS.eterniaSilent29624,
+      sublocation: SUBLOCATIONS.eterniaSilent29624.vault,
     },
   },
   eternia31349_aurexite_beads: {

@@ -1,11 +1,4 @@
 :is(.glass_surface, .glass_menu, .glass_card, .glass_control) {
-  --glass-glow-x: 50%;
-  --glass-glow-y: 0%;
-  --glass-glow-alpha: 0;
-  --glass-glow-interior-x: 50%;
-  --glass-glow-interior-y: 0%;
-  --glass-glow-interior-alpha: 0;
-  --glass-glow-interior-radius: 72px;
   --glass-highlight-alpha: 5%;
   --glass-highlight-stop: 34%;
   --glass-surface-tint: linear-gradient(
@@ -24,13 +17,6 @@
   border: 1px solid transparent;
   border-radius: var(--glass-radius);
   background:
-    radial-gradient(
-      var(--glass-glow-interior-radius) circle at var(--glass-glow-interior-x)
-        var(--glass-glow-interior-y),
-      rgb(var(--ui_accent) / var(--glass-glow-interior-alpha)) 0%,
-      rgb(var(--ui_accent) / calc(var(--glass-glow-interior-alpha) * 0.4)) 42%,
-      transparent 78%
-    ),
     linear-gradient(
       135deg,
       rgb(255 255 255 / var(--glass-highlight-alpha)),
@@ -66,6 +52,24 @@
     var(--ui_shadow_tight);
 }
 
+/*
+ * The reflections preference doubles as a low-effects glass mode. Keep real
+ * transient layers (menus, hover veils, and modals) blurred, but make the
+ * persistent app chrome opaque so an idle screen does not retain a viewport
+ * full of backdrop-filter render passes.
+ */
+.no-glass :is(
+    .glass_surface:not(.glass_modal),
+    .glass_card,
+    .glass_control,
+    .action_section_header
+  ) {
+  --ui_surface: rgb(16 17 16 / 96%);
+  --ui_surface_strong: rgb(8 9 9 / 98%);
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+
 .glass_content_clip_bottom {
   --glass-clip-content-height: var(--glass-progress-height);
   --glass-clip-height: max(var(--glass-inner-radius), var(--glass-clip-content-height));
@@ -95,57 +99,28 @@
   z-index: 1;
 }
 
-:is(.glass_surface, .glass_menu, .glass_card, .glass_control)::before,
-:is(.glass_surface, .glass_menu, .glass_card, .glass_control)::after {
+:is(.glass_surface, .glass_menu, .glass_card, .glass_control)::before {
   position: absolute;
   z-index: 2;
+  inset: 0;
   pointer-events: none;
   content: "";
-  padding: 1px;
-  -webkit-mask:
-    linear-gradient(#fff 0 0) content-box,
-    linear-gradient(#fff 0 0);
-  mask:
-    linear-gradient(#fff 0 0) content-box,
-    linear-gradient(#fff 0 0);
-  -webkit-mask-composite: xor;
-  mask-composite: exclude;
-  mix-blend-mode: screen;
-}
-
-:is(.glass_surface, .glass_menu, .glass_card, .glass_control)::before {
-  inset: 0;
   border-radius: var(--glass-radius);
-  background:
-    linear-gradient(
-      120deg,
-      rgb(255 255 255 / 18%),
-      transparent 34%,
-      transparent 72%,
-      rgb(255 255 255 / 6%)
-    ),
-    linear-gradient(var(--ui_stroke), var(--ui_stroke));
+  box-shadow:
+    inset 0 0 0 1px var(--glass-edge-color),
+    inset 0 1px 0 rgb(255 255 255 / 10%);
 }
 
-:is(.glass_surface, .glass_menu, .glass_card, .glass_control)::after {
-  inset: var(--glass-rind-inset);
-  border-radius: calc(var(--glass-radius) - var(--glass-rind-inset));
-  background:
-    radial-gradient(
-      180px circle at calc(var(--glass-glow-x) - var(--glass-rind-inset))
-        calc(var(--glass-glow-y) - var(--glass-rind-inset)),
-      rgb(var(--ui_accent) / var(--glass-glow-alpha)) 0%,
-      rgb(var(--ui_accent) / calc(var(--glass-glow-alpha) * 0.34)) 40%,
-      transparent 72%
-    ),
-    linear-gradient(
-      120deg,
-      rgb(255 255 255 / 14%),
-      transparent 38%,
-      transparent 68%,
-      rgb(255 255 255 / 7%)
-    ),
-    linear-gradient(var(--glass-edge-color), var(--glass-edge-color));
+.glass_reflection_canvas {
+  position: fixed;
+  z-index: 10;
+  top: 0;
+  left: 0;
+  pointer-events: none;
+  transform: translate3d(-224px, -224px, 0);
+  transform-origin: top left;
+  will-change: transform;
+  contain: strict;
 }
 
 .interactive_glass {
@@ -204,9 +179,8 @@
     --ui_stroke: rgb(238 247 241 / 31%);
   }
 
-  :is(.glass_surface, .glass_menu, .glass_card, .glass_control) {
-    --glass-glow-alpha: 0 !important;
-    --glass-glow-interior-alpha: 0 !important;
+  .glass_reflection_canvas {
+    display: none;
   }
 }
 
