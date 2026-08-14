@@ -8,6 +8,7 @@ const LOCATION_ACCENTS_BY_KEY = {
   na641: "var(--ui_accent_new_arcadia)",
   bbasin7281: "var(--ui_accent_ashbone_basin)",
   eternia31349: "var(--ui_accent_pantheon_age)",
+  eterniaSilent29624: "var(--ui_accent_eternia_silent)",
 } satisfies Record<LocationKey, string>;
 
 const LOCATION_ACCENTS = Object.fromEntries(

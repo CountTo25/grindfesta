@@ -9,6 +9,7 @@ import { KNOWLEDGE, TAGS } from "../tags";
 import {
   CROSSGEN,
   NO_CROSSGEN,
+  NO_POSTCOMPLETE,
   NO_REPEAT,
   REPEATABLE,
   type ActionRepository,
@@ -26,9 +27,7 @@ export const na641WesternMainStreetActions: ActionRepository = {
     weight: 5,
     conditions: [
       CONDITION_CHECKS.inLocation(NA641),
-      CONDITION_CHECKS.inSubLocation(
-        NA641_SUBLOCATIONS.westernMainStreetAlley,
-      ),
+      CONDITION_CHECKS.inSubLocation(NA641_SUBLOCATIONS.westernMainStreetAlley),
     ],
     postComplete: withLogEntry(
       "That is indeed some backalley of some unfamiliar town. You can hear some people wander around somewhere nearby",
@@ -42,13 +41,9 @@ export const na641WesternMainStreetActions: ActionRepository = {
     weight: 3,
     conditions: [
       CONDITION_CHECKS.inLocation(NA641),
-      CONDITION_CHECKS.inSubLocation(
-        NA641_SUBLOCATIONS.westernMainStreetAlley,
-      ),
+      CONDITION_CHECKS.inSubLocation(NA641_SUBLOCATIONS.westernMainStreetAlley),
       CONDITION_CHECKS.ifActionCompleteRun("intro_0"),
-      CONDITION_CHECKS.not(
-        CONDITION_CHECKS.ifActionCompleteGlobal("intro_1"),
-      ),
+      CONDITION_CHECKS.not(CONDITION_CHECKS.ifActionCompleteGlobal("intro_1")),
     ],
     postComplete: withLogEntry(
       "Device on your wrist seems to be intact, but battery seems to rapidly degrade. Seems like you will shortly be back in your own time and (hopefully) place",
@@ -62,9 +57,7 @@ export const na641WesternMainStreetActions: ActionRepository = {
     weight: 3,
     conditions: [
       CONDITION_CHECKS.inLocation(NA641),
-      CONDITION_CHECKS.inSubLocation(
-        NA641_SUBLOCATIONS.westernMainStreetAlley,
-      ),
+      CONDITION_CHECKS.inSubLocation(NA641_SUBLOCATIONS.westernMainStreetAlley),
       CONDITION_CHECKS.ifActionCompleteRun("intro_0"),
       CONDITION_CHECKS.ifActionCompleteGlobal("intro_1"),
     ],
@@ -80,18 +73,14 @@ export const na641WesternMainStreetActions: ActionRepository = {
     weight: 4,
     conditions: [
       CONDITION_CHECKS.inLocation(NA641),
-      CONDITION_CHECKS.inSubLocation(
-        NA641_SUBLOCATIONS.westernMainStreetAlley,
-      ),
+      CONDITION_CHECKS.inSubLocation(NA641_SUBLOCATIONS.westernMainStreetAlley),
       CONDITION_CHECKS.or([
         CONDITION_CHECKS.ifActionCompleteRun("intro_1"),
         CONDITION_CHECKS.ifActionCompleteRun("intro_confirm_tld"),
       ]),
     ],
     postComplete: [
-      COMPLETION_EFFECTS.moveSubLocation(
-        NA641_SUBLOCATIONS.westernMainStreet,
-      ),
+      COMPLETION_EFFECTS.moveSubLocation(NA641_SUBLOCATIONS.westernMainStreet),
     ],
   },
   narcadia_gather_info: {
@@ -151,11 +140,28 @@ export const na641WesternMainStreetActions: ActionRepository = {
       ),
     ],
   },
+  na641_western_main_street_check_advertisements: {
+    ...CROSSGEN,
+    ...NO_REPEAT,
+    ...NO_POSTCOMPLETE,
+    title: "Check out advertisements",
+    flavourText:
+      "By popular demand, Relics of Bygone Era showcase will return to the museum soon!",
+    skill: "perception",
+    weight: 2000,
+    conditions: [
+      CONDITION_CHECKS.inLocation(NA641),
+      CONDITION_CHECKS.inSubLocation(NA641_SUBLOCATIONS.westernMainStreet),
+      CONDITION_CHECKS.flag(
+        TAGS.PANTHEON31349.GOD_TRIES_TO_PRESERVE_HISTORY,
+      ),
+    ],
+  },
   narcadia_moneymaking_seek: {
     ...CROSSGEN,
     ...NO_REPEAT,
     title: "Look for ways to earn money",
-    flavourText: "Some income source is needed",
+    flavourText: "Clearly you need to find some way to pay for stuff",
     skill: "exploration",
     weight: 10,
     conditions: [
@@ -227,6 +233,9 @@ export const na641BackalleyActions: ActionRepository = {
       CONDITION_CHECKS.inLocation(NA641),
       CONDITION_CHECKS.inSubLocation(NA641_SUBLOCATIONS.westernMainStreet),
       CONDITION_CHECKS.hasKnowledge(KNOWLEDGE.TIME_LEAP.anchoring),
+      CONDITION_CHECKS.not(
+        CONDITION_CHECKS.hasItem("anchor_broken_temporal_calibrator", 1),
+      ),
     ],
     postComplete: [
       COMPLETION_EFFECTS.moveSubLocation(
@@ -243,15 +252,11 @@ export const na641BackalleyActions: ActionRepository = {
     stopOnRepeat: true,
     conditions: [
       CONDITION_CHECKS.inLocation(NA641),
-      CONDITION_CHECKS.inSubLocation(
-        NA641_SUBLOCATIONS.westernMainStreetAlley,
-      ),
+      CONDITION_CHECKS.inSubLocation(NA641_SUBLOCATIONS.westernMainStreetAlley),
       CONDITION_CHECKS.ifActionCompleteRun("intro_2"),
     ],
     postComplete: [
-      COMPLETION_EFFECTS.moveSubLocation(
-        NA641_SUBLOCATIONS.westernMainStreet,
-      ),
+      COMPLETION_EFFECTS.moveSubLocation(NA641_SUBLOCATIONS.westernMainStreet),
     ],
   },
   na641_backalley_search_anchor: {
@@ -264,9 +269,7 @@ export const na641BackalleyActions: ActionRepository = {
     ...REVEAL.skillCheck("perception", 50),
     conditions: [
       CONDITION_CHECKS.inLocation(NA641),
-      CONDITION_CHECKS.inSubLocation(
-        NA641_SUBLOCATIONS.westernMainStreetAlley,
-      ),
+      CONDITION_CHECKS.inSubLocation(NA641_SUBLOCATIONS.westernMainStreetAlley),
       CONDITION_CHECKS.hasKnowledge(KNOWLEDGE.TIME_LEAP.anchoring),
       CONDITION_CHECKS.skillModifier("perception", 5),
       CONDITION_CHECKS.not(
@@ -290,9 +293,7 @@ export const na641BackalleyActions: ActionRepository = {
     weight: 40,
     conditions: [
       CONDITION_CHECKS.inLocation(NA641),
-      CONDITION_CHECKS.inSubLocation(
-        NA641_SUBLOCATIONS.westernMainStreetAlley,
-      ),
+      CONDITION_CHECKS.inSubLocation(NA641_SUBLOCATIONS.westernMainStreetAlley),
       CONDITION_CHECKS.hasKnowledge(
         KNOWLEDGE.NA641.backalley_temporal_calibrator,
       ),

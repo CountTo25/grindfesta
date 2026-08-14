@@ -2,6 +2,7 @@
   import type { IconDefinition } from "@fortawesome/fontawesome-svg-core";
   import {
     faArrowRightFromBracket,
+    faArrowsUpToLine,
     faBolt,
     faBookBookmark,
     faChevronRight,
@@ -32,6 +33,7 @@
   const icons: Record<string, IconDefinition> = {
     "angle-right-solid": faChevronRight,
     "arrow-right-from-bracket": faArrowRightFromBracket,
+    "arrows-up-to-line": faArrowsUpToLine,
     bolt: faBolt,
     "book-bookmark": faBookBookmark,
     clock: faClock,

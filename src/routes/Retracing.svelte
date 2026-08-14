@@ -7,7 +7,8 @@
   import { items } from "../gameData/items";
   import GenericIcon from "../parts/GenericIcon.svelte";
   import ProgressBar from "../parts/ProgressBar.svelte";
-  import RetracingNode from "../parts/RetracingNode.svelte";
+  import RetracingActionPicker from "../parts/RetracingActionPicker.svelte";
+  import RetracingTimeline from "../parts/RetracingTimeline.svelte";
   import {
     bakeStateSnapshot,
     BASE_TPS,
@@ -18,6 +19,7 @@
     gameState,
     getActiveRetraceConfig,
     ghostDisplayableActions,
+    prepareFreshRun,
     simulateActionProgress,
   } from "../state";
   import { actions } from "../statics";
@@ -29,7 +31,6 @@
     isCurrentEraAnchor,
   } from "../system/leap";
   import {
-    EMPTY_RUN,
     GameState,
     type Item,
     type RetraceAction,
@@ -59,7 +60,7 @@
   let fake: GameState = buildFakeState();
 
   $: displayableActions = ghostDisplayableActions(fake).filter(
-    (v) => knownNodes.includes(v) && canStartAction(fake, v),
+    (v) => knownNodes.includes(v),
   );
   $: availableRetraceLeaps = getAnchorInventoryItems(fake).filter(
     (anchorItem) => !isCurrentEraAnchor(fake, anchorItem),
@@ -78,8 +79,7 @@
 
   function buildFakeState() {
     const next = deepClone(get(gameState));
-    next.data.run = deepClone(EMPTY_RUN);
-    return bakeStateSnapshot(next);
+    return bakeStateSnapshot(prepareFreshRun(next));
   }
 
   function actionTitle(id: string) {
@@ -123,6 +123,7 @@
       id,
       RETRACE_TICK_MS,
       tickBudget,
+      true,
     );
     fake = result.state;
     if (!result.completed) {
@@ -154,6 +155,24 @@
         break;
       }
       nextRecording.push(record);
+    }
+
+    retraceRecording = nextRecording;
+    fake = fake;
+  }
+
+  function handleRetraceMax(id: string) {
+    handleRetraceAll();
+    const nextRecording = [...retraceRecording];
+
+    while (canStartAction(fake, id)) {
+      const before = deepClone(fake);
+      if (!simulateAction(id)) {
+        fake = before;
+        retraceWarning = null;
+        break;
+      }
+      nextRecording.push({ id });
     }
 
     retraceRecording = nextRecording;
@@ -208,6 +227,14 @@
         return state;
       });
     }
+    handleRetraceAll();
+  }
+
+  function removeLatestRetraceActions(count: number) {
+    retraceRecording = retraceRecording.slice(
+      0,
+      Math.max(0, retraceRecording.length - count),
+    );
     handleRetraceAll();
   }
 
@@ -456,71 +483,20 @@
   </div>
 
   <div class="min-h-0 grid grid-cols-12 overflow-hidden pt-2">
-    <ScrollFade
-      frameClass="glass_divider_right col-span-4 min-h-0 sm:col-span-3"
-      scrollerClass="glass_scroll h-full overflow-y-auto"
-    >
-      <div class="glass_kicker px-3 pb-2">Timeline</div>
-      <div class="px-2">
-        {#if reversedBundledRetracedNodes.length === 0}
-          <div class="subtle_text px-1 py-2 text-xs">
-            No retrace steps yet
-          </div>
-        {/if}
-        {#each reversedBundledRetracedNodes as record, idx}
-          <div
-            class="glass_card mb-2 grid grid-cols-5 p-2 text-sm"
-          >
-            <div class="col-span-4 min-w-0">
-              <div class="truncate">{actionTitle(record.id)}</div>
-              {#if record.count > 1}
-                <div class="subtle_text text-xs">x{record.count}</div>
-              {/if}
-            </div>
-            {#if idx === 0}
-              <button
-                type="button"
-                class="glass_icon_button col-span-1 justify-self-center"
-                on:click={() => {
-                  retraceRecording.splice(retraceRecording.length - 1, 1);
-                  retraceRecording = retraceRecording;
-                  handleRetraceAll();
-                }}
-              >
-                <GenericIcon icon="trash" />
-              </button>
-            {/if}
-          </div>
-        {/each}
-      </div>
-    </ScrollFade>
+    <RetracingTimeline
+      records={reversedBundledRetracedNodes}
+      getTitle={actionTitle}
+      onRemoveOne={() => removeLatestRetraceActions(1)}
+      onRemoveBundle={removeLatestRetraceActions}
+    />
 
-    <ScrollFade
-      frameClass="glass_divider_right col-span-5 min-h-0 sm:col-span-6"
-      scrollerClass="glass_scroll grid h-full auto-rows-min grid-cols-12 content-start gap-2 overflow-auto pl-3 pr-1"
-    >
-      <div class="glass_kicker col-span-12 pb-1">Actions</div>
-      {#if retraceWarning}
-        <div
-          class="col-span-12 mb-1 border-b border-amber-300/30 pb-2 text-sm text-amber-300"
-        >
-          {retraceWarning}
-        </div>
-      {/if}
-      {#if displayableActions.length === 0}
-        <div class="subtle_text col-span-12 text-sm">
-          No valid known actions from this simulated point
-        </div>
-      {/if}
-      {#each displayableActions as node}
-        <div class="col-span-12 sm:col-span-6 lg:col-span-4">
-          <RetracingNode
-            action={actions[node]}
-            on:click={() => handleRetraceAll(node)}
-          />
-        </div>
-      {/each}
-    </ScrollFade>
+    <RetracingActionPicker
+      state={fake}
+      actionIds={displayableActions}
+      warning={retraceWarning}
+      onSelect={handleRetraceAll}
+      onSelectMax={handleRetraceMax}
+    />
 
     <ScrollFade
       frameClass="col-span-3 min-h-0"

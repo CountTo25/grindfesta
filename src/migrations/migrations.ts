@@ -9,6 +9,8 @@ import migration20260805MagicArchivesLocation from "./20260805_magic_archives_lo
 import migration20260805SolarRadioChargerFlag from "./20260805_solar_radio_charger_flag";
 import migration20260807NamedRetraceConfigs from "./20260807_named_retrace_configs";
 import migration20260807MarcoObserveCrossgen from "./20260807_marco_observe_crossgen";
+import migration20260811Achievements from "./20260811_achievements";
+import migration20260814RemoveTotalMagicShowOffMilestone from "./20260814_remove_total_magic_show_off_milestone";
 // add-migration-imports-above
 
 const SAVE_MIGRATIONS: SaveMigration[] = [
@@ -22,6 +24,8 @@ const SAVE_MIGRATIONS: SaveMigration[] = [
   migration20260805SolarRadioChargerFlag,
   migration20260807NamedRetraceConfigs,
   migration20260807MarcoObserveCrossgen,
+  migration20260811Achievements,
+  migration20260814RemoveTotalMagicShowOffMilestone,
   // add-migration-entries-above
 ];
 

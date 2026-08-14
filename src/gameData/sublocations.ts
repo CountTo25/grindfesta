@@ -2,6 +2,7 @@ export const LOCATIONS = {
   na641: "New Arcadia 641",
   bbasin7281: "Ashbone Basin -7281",
   eternia31349: "Eternia -31349",
+  eterniaSilent29624: "Eternia, Silent -29624",
 } as const;
 
 export const SUBLOCATIONS = {
@@ -16,6 +17,8 @@ export const SUBLOCATIONS = {
     nawsHistoryMuseumPaleontologyExhibitStorage:
       "NAWS History Museum — Paleontology exhibit storage",
     nawsHistoryMuseumMaintenanceRoom: "NAWS History Museum — Maintenance room",
+    nawsHistoryMuseumCuratorsOffice:
+      "NAWS History Museum — Curator's office",
     rapidDeliveryService: "Rapid Delivery Service",
     rapidDeliverySpecialStorage:
       "Rapid Delivery Service — Special delivery storage",
@@ -45,6 +48,7 @@ export const SUBLOCATIONS = {
     canyon: "Ashbone Basin -7281 — Canyon",
     canyonCaves: "Ashbone Basin -7281 — Canyon Caves",
     sunlessLake: "Ashbone Basin -7281 — Sunless lake",
+    primalVillage: "Ashbone Basin -7281 — Primal Village",
   },
   eternia31349: {
     scholarsDistrict: "Eternia — Scholar's District",
@@ -57,7 +61,31 @@ export const SUBLOCATIONS = {
     ewaisEverydayGoods:
       "Eternia — Scholar's District — Ewai's Everyday Goods",
     magicianLodges: "Eternia — Scholar's District — Magician Lodges",
+    magicianLodgesGeneralHall:
+      "Eternia — Scholar's District — Magician Lodges — General Hall",
+    magicianLodgesDorms:
+      "Eternia — Scholar's District — Magician Lodges — Dorms",
     bankBranch: "Eternia — Scholar's District — Bank branch",
+    controlDistrict: "Eternia — Control District",
+    controlDistrictControlCenter: "Eternia — Control District — Control Center",
+    controlDistrictDomeGardens: "Eternia — Control District — Dome Gardens",
+    defenseDistrict: "Eternia — Defense District",
+    defenseDistrictMagicalCorpsHq:
+      "Eternia — Defense District — Magical Corps HQ",
+    defenseDistrictOverlookTower:
+      "Eternia — Defense District — Overlook Tower",
+    maintenanceSector: "Eternia — Maintenance Sector",
+    maintenanceSectorHeatingChambers:
+      "Eternia — Maintenance Sector — Heating Chambers",
+  },
+  eterniaSilent29624: {
+    vault: "Eternia, Silent -29624 — Vault",
+    maintenanceSector: "Eternia, Silent -29624 — Maintenance Sector",
+    maintenanceSectorHeatingChambers:
+      "Eternia, Silent -29624 — Maintenance Sector — Heating Chambers",
+    scholarsDistrict: "Eternia, Silent -29624 — Scholar's District",
+    diviningChambers:
+      "Eternia, Silent -29624 — Scholar's District — Divining Chambers",
   },
 } as const;
 

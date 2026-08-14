@@ -1,60 +1,176 @@
 <script lang="ts">
   import ActionButton from "../parts/ActionButton.svelte";
+  import { getLocationAccentByKey } from "../gameData/locationAccents";
   import { actions } from "../statics";
 
-  const BACKDROP_ACTION_IDS = [
-    "intro_0",
-    "intro_1",
-    "narcadia_gather_info",
-    "na641_homeless_wistom",
-    "na641_museum_search",
-    "na641_museum_ask_prehistoric_exposition",
-    "na641_city_hall_check_interior",
-    "na641_city_hall_observe_others",
-    "bbasin7281_intro",
-    "bbasin7281_investigate_surroundings",
-    "bbasin7281_remove_weird_skull",
-    "bbasin7281_fend_off_lizard",
-    "pantheon31349_greet_author",
-    "pantheon31349_decipher_authors_answer",
-    "pantheon31349_clarify_whereabouts",
-    "na641_delivery_hack_terminal",
-    "na641_delivery_give_yourself_promotion",
-    "na641_department_store_look_around",
-    "na641_camping_goods_check_products",
-    "na641_junk_fix_pile",
-    "na641_marcos_amplify_solar_radio",
-  ];
+  type BackdropActionGroup = {
+    accent: string;
+    actionIds: readonly string[];
+  };
 
+  type BackdropActionReference = {
+    accent: string;
+    groupIndex: number;
+    id: string;
+  };
+
+  const BACKDROP_ACTION_GROUPS = [
+    {
+      accent: getLocationAccentByKey("na641"),
+      actionIds: [
+        "na641_museum_backrooms_jam_display_sensor",
+        "na641_museum_curator_open_sealed_book",
+        "na641_delivery_hack_terminal",
+        "na641_erika_produce_fake_id",
+        "na641_master_librarian_pick_green_metal_tome",
+        "na641_marco_present_aurexite",
+        "na641_city_hall_witness_heights",
+        "na641_junk_buy_clanky_mini_printer",
+      ],
+    },
+    {
+      accent: getLocationAccentByKey("bbasin7281"),
+      actionIds: [
+        "bbasin7281_inspect_remains",
+        "bbasin7281_remove_weird_skull",
+        "bbasin7281_blast_lizard_noise",
+        "bbasin7281_canyon_caves_cast_simple_glow",
+        "bbasin7281_canyon_caves_bats",
+        "bbasin7281_canyon_caves_read_message_in_eternian",
+        "bbasin7281_mine_surface_aurexite",
+        "bbasin7281_primal_village_scare_them_off_with_magic",
+      ],
+    },
+    {
+      accent: getLocationAccentByKey("eternia31349"),
+      actionIds: [
+        "eternia31349_bank_try_test_transaction",
+        "eternia31349_divining_chambers_creation_magic",
+        "eternia31349_divining_chambers_reshape_beads",
+        "eternia31349_dome_gardens_water_plants_magically",
+        "eternia31349_library_put_book_away",
+        "eternia31349_magical_corps_demonstrate_fire_magic",
+        "eternia31349_maintenance_heating_chambers_practice_heating",
+        "eternia31349_overlook_tower_expeditions",
+      ],
+    },
+    {
+      accent: getLocationAccentByKey("eterniaSilent29624"),
+      actionIds: [
+        "eternia_silent29624_vault_warm_yourself",
+        "eternia_silent29624_vault_start_fire",
+        "eternia_silent29624_vault_survey",
+        "eternia_silent29624_maintenance_sector_assess_emptiness",
+        "eternia_silent29624_scholars_district_fend_off_cold",
+        "eternia_silent29624_scholars_district_steel_yourself",
+        "eternia_silent29624_divining_chambers_check_out_monolith",
+        "eternia_silent29624_divining_chambers_gaze_onto_mirror_surface",
+      ],
+    },
+  ] as const;
+
+  const BACKDROP_COLUMN_COUNT = 4;
   const CARD_ROTATIONS = [-1.8, 0.8, -0.4, 1.5, -1, 0.3];
   const CARD_OPACITIES = [0.5, 0.66, 0.56, 0.72, 0.6];
 
-  const backdropSources = BACKDROP_ACTION_IDS.flatMap((id) => {
+  function backdropMixScore(groupIndex: number, position: number) {
+    let score =
+      Math.imul(groupIndex + 1, 0x9e3779b1) ^
+      Math.imul(position + 1, 0x85ebca6b);
+    score ^= score >>> 16;
+    return score >>> 0;
+  }
+
+  function mixBackdropActionGroups(
+    groups: readonly BackdropActionGroup[],
+    columnCount: number,
+  ): BackdropActionReference[] {
+    const groupStates = groups.map((group, groupIndex) => ({
+      group,
+      groupIndex,
+      nextActionIndex: 0,
+    }));
+    const cardCount = groups.reduce(
+      (total, { actionIds }) => total + actionIds.length,
+      0,
+    );
+    const mixed: BackdropActionReference[] = [];
+
+    for (let position = 0; position < cardCount; position += 1) {
+      const leftGroup =
+        position % columnCount === 0
+          ? null
+          : mixed[position - 1]?.groupIndex;
+      const aboveGroup = mixed[position - columnCount]?.groupIndex;
+      const candidates = groupStates
+        .filter(
+          ({ group, nextActionIndex }) =>
+            nextActionIndex < group.actionIds.length,
+        )
+        .sort((left, right) => {
+          const leftAdjacency =
+            Number(left.groupIndex === leftGroup) +
+            Number(left.groupIndex === aboveGroup);
+          const rightAdjacency =
+            Number(right.groupIndex === leftGroup) +
+            Number(right.groupIndex === aboveGroup);
+          if (leftAdjacency !== rightAdjacency) {
+            return leftAdjacency - rightAdjacency;
+          }
+
+          const leftRemaining =
+            left.group.actionIds.length - left.nextActionIndex;
+          const rightRemaining =
+            right.group.actionIds.length - right.nextActionIndex;
+          if (leftRemaining !== rightRemaining) {
+            return rightRemaining - leftRemaining;
+          }
+
+          return (
+            backdropMixScore(left.groupIndex, position) -
+            backdropMixScore(right.groupIndex, position)
+          );
+        });
+      const selected = candidates[0];
+      if (!selected) break;
+
+      const id = selected.group.actionIds[selected.nextActionIndex];
+      selected.nextActionIndex += 1;
+      mixed.push({
+        accent: selected.group.accent,
+        groupIndex: selected.groupIndex,
+        id,
+      });
+    }
+
+    return mixed;
+  }
+
+  const backdropSources = mixBackdropActionGroups(
+    BACKDROP_ACTION_GROUPS,
+    BACKDROP_COLUMN_COUNT,
+  ).flatMap(({ accent, id }) => {
     const action = actions[id];
     if (
+      !action ||
       typeof action.flavourText !== "string" ||
       !action.flavourText.trim()
     ) {
       return [];
     }
 
-    return [{ id, action, flavourText: action.flavourText }];
+    return [{ id, action, flavourText: action.flavourText, accent }];
   });
 
-  const backdropCards = Array.from({ length: 32 }, (_, index) => {
-    const source = backdropSources[index % backdropSources.length];
-    const { id, action, flavourText } = source;
+  const backdropCards = backdropSources.map((source, index) => {
+    const { id, action, flavourText, accent } = source;
 
     return {
       key: `${id}-${index}`,
       icon: action.skill,
       title: typeof action.title === "string" ? action.title : "Unknown action",
       flavourText,
-      accent: id.startsWith("bbasin7281")
-        ? "var(--ui_accent_ashbone_basin)"
-        : id.startsWith("pantheon31349")
-          ? "var(--ui_accent_pantheon_age)"
-        : "var(--ui_accent_new_arcadia)",
+      accent,
       progress: (index * 23 + 11) % 96,
       rotation: CARD_ROTATIONS[index % CARD_ROTATIONS.length],
       opacity: CARD_OPACITIES[index % CARD_OPACITIES.length],
@@ -63,7 +179,11 @@
 </script>
 
 <section class="icon_gen_page h-full p-2">
-  <div class="action_card_canvas" aria-hidden="true">
+  <div
+    class="action_card_canvas"
+    style={`--backdrop-column-count: ${BACKDROP_COLUMN_COUNT}`}
+    aria-hidden="true"
+  >
     {#each backdropCards as card (card.key)}
       <div
         class="backdrop_card"
@@ -107,7 +227,10 @@
     z-index: 0;
     inset: -82px -110px;
     display: grid;
-    grid-template-columns: repeat(4, minmax(220px, 1fr));
+    grid-template-columns: repeat(
+      var(--backdrop-column-count),
+      minmax(220px, 1fr)
+    );
     align-content: center;
     gap: 8px;
     filter: blur(0.45px);

@@ -272,9 +272,6 @@ export const pantheon31349DiviningChambersActions: ActionRepository = {
     ],
     postComplete: [
       COMPLETION_EFFECTS.addFlag(TAGS.PANTHEON31349.CASM_BEADS_SHOCKED, "1"),
-      COMPLETION_EFFECTS.reachMilestone(
-        "eternia31349_total_magic_show_off",
-      ),
     ],
   },
   eternia31349_divining_chambers_receive_further_guidance: {

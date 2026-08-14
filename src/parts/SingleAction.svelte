@@ -12,7 +12,11 @@
     stopRunAction,
   } from "../state";
   import type { Action, GameState } from "../types";
-  import { getSubLocationDisplayName, resolveActionText } from "../utils";
+  import {
+    getActionMovementDestination,
+    getSubLocationDisplayName,
+    resolveActionText,
+  } from "../utils";
   import GenericIcon from "./GenericIcon.svelte";
   import ProgressBar from "./ProgressBar.svelte";
 
@@ -22,6 +26,7 @@
   };
 
   const ACTION_HOVER_DELAY_MS = 500;
+  const FAST_ACTION_PULSE_THRESHOLD_SECONDS = 0.33;
 
   export let action: Action;
   export let id: string;
@@ -46,6 +51,9 @@
   $: displayFlavourText = resolveActionText(action.flavourText, $gameState);
   $: duration =
     action.weight / ($bakedSkills.modifiers.total[action.skill] || 1);
+  $: usesCompletionPulse =
+    getActionMovementDestination(action) === null &&
+    duration < FAST_ACTION_PULSE_THRESHOLD_SECONDS;
   $: remainingDuration =
     Math.max(action.weight - progress, 0) /
     ($bakedSkills.modifiers.total[action.skill] || 1);
@@ -72,20 +80,15 @@
     state: GameState,
     revealDestination: boolean,
   ): ActionTrait[] {
-    const completionEffects = Array.isArray(action.postComplete)
-      ? action.postComplete
-      : [action.postComplete];
     const traits: ActionTrait[] = [];
-    const movement = completionEffects.find(
-      (effect) => effect.metadata?.kind === "moveSubLocation",
-    );
+    const movementDestination = getActionMovementDestination(action);
 
-    if (movement?.metadata?.kind === "moveSubLocation") {
+    if (movementDestination !== null) {
       const destination = revealDestination
         ? getSubLocationDisplayName(
             state,
             state.data.run.location,
-            movement.metadata.destination,
+            movementDestination,
           )
         : null;
       traits.push({
@@ -94,7 +97,7 @@
       });
     }
 
-    if (action.repeatable && !movement) {
+    if (action.repeatable && movementDestination === null) {
       traits.push({
         icon: "repeat",
         label: "Repeatable until it becomes unavailable",
@@ -187,6 +190,9 @@
     class="glass_card action_card grid grid-cols-12"
     class:action_details_active={isHovered}
   >
+    {#if isRevealed && usesCompletionPulse && running}
+      <div class="action_active_pulse" aria-hidden="true"></div>
+    {/if}
     <div class="action_header col-span-12 grid items-center px-3 pt-1">
       <div class="flex items-center justify-center">
         <GenericIcon icon={action.skill} />
@@ -250,9 +256,11 @@
       </div>
     {/if}
     <div class="glass_content_clip_bottom col-span-12 text-center">
-      {#key $actionEndSignal}
-        <ProgressBar percent={isRevealed ? percent : 0} />
-      {/key}
+      {#if !usesCompletionPulse}
+        {#key $actionEndSignal}
+          <ProgressBar percent={isRevealed ? percent : 0} />
+        {/key}
+      {/if}
     </div>
   </div>
 </div>
@@ -348,6 +356,50 @@
     grid-template-columns: 2rem minmax(0, 1fr) 2rem 2rem max-content 0.75rem;
     column-gap: 0.25rem;
     min-height: 2rem;
+  }
+
+  .action_active_pulse {
+    position: absolute;
+    z-index: 0;
+    inset: 0;
+    border-radius: inherit;
+    pointer-events: none;
+    transform-origin: bottom center;
+    background:
+      radial-gradient(
+        ellipse at 50% 115%,
+        rgb(var(--ui_accent) / 20%) 0%,
+        rgb(var(--ui_accent) / 9%) 38%,
+        transparent 78%
+      ),
+      linear-gradient(
+        to top,
+        rgb(var(--ui_accent) / 14%),
+        rgb(var(--ui_accent) / 5%) 52%,
+        transparent 100%
+      );
+    box-shadow:
+      inset 0 0 0 1px rgb(var(--ui_accent) / 18%),
+      inset 0 -10px 24px rgb(var(--ui_accent) / 10%),
+      inset 0 0 30px rgb(var(--ui_accent) / 6%);
+    animation: action_active_pulse 250ms ease-out infinite;
+  }
+
+  @keyframes action_active_pulse {
+    0% {
+      opacity: 0.55;
+      transform: scaleY(0.13);
+    }
+
+    45% {
+      opacity: 0.34;
+      transform: scaleY(1);
+    }
+
+    100% {
+      opacity: 0;
+      transform: scaleY(1);
+    }
   }
 
   .action_duration {
@@ -479,6 +531,12 @@
   @media (prefers-reduced-motion: reduce) {
     .action_trait_icon {
       transition: none;
+    }
+
+    .action_active_pulse {
+      opacity: 0.16;
+      transform: scaleY(1);
+      animation: none;
     }
   }
 

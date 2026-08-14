@@ -51,6 +51,7 @@
     type AnchorInventoryItem,
   } from "./system/leap";
   import { distinctArrayProjection } from "./system/store";
+  import { glassReflectionsEnabled } from "./system/glassGlow";
   import SettingsMenu from "./parts/SettingsMenu.svelte";
   import { decodeSave, encodeSave } from "./system/saveSharing";
   import LeapButton from "./parts/LeapButton.svelte";
@@ -275,6 +276,7 @@
 
 <main
   class="app_shell h-screen"
+  class:no-glass={!$glassReflectionsEnabled}
   class:death_transition_collapse={$runDeathTransition === "collapse"}
   class:death_transition_reveal={$runDeathTransition === "reveal"}
   class:loop_transition_cover={$runLoopTransition === "cover"}

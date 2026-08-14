@@ -16,6 +16,16 @@ const ORIGINAL_BACKROOM_ENTRY_COMPLETE = CONDITION_CHECKS.or([
   CONDITION_CHECKS.ifActionCompleteRun("na641_museum_talk_staff_backrooms"),
   CONDITION_CHECKS.ifActionCompleteRun("na641_museum_bribe_staff_backrooms"),
 ]);
+const NO_OFFICIAL_BACKROOM_ACCESS = CONDITION_CHECKS.or([
+  CONDITION_CHECKS.noFlag(
+    TAGS.PANTHEON31349.GOD_TRIES_TO_PRESERVE_HISTORY,
+  ),
+  CONDITION_CHECKS.not(
+    CONDITION_CHECKS.ifActionCompleteRun(
+      "na641_museum_ask_staff_about_helping_out",
+    ),
+  ),
+]);
 
 export const museumActions: ActionRepository = {
   na641_museum_search: {
@@ -71,6 +81,51 @@ export const museumActions: ActionRepository = {
     postComplete: [
       COMPLETION_EFFECTS.addLog("Tickets are 5 zenny each"),
       COMPLETION_EFFECTS.addKnowledge("narcadia_currency"),
+    ],
+  },
+  na641_museum_ask_staff_about_helping_out: {
+    ...NO_CROSSGEN,
+    ...NO_REPEAT,
+    title: "Ask staff about helping out",
+    flavourText:
+      "Let's do the work we apparently promised. You'll have to visit curator's office in backrooms",
+    skill: "social",
+    weight: 1600,
+    conditions: [
+      CONDITION_CHECKS.inLocation(NA641),
+      CONDITION_CHECKS.inSubLocation(NA641_SUBLOCATIONS.nawsHistoryMuseum),
+      CONDITION_CHECKS.ifActionCompleteAny(
+        "na641_master_librarian_apologise_for_forgetfulness",
+      ),
+      CONDITION_CHECKS.flag(
+        TAGS.PANTHEON31349.GOD_TRIES_TO_PRESERVE_HISTORY,
+      ),
+    ],
+    postComplete: [
+      COMPLETION_EFFECTS.addKnowledge(KNOWLEDGE.NA641.museum_curators_office),
+    ],
+  },
+  na641_museum_go_to_backrooms: {
+    ...NO_CROSSGEN,
+    ...REPEATABLE,
+    title: "Go to backrooms",
+    skill: "exploration",
+    weight: 10,
+    stopOnRepeat: true,
+    conditions: [
+      CONDITION_CHECKS.inLocation(NA641),
+      CONDITION_CHECKS.inSubLocation(NA641_SUBLOCATIONS.nawsHistoryMuseum),
+      CONDITION_CHECKS.flag(
+        TAGS.PANTHEON31349.GOD_TRIES_TO_PRESERVE_HISTORY,
+      ),
+      CONDITION_CHECKS.ifActionCompleteRun(
+        "na641_museum_ask_staff_about_helping_out",
+      ),
+    ],
+    postComplete: [
+      COMPLETION_EFFECTS.moveSubLocation(
+        NA641_SUBLOCATIONS.nawsHistoryMuseumBackrooms,
+      ),
     ],
   },
   na641_museum_ask_prehistoric_exposition: {
@@ -167,6 +222,7 @@ export const museumActions: ActionRepository = {
       ),
       CONDITION_CHECKS.noFlag(TAGS.NA641.MUSEUM.NO_BACKROOM_ACCESS),
       CONDITION_CHECKS.not(ORIGINAL_BACKROOM_ENTRY_COMPLETE),
+      NO_OFFICIAL_BACKROOM_ACCESS,
     ],
     postComplete: [
       COMPLETION_EFFECTS.addFlag(TAGS.NA641.MUSEUM.STAFF_FOLLOWS, "1"),
@@ -191,6 +247,7 @@ export const museumActions: ActionRepository = {
       CONDITION_CHECKS.hasKnowledge(
         KNOWLEDGE.NA641.museum_prehistoric_exposition,
       ),
+      NO_OFFICIAL_BACKROOM_ACCESS,
     ],
     postComplete: [
       COMPLETION_EFFECTS.addLog("You've found a way to sneak into backrooms!"),
@@ -215,6 +272,7 @@ export const museumActions: ActionRepository = {
       ),
       CONDITION_CHECKS.noFlag(TAGS.NA641.MUSEUM.NO_BACKROOM_ACCESS),
       CONDITION_CHECKS.not(ORIGINAL_BACKROOM_ENTRY_COMPLETE),
+      NO_OFFICIAL_BACKROOM_ACCESS,
     ],
     postComplete: [
       COMPLETION_EFFECTS.removeItem("narcadia641_zenny", 15),
@@ -241,6 +299,7 @@ export const museumActions: ActionRepository = {
       CONDITION_CHECKS.inLocation(NA641),
       CONDITION_CHECKS.inSubLocation(NA641_SUBLOCATIONS.nawsHistoryMuseum),
       ORIGINAL_BACKROOM_ENTRY_COMPLETE,
+      NO_OFFICIAL_BACKROOM_ACCESS,
     ],
     postComplete: [
       COMPLETION_EFFECTS.addFlag(TAGS.NA641.MUSEUM.NO_BACKROOM_ACCESS, "1"),
@@ -264,6 +323,7 @@ export const museumActions: ActionRepository = {
       CONDITION_CHECKS.inLocation(NA641),
       CONDITION_CHECKS.inSubLocation(NA641_SUBLOCATIONS.nawsHistoryMuseum),
       ORIGINAL_BACKROOM_ENTRY_COMPLETE,
+      NO_OFFICIAL_BACKROOM_ACCESS,
     ],
     postComplete: [
       COMPLETION_EFFECTS.addFlag(TAGS.NA641.MUSEUM.NO_BACKROOM_ACCESS, "1"),

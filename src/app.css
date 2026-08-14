@@ -8,6 +8,14 @@
     "Segoe UI", sans-serif;
   font-style: normal;
   letter-spacing: 0;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+.settings_save_code,
+#dev-item-picker {
+  -webkit-user-select: text;
+  user-select: text;
 }
 
 html,
