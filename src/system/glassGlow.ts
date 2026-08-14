@@ -299,6 +299,7 @@ function mountGlassEdgeGlow() {
 
   const context = canvas.getContext("2d", {
     alpha: true,
+    desynchronized: true,
   });
   if (!context) {
     canvas.remove();
