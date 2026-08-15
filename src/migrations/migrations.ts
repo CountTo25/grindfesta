@@ -11,6 +11,7 @@ import migration20260807NamedRetraceConfigs from "./20260807_named_retrace_confi
 import migration20260807MarcoObserveCrossgen from "./20260807_marco_observe_crossgen";
 import migration20260811Achievements from "./20260811_achievements";
 import migration20260814RemoveTotalMagicShowOffMilestone from "./20260814_remove_total_magic_show_off_milestone";
+import migration20260815LookAtTomesKnowledge from "./20260815_look_at_tomes_knowledge";
 // add-migration-imports-above
 
 const SAVE_MIGRATIONS: SaveMigration[] = [
@@ -26,6 +27,7 @@ const SAVE_MIGRATIONS: SaveMigration[] = [
   migration20260807MarcoObserveCrossgen,
   migration20260811Achievements,
   migration20260814RemoveTotalMagicShowOffMilestone,
+  migration20260815LookAtTomesKnowledge,
   // add-migration-entries-above
 ];
 
