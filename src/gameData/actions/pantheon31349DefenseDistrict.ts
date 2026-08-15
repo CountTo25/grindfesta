@@ -73,6 +73,9 @@ export const pantheon31349DefenseDistrictActions: ActionRepository = {
         ETERNIA31349_SUBLOCATIONS.scholarsDistrict,
       ),
       DEFENSE_DISTRICT_KNOWN,
+      CONDITION_CHECKS.ifActionCompleteRun(
+        "pantheon31349_part_ways_with_hsak",
+      ),
     ],
     postComplete: [
       COMPLETION_EFFECTS.moveSubLocation(

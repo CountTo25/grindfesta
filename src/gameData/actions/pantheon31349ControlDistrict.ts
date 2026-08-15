@@ -28,6 +28,9 @@ export const pantheon31349ControlDistrictActions: ActionRepository = {
       CONDITION_CHECKS.hasKnowledge(
         KNOWLEDGE.PANTHEON31349.control_district,
       ),
+      CONDITION_CHECKS.ifActionCompleteRun(
+        "pantheon31349_part_ways_with_hsak",
+      ),
     ],
     postComplete: [
       COMPLETION_EFFECTS.moveSubLocation(
